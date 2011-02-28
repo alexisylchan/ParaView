@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __pqVRPNStarter_h
 
 #include <QObject>
+#include <vtkInteractionDeviceManager.h>
 
 class QTimer;
 class ParaViewVRPN;
@@ -51,11 +52,15 @@ public:
   // Callback for startup.
   void onStartup();
 
+public slots:
+    void callback();
 protected:
     QTimer *VRPNTimer;
-    ParaViewVRPN *InputDevice;
+    vtkInteractionDeviceManager* inputDeviceManager;
+	vtkDeviceInteractor* inputInteractor;
 
 private:
+  FILE* vrpnpluginlog;
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
 
