@@ -19,3 +19,6 @@
 [submodule "vtkInteractionDevice"]
 	path = vtkInteractionDevice
 	url = git://github.com/alexisylchan/vtkInteractionDevice.git
+[submodule "Plugins/VRPN/vtkInteractionDevice"]
+	path = Plugins/VRPN/vtkInteractionDevice
+	url = git://github.com/alexisylchan/vtkInteractionDevice.git
