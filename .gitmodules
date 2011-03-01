@@ -13,3 +13,6 @@
 [submodule "Utilities/VisItBridge"]
 	path = Utilities/VisItBridge
 	url = git://paraview.org/VisItBridge.git
+[submodule "vtkInteractionDevice/Test"]
+        path = vtkInteractionDevice/Test
+	url = git://github.com/alexisylchan/vtkInteractionDevice.git
