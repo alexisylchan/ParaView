@@ -16,3 +16,6 @@
 [submodule "vtkInteractionDevice/Test"]
         path = vtkInteractionDevice/Test
 	url = git://github.com/alexisylchan/vtkInteractionDevice.git
+[submodule "vtkInteractionDevice"]
+	path = vtkInteractionDevice
+	url = git://github.com/alexisylchan/vtkInteractionDevice.git
