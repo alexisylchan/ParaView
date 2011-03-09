@@ -17,7 +17,8 @@ message("VRPN_LIBRARY=${VRPN_LIBRARY}")
 # VTK Interaction
 # find_path(VTK_INTERACTION_INCLUDE_DIR vtkInteractionDevice.h)
 # find_library(VTK_INTERACTION_LIBRARY vtkInteractionDevice)
-SET (VTK_INTERACTION_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vtkInteractionDevice")ADD_SUBDIRECTORY(vtkInteractionDevice)
+SET (VTK_INTERACTION_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vtkInteractionDevice")
+ADD_SUBDIRECTORY(vtkInteractionDevice)
 SET (VTK_INTERACTION_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/vtkInteractionDevice")
 
 message("VTK_INTERACTION_INCLUDE_DIR =${VTK_INTERACTION_INCLUDE_DIR}")
@@ -96,7 +97,7 @@ ADD_PARAVIEW_PLUGIN(
 
  
 TARGET_LINK_LIBRARIES (VRPNPlugin  ${VRPN_LIBRARY} 
-debug ${VTK_INTERACTION_BINARY_DIR}/lib/Debug/vtkInteractionDevice.lib) 
+debug ${VTK_INTERACTION_BINARY_DIR}/lib/Debug/vtkInteractionDevice.lib  
 optimized ${VTK_INTERACTION_BINARY_DIR}/lib/Release/vtkInteractionDevice.lib)
  
 

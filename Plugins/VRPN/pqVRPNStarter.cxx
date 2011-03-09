@@ -106,8 +106,8 @@ void pqVRPNStarter::onStartup()
 		  gl->addWidget(view2->getWidget(),1,1);
 
 		  //Create third view 
-		  pqRenderView* view3 = qobject_cast<pqRenderView*>(
-	      builder->createView(pqRenderView::renderViewType(), server));
+		  //pqRenderView* view3 = qobject_cast<pqRenderView*>(
+	      //builder->createView(pqRenderView::renderViewType(), server));
           //Add third view's widget to gridlayout
 		  //gl->addWidget(view3->getWidget());
 	  }
