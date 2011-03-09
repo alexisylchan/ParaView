@@ -44,6 +44,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkMath.h"
 #include "pqView.h"
 #include "pqActiveObjects.h"
+
+#include "pqApplicationCore.h"
+#include "pqObjectBuilder.h"
+#include "pqServerManagerModel.h"
+#include "pqServer.h"
+#include "pqRenderView.h"
+
 #include "vtkSMRenderViewProxy.h"
 #include <vtkDeviceInteractor.h>
 #include <vtkInteractionDeviceManager.h>
@@ -54,6 +61,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkVRPNTracker.h>
 #include <vtkVRPNTrackerStyleCamera.h>
 #include <sstream>
+#include <QGridLayout>
 //-----------------------------------------------------------------------------
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
   : QObject(p)
@@ -70,75 +78,40 @@ pqVRPNStarter::~pqVRPNStarter()
 void pqVRPNStarter::onStartup()
 {
   qWarning() << "Message from pqVRPNStarter: Application Started";
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
-  if(options->GetUseVRPN())
-    {
-    // VRPN input events.
-    this->VRPNTimer=new QTimer(this);
-    this->VRPNTimer->setInterval(40); // in ms
-    // to define: obj and callback()
+  //Open log file
+  vrpnpluginlog = fopen("D://vrpnplugin.txt","w" );
+  // Get Application Core
+  pqApplicationCore* core = pqApplicationCore::instance();
 
-    pqView *view = 0;
-	view = pqActiveObjects::instance().activeView();
-	
-	//Get View Proxy
-	vtkSMRenderViewProxy *proxy = 0;
-    proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-      
-	//Get Renderer and Render Window
-	vtkRenderer* renderer = proxy->GetRenderer();
-	vtkRenderWindow* window = proxy->GetRenderWindow();
+  // Get Object Builder to create new Views, Server etc
+  pqObjectBuilder* builder = core->getObjectBuilder(); 
+  // Get the Server Manager Model so that we can get current server
+  pqServerManagerModel* serverManager = core->getServerManagerModel();
+  
+  if (serverManager->getNumberOfItems<pqServer*>()== 1) // Assuming that there is only 1 server
+  {
+	  pqServer* server = serverManager->getItemAtIndex<pqServer*>(0); 
+	  if (serverManager->getNumberOfItems<pqView*> () == 1) // Assuming that there is only 1 view created
+	  {
+		  pqView* view1 = serverManager->getItemAtIndex<pqView*>(0);
+		 
+		  // Get QWidget from first view  
+		  QWidget* viewWidget = view1->getWidget();
+		  //Create GridLayout Widget from first view's widget
+		  QGridLayout* gl  = new QGridLayout(viewWidget);
+          //create second view
+		  pqRenderView* view2 = qobject_cast<pqRenderView*>(
+	      builder->createView(pqRenderView::renderViewType(), server));
+          //Add second view's widget to gridlayout
+		  gl->addWidget(view2->getWidget(),1,1);
 
-	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
-	vtkVRPNTracker* tracker = vtkVRPNTracker::New();
-    tracker->SetDeviceName(options->GetVRPNAddress()); 
-
-	//My custom Tracker placement
-	tracker->SetTracker2WorldTranslation(-7.47, 0, -1.5);
-
-    // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
-    double t2w[3][3] = { 1, 0,  0,
-                         0, 0, -1, 
-                         0, 1,  0 };
-    double t2wQuat[4];
-    vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
-    tracker->SetTracker2WorldRotation(t2wQuat);
-
-    tracker->Initialize();
-
-	//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
-    vtkVRPNTrackerStyleCamera* trackerStyleCamera = vtkVRPNTrackerStyleCamera::New();
-    trackerStyleCamera->SetTracker(tracker);
-    trackerStyleCamera->SetRenderer(renderer);
-
-    inputInteractor = vtkDeviceInteractor::New();
-    inputInteractor->AddInteractionDevice(tracker);
-    inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera);
-
-    vtkInteractionDeviceManager* idManager = vtkInteractionDeviceManager::New();
-
-	//Get vtkRenderWindowInteractor from the Interaction Device Manager (defined in vtkInteractionDevice.lib)
-    vtkRenderWindowInteractor* interactor = idManager->GetInteractor(inputInteractor);
-
-	//Set the vtkRenderWindowInteractor's style (trackballcamera) and window 
-	vtkInteractorStyleTrackballCamera* interactorStyle = vtkInteractorStyleTrackballCamera::New();
-    interactor->SetRenderWindow(window);
-    interactor->SetInteractorStyle(interactorStyle);
-	
-	//Set the View Proxy's vtkRenderWindowInteractor
-	proxy->GetRenderWindow()->SetInteractor(interactor);
-	
-    /* Commented out from original Kitware code. 
-	this->InputDevice=new ParaViewVRPN;
-    this->InputDevice->SetName(options->GetVRPNAddress());
-    this->InputDevice->Init();
-	*/
-    connect(this->VRPNTimer,SIGNAL(timeout()),
-		 this,SLOT(callback()));
-    this->VRPNTimer->start();
-    }
-    vrpnpluginlog = fopen("D://vrpnplugin.txt","w" );
+		  //Create third view 
+		  pqRenderView* view3 = qobject_cast<pqRenderView*>(
+	      builder->createView(pqRenderView::renderViewType(), server));
+          //Add third view's widget to gridlayout
+		  //gl->addWidget(view3->getWidget());
+	  }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -149,19 +122,6 @@ void pqVRPNStarter::onShutdown()
 }
 
 void pqVRPNStarter::callback()
-{
-	this->inputInteractor->Update(); 
-
-	//Render upon callback
-	pqView *view = 0;
-	view = pqActiveObjects::instance().activeView();
-	vtkSMRenderViewProxy *proxy = 0;
-    proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-    proxy->GetRenderWindow()->Render();
-
-	//Log device information for debugging
-	std::stringstream stream;
-	this->inputInteractor->PrintSelf(stream, vtkIndent());
-	fprintf(vrpnpluginlog,"%s",stream.str().c_str());
+{ 
 	
 }
