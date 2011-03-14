@@ -50,6 +50,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 #include "pqServer.h"
 #include "pqRenderView.h"
+#include "pqServerResource.h"
+#include "pqServerResources.h"
+#include "vtkPVXMLParser.h"
+
+#include <QFileInfo>
 
 #include "vtkSMRenderViewProxy.h"
 #include <vtkDeviceInteractor.h>
@@ -77,9 +82,7 @@ pqVRPNStarter::~pqVRPNStarter()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onStartup()
 {
-  qWarning() << "Message from pqVRPNStarter: Application Started";
-  //Open log file
-  vrpnpluginlog = fopen("D://vrpnplugin.txt","w" );
+  qWarning() << "Message from pqVRPNStarter: Application Started"; 
   // Get Application Core
   pqApplicationCore* core = pqApplicationCore::instance();
 
@@ -99,11 +102,20 @@ void pqVRPNStarter::onStartup()
 		  QWidget* viewWidget = view1->getWidget();
 		  //Create GridLayout Widget from first view's widget
 		  QGridLayout* gl  = new QGridLayout(viewWidget);
+		  
+
+		  //Create second server ?
+		 // pqServer* server2 = core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
+
+
           //create second view
 		  pqRenderView* view2 = qobject_cast<pqRenderView*>(
-	      builder->createView(pqRenderView::renderViewType(), server));
+	      builder->createView(pqRenderView::renderViewTypeName(), server));
           //Add second view's widget to gridlayout
-		  gl->addWidget(view2->getWidget(),1,1);
+		  gl->addWidget(view2->getWidget(),2,2);
+		  //Set second view as the active view
+		  pqActiveObjects::instance().setActiveView(view2); 
+		  
 
 		  //Create third view 
 		  //pqRenderView* view3 = qobject_cast<pqRenderView*>(
@@ -112,13 +124,48 @@ void pqVRPNStarter::onStartup()
 		  //gl->addWidget(view3->getWidget());
 	  }
   }
+
+  //Attempt to load state
+  //loadState();
 }
 
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void pqVRPNStarter::loadState()
+{
+	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
+	  pqServer *server = activeObjects->activeServer();
+
+	  // Read in the xml file to restore.
+	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	  xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+	  xmlParser->Parse();
+
+	  // Get the root element from the parser.
+	  vtkPVXMLElement *root = xmlParser->GetRootElement();
+	  if (root)
+		{
+		pqApplicationCore::instance()->loadState(root, server);
+
+		// Add this to the list of recent server resources ...
+		pqServerResource resource;
+		resource.setScheme("session");
+		resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+		resource.setSessionServer(server->getResource());
+		pqApplicationCore::instance()->serverResources().add(resource);
+		pqApplicationCore::instance()->serverResources().save(
+		  *pqApplicationCore::instance()->settings());
+		}
+	  else
+		{
+		qCritical("Root does not exist. Either state file could not be opened "
+		  "or it does not contain valid xml");
+		}
+	  xmlParser->Delete();
+}
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
-  qWarning() << "Message from pqVRPNStarter: Application Shutting down";
-  fclose(vrpnpluginlog);
+  qWarning() << "Message from pqVRPNStarter: Application Shutting down"; 
 }
 
 void pqVRPNStarter::callback()

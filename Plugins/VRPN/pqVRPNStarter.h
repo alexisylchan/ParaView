@@ -58,6 +58,7 @@ protected:
     QTimer *VRPNTimer;
     vtkInteractionDeviceManager* inputDeviceManager;
 	vtkDeviceInteractor* inputInteractor;
+    void loadState();
 
 private:
   FILE* vrpnpluginlog;
