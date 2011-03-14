@@ -110,13 +110,12 @@ void pqVRPNStarter::onStartup()
 
           //create second view
 		  pqRenderView* view2 = qobject_cast<pqRenderView*>(
-	      builder->createView(pqRenderView::renderViewTypeName(), server));
+	      builder->createView(pqRenderView::renderViewType(), server));
           //Add second view's widget to gridlayout
 		  gl->addWidget(view2->getWidget(),2,2);
 		  //Set second view as the active view
 		  pqActiveObjects::instance().setActiveView(view2); 
 		  
-
 		  //Create third view 
 		  //pqRenderView* view3 = qobject_cast<pqRenderView*>(
 	      //builder->createView(pqRenderView::renderViewType(), server));
@@ -126,7 +125,7 @@ void pqVRPNStarter::onStartup()
   }
 
   //Attempt to load state
-  //loadState();
+  loadState();
 }
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
