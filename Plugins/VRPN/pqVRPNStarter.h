@@ -61,6 +61,7 @@ protected:
 
 private:
   FILE* vrpnpluginlog;
+  void loadState();
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
 

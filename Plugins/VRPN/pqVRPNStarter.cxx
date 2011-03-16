@@ -54,6 +54,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkVRPNTracker.h>
 #include <vtkVRPNTrackerStyleCamera.h>
 #include <sstream>
+//Load state includes
+#include "pqServerResource.h"
+#include "pqServerResources.h"
+#include "vtkPVXMLParser.h"
+#include "pqApplicationCore.h"
+#include "pqServer.h"
+
 //-----------------------------------------------------------------------------
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
   : QObject(p)
@@ -72,6 +79,7 @@ void pqVRPNStarter::onStartup()
   qWarning() << "Message from pqVRPNStarter: Application Started";
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
+    loadState();
   if(options->GetUseVRPN())
     {
     // VRPN input events.
@@ -151,7 +159,6 @@ void pqVRPNStarter::onShutdown()
 void pqVRPNStarter::callback()
 {
 	this->inputInteractor->Update(); 
-
 	//Render upon callback
 	pqView *view = 0;
 	view = pqActiveObjects::instance().activeView();
@@ -164,4 +171,39 @@ void pqVRPNStarter::callback()
 	//this->inputInteractor->PrintSelf(stream, vtkIndent());
 	//fprintf(vrpnpluginlog,"%s",stream.str().c_str());
 	
+}
+
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void pqVRPNStarter::loadState()
+{
+	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
+	  pqServer *server = activeObjects->activeServer();
+
+	  // Read in the xml file to restore.
+	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	  xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+	 // xmlParser->
+	  xmlParser->Parse();
+
+	  // Get the root element from the parser.
+	  vtkPVXMLElement *root = xmlParser->GetRootElement();
+	  if (root)
+		{
+		pqApplicationCore::instance()->loadState(root, server);
+
+		// Add this to the list of recent server resources ...
+		pqServerResource resource;
+		resource.setScheme("session");
+		resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+		resource.setSessionServer(server->getResource());
+		pqApplicationCore::instance()->serverResources().add(resource);
+		pqApplicationCore::instance()->serverResources().save(
+		  *pqApplicationCore::instance()->settings());
+		}
+	  else
+		{
+		qCritical("Root does not exist. Either state file could not be opened "
+		  "or it does not contain valid xml");
+		}
+	  xmlParser->Delete();
 }
