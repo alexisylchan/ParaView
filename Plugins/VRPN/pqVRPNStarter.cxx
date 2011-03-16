@@ -138,14 +138,14 @@ void pqVRPNStarter::onStartup()
 		 this,SLOT(callback()));
     this->VRPNTimer->start();
     }
-    vrpnpluginlog = fopen("D://vrpnplugin.txt","w" );
+   // vrpnpluginlog = fopen("D://vrpnplugin.txt","w" );
 }
 
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
   qWarning() << "Message from pqVRPNStarter: Application Shutting down";
-  fclose(vrpnpluginlog);
+ // fclose(vrpnpluginlog);
 }
 
 void pqVRPNStarter::callback()
@@ -160,8 +160,8 @@ void pqVRPNStarter::callback()
     proxy->GetRenderWindow()->Render();
 
 	//Log device information for debugging
-	std::stringstream stream;
-	this->inputInteractor->PrintSelf(stream, vtkIndent());
-	fprintf(vrpnpluginlog,"%s",stream.str().c_str());
+	//std::stringstream stream;
+	//this->inputInteractor->PrintSelf(stream, vtkIndent());
+	//fprintf(vrpnpluginlog,"%s",stream.str().c_str());
 	
 }
