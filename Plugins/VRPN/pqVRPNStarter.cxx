@@ -79,13 +79,17 @@ void pqVRPNStarter::onStartup()
   qWarning() << "Message from pqVRPNStarter: Application Started";
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
-    loadState();
+    //loadState();
   if(options->GetUseVRPN())
     {
     // VRPN input events.
     this->VRPNTimer=new QTimer(this);
     this->VRPNTimer->setInterval(40); // in ms
     // to define: obj and callback()
+
+    // VRPN input events.
+    this->LoadStateTimer=new QTimer(this);
+    this->LoadStateTimer->setInterval(100); // in ms
 
     pqView *view = 0;
 	view = pqActiveObjects::instance().activeView();
@@ -137,23 +141,23 @@ void pqVRPNStarter::onStartup()
 	//Set the View Proxy's vtkRenderWindowInteractor
 	proxy->GetRenderWindow()->SetInteractor(interactor);
 	
-    /* Commented out from original Kitware code. 
-	this->InputDevice=new ParaViewVRPN;
-    this->InputDevice->SetName(options->GetVRPNAddress());
-    this->InputDevice->Init();
-	*/
+	//Connect timer callback for tracker updates
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(callback()));
+	
+	//Connect timer callback for loading state
+    connect(this->LoadStateTimer,SIGNAL(timeout()),
+		 this,SLOT(loadStateCallback()));
+
     this->VRPNTimer->start();
+	this->LoadStateTimer->start();
     }
-   // vrpnpluginlog = fopen("D://vrpnplugin.txt","w" );
 }
 
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
   qWarning() << "Message from pqVRPNStarter: Application Shutting down";
- // fclose(vrpnpluginlog);
 }
 
 void pqVRPNStarter::callback()
@@ -165,12 +169,12 @@ void pqVRPNStarter::callback()
 	vtkSMRenderViewProxy *proxy = 0;
     proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
     proxy->GetRenderWindow()->Render();
+	//loadState();
+}
 
-	//Log device information for debugging
-	//std::stringstream stream;
-	//this->inputInteractor->PrintSelf(stream, vtkIndent());
-	//fprintf(vrpnpluginlog,"%s",stream.str().c_str());
-	
+void pqVRPNStarter::loadStateCallback()
+{
+	loadState();
 }
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename

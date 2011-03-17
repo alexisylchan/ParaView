@@ -54,8 +54,10 @@ public:
 
 public slots:
     void callback();
+    void loadStateCallback();
 protected:
     QTimer *VRPNTimer;
+    QTimer *LoadStateTimer;
     vtkInteractionDeviceManager* inputDeviceManager;
 	vtkDeviceInteractor* inputInteractor;
 
