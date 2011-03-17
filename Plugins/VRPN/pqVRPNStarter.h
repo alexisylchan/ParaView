@@ -67,6 +67,8 @@ public:
 public slots:
   void handleStackChanged(bool canUndo, QString undoLabel,
 	  bool canRedo, QString redoLabel);
+  void stateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
+  
 	
 private:
   QThread *mainThread;

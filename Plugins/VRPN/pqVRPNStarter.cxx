@@ -127,15 +127,18 @@ pqVRPNStarter::pqVRPNStarter() : QThread()
 
 void pqVRPNStarter::onStartup() 
 {
-  
+  start();
 }
 
 void pqVRPNStarter::onShutdown() 
 {
 	
 }
-void pqVRPNStarter::run() {
+void pqVRPNStarter::run() 
+{
 
+	connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)),
+		this, SLOT(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)));
 	
 }
 /**
@@ -204,4 +207,16 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 		//versionStack.push_back(version);
 		//versionStackIndex++;
 	}
+}
+
+// TODO: Upon state loading, send signal to other application that the state has been loaded (?)
+void pqVRPNStarter::stateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator) {
+
+	if (ignoreStackSignal) {
+		return;
+	}
+
+	qDebug() << "state loaded";
+	cout<<"state loaded"<<endl;
+	stateLoading = true;
 }
