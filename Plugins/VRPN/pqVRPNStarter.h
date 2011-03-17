@@ -32,42 +32,73 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __pqVRPNStarter_h
 #define __pqVRPNStarter_h
 
-#include <QObject>
-#include <vtkInteractionDeviceManager.h>
+#include <QActionGroup>
+#include <QApplication>
+#include <QStyle>
+#include <QMessageBox>
+#include <QThread>
+#include <QMutex>
+#include <QProcess>
+#include <QList>
+#include <QHash>
+#include <QQueue>
+#include <QTcpSocket>
 
-class QTimer;
-class ParaViewVRPN;
+#include "pqApplicationCore.h"
+#include "pqServerManagerModel.h"
+#include "pqUndoStack.h"
+#include "vtkUndoSet.h"
 
-class pqVRPNStarter : public QObject
+
+
+
+class pqVRPNStarter : public QThread
 {
-  Q_OBJECT
-  typedef QObject Superclass;
-public:
-  pqVRPNStarter(QObject* p=0);
-  ~pqVRPNStarter();
+   Q_OBJECT
 
-  // Callback for shutdown.
+public:
+  pqVRPNStarter();
+
+  void onStartup();
   void onShutdown();
 
-  // Callback for startup.
-  void onStartup();
+  void run();
 
 public slots:
-    void callback();
-    void loadStateCallback();
-protected:
-    QTimer *VRPNTimer;
-    QTimer *LoadStateTimer;
-    vtkInteractionDeviceManager* inputDeviceManager;
-	vtkDeviceInteractor* inputInteractor;
-
+  void handleStackChanged(bool canUndo, QString undoLabel,
+	  bool canRedo, QString redoLabel);
+	
 private:
-  FILE* vrpnpluginlog;
-  void loadState();
-  pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
-  void operator=(const pqVRPNStarter&); // Not implemented.
+  QThread *mainThread;
+    // ParaView's undo stack
+  // FIXME - keep this as a member or not?
+  pqUndoStack *undoStack;
 
+  // We need to keep track of the active server - our tracking of 
+  // it is taken from pqMainWindowCore
+  pqServer* activeServer;
+
+  // We want to avoid processing stack changed signals when we're 
+  // fiddling with the undo stack.
+  volatile bool ignoreStackSignal;
+
+  // After the stateLoaded signal gets sent, we expect to see a server
+  // resource change that we can get the filename of the state from.
+  bool stateLoading;
+  // This is the variable that will control when the thread should stop
+  //bool quit;
+  
+  // We keep track of the VisTrails pipline ids as the user changes
+  // it in ParaView.  This is a list of version numbers that goes from
+  // the initial version (0) to the farthest one we can redo to.
+  // The current version is versionStack[versionStackIndex].
+  QList<int> versionStack;
+  int versionStackIndex;
+
+
+signals:
 
 };
+
 
 #endif

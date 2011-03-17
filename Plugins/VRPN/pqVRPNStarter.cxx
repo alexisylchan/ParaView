@@ -1,213 +1,207 @@
-/*=========================================================================
 
-   Program: ParaView
-   Module:    pqVRPNStarter.cxx
+//--------------------------------------------------------------------------
+//
+// This file is part of the Vistrails ParaView Plugin.
+//
+// This file may be used under the terms of the GNU General Public
+// License version 2.0 as published by the Free Software Foundation
+// and appearing in the file LICENSE.GPL included in the packaging of
+// this file.  Please review the following to ensure GNU General Public
+// Licensing requirements will be met:
+// http://www.opensource.org/licenses/gpl-2.0.php
+//
+// This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+// WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+//--------------------------------------------------------------------------
 
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+//--------------------------------------------------------------------------
+//
+// Copyright (C) 2009 VisTrails, Inc. All rights reserved.
+//
+//--------------------------------------------------------------------------
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2.
 
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-========================================================================*/
+//#include "PluginMain.h"
+//#include "ToolBarStub.h"
 #include "pqVRPNStarter.h"
-
-// Server Manager Includes.
-
-// Qt Includes.
-#include <QtDebug>
-#include <QTimer>
-// ParaView Includes.
-#include "ParaViewVRPN.h"
+#include "vtkSmartPointer.h"
+#include "vtkUndoSet.h"
+#include "vtkSMProxyManager.h"
+#include "vtkSMProxy.h"
+#include "vtkPVXMLElement.h"
+#include "vtkPVXMLParser.h"
+#include "vtkSMUndoRedoStateLoader.h"
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
+#include <vtksys/SystemTools.hxx>
 
-#include "vtkMath.h"
-#include "pqView.h"
-#include "pqActiveObjects.h"
-#include "vtkSMRenderViewProxy.h"
-#include <vtkDeviceInteractor.h>
-#include <vtkInteractionDeviceManager.h>
-#include <vtkInteractorStyleTrackballCamera.h>  
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkVRPNTracker.h>
-#include <vtkVRPNTrackerStyleCamera.h>
-#include <sstream>
-//Load state includes
-#include "pqServerResource.h"
-#include "pqServerResources.h"
-#include "vtkPVXMLParser.h"
+#include "pqUndoStack.h"
 #include "pqApplicationCore.h"
 #include "pqServer.h"
+#include "pqHelperProxyRegisterUndoElement.h"
+#include "pqProxyUnRegisterUndoElement.h"
+#include "pqObjectBuilder.h"
+#include "pqServerResources.h"
 
-//-----------------------------------------------------------------------------
-pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
-  : QObject(p)
+#include <QMessageBox>
+#include <QTextStream>
+#include <QByteArray>
+#include <QHostAddress>
+#include <QTcpServer>
+#include <QDir>
+#include <QFile>
+#include <QStringList>
+#include <QHostAddress>
+#include <QFileDialog>
+
+#include <iostream>
+#include <sstream>
+#include <string>
+
+
+// we need ntohl() and htonl()
+#ifdef WIN32
+#include <WinSock.h>
+#else
+#include <arpa/inet.h>
+#endif
+
+
+// Don't print debug messages if we're in release mode
+#ifdef NDEBUG
+class NoOpStream {
+public:
+	NoOpStream() {}
+	NoOpStream& operator<<(QString) { return *this; }
+	NoOpStream& operator<<(const char*) { return *this; }
+	NoOpStream& operator<<(int) { return *this; }
+	NoOpStream& operator<<(float) { return *this; }
+	NoOpStream& operator<<(double) { return *this; }
+};
+#define qDebug NoOpStream
+#endif
+
+//
+//// Commands that VisTrails can send to us.
+//const int pvSHUTDOWN = 0;
+//const int pvRESET = 1;
+//const int pvMODIFYSTACK = 2;
+
+// Commands we can send to VisTrails.
+const int vtSHUTDOWN = 0;
+const int vtUNDO = 1;
+const int vtREDO = 2;
+const int vtNEW_VERSION = 3;
+const int vtREQUEST_VERSION_DATA = 4;
+
+//// Where do we expect to find VisTrails listening for us.
+//QHostAddress vtHost(QHostAddress::LocalHost);
+//const int vtPort = 50007;
+
+//// The Port that we listen on.
+//const int pvPort = 50013;
+
+
+
+
+/**
+The PluginMain class is the main "public interface"
+between the VisTrails client and ParaView.
+*/
+pqVRPNStarter::pqVRPNStarter() : QThread() 
 {
+	//it seems that at this time the undoStack is NULL
+	undoStack = pqApplicationCore::instance()->getUndoStack();
+
+	versionStackIndex = 0;
+	versionStack.push_back(0);
+
+	ignoreStackSignal = false;
+
+	activeServer = NULL;
+	stateLoading = false;
+
+	mainThread = QThread::currentThread();
 }
 
-//-----------------------------------------------------------------------------
-pqVRPNStarter::~pqVRPNStarter()
+void pqVRPNStarter::onStartup() 
 {
+  
 }
 
-
-//-----------------------------------------------------------------------------
-void pqVRPNStarter::onStartup()
+void pqVRPNStarter::onShutdown() 
 {
-  qWarning() << "Message from pqVRPNStarter: Application Started";
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
-    //loadState();
-  if(options->GetUseVRPN())
-    {
-    // VRPN input events.
-    this->VRPNTimer=new QTimer(this);
-    this->VRPNTimer->setInterval(40); // in ms
-    // to define: obj and callback()
-
-    // VRPN input events.
-    this->LoadStateTimer=new QTimer(this);
-    this->LoadStateTimer->setInterval(100); // in ms
-
-    pqView *view = 0;
-	view = pqActiveObjects::instance().activeView();
 	
-	//Get View Proxy
-	vtkSMRenderViewProxy *proxy = 0;
-    proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-      
-	//Get Renderer and Render Window
-	vtkRenderer* renderer = proxy->GetRenderer();
-	vtkRenderWindow* window = proxy->GetRenderWindow();
+}
+void pqVRPNStarter::run() {
 
-	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
-	vtkVRPNTracker* tracker = vtkVRPNTracker::New();
-    tracker->SetDeviceName(options->GetVRPNAddress()); 
-
-	//My custom Tracker placement
-	tracker->SetTracker2WorldTranslation(-7.47, 0, -1.5);
-
-    // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
-    double t2w[3][3] = { 1, 0,  0,
-                         0, 0, -1, 
-                         0, 1,  0 };
-    double t2wQuat[4];
-    vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
-    tracker->SetTracker2WorldRotation(t2wQuat);
-
-    tracker->Initialize();
-
-	//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
-    vtkVRPNTrackerStyleCamera* trackerStyleCamera = vtkVRPNTrackerStyleCamera::New();
-    trackerStyleCamera->SetTracker(tracker);
-    trackerStyleCamera->SetRenderer(renderer);
-
-    inputInteractor = vtkDeviceInteractor::New();
-    inputInteractor->AddInteractionDevice(tracker);
-    inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera);
-
-    vtkInteractionDeviceManager* idManager = vtkInteractionDeviceManager::New();
-
-	//Get vtkRenderWindowInteractor from the Interaction Device Manager (defined in vtkInteractionDevice.lib)
-    vtkRenderWindowInteractor* interactor = idManager->GetInteractor(inputInteractor);
-
-	//Set the vtkRenderWindowInteractor's style (trackballcamera) and window 
-	vtkInteractorStyleTrackballCamera* interactorStyle = vtkInteractorStyleTrackballCamera::New();
-    interactor->SetRenderWindow(window);
-    interactor->SetInteractorStyle(interactorStyle);
 	
-	//Set the View Proxy's vtkRenderWindowInteractor
-	proxy->GetRenderWindow()->SetInteractor(interactor);
-	
-	//Connect timer callback for tracker updates
-    connect(this->VRPNTimer,SIGNAL(timeout()),
-		 this,SLOT(callback()));
-	
-	//Connect timer callback for loading state
-    connect(this->LoadStateTimer,SIGNAL(timeout()),
-		 this,SLOT(loadStateCallback()));
-
-    this->VRPNTimer->start();
-	this->LoadStateTimer->start();
-    }
 }
+/**
+This is the slot for handling the signals when ParaView updates its 
+version stack.  
+*/
+void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel, 
+									bool canRedo, QString redoLabel) {
 
-//-----------------------------------------------------------------------------
-void pqVRPNStarter::onShutdown()
-{
-  qWarning() << "Message from pqVRPNStarter: Application Shutting down";
-}
+	if (ignoreStackSignal) {
+		return;
+	}
 
-void pqVRPNStarter::callback()
-{
-	this->inputInteractor->Update(); 
-	//Render upon callback
-	pqView *view = 0;
-	view = pqActiveObjects::instance().activeView();
-	vtkSMRenderViewProxy *proxy = 0;
-    proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-    proxy->GetRenderWindow()->Render();
-	//loadState();
-}
+	if (!pqApplicationCore::instance()){
+		return;
+	}
 
-void pqVRPNStarter::loadStateCallback()
-{
-	loadState();
-}
+	if (pqApplicationCore::instance()->isLoadingState()) {
+		return;
+	}
 
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void pqVRPNStarter::loadState()
-{
-	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
-	  pqServer *server = activeObjects->activeServer();
+	// we should reset of we cant undo or redo anything
+	if (!canUndo && !canRedo) {
+		versionStackIndex = 0;
+		versionStack.clear();
+		versionStack.push_back(0);
+		return;
+	}
 
-	  // Read in the xml file to restore.
-	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-	  xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-	 // xmlParser->
-	  xmlParser->Parse();
+    // we need to handle undo's, redo's, and normal stack changes differently
+	if (undoStack->getInUndo()) {
+		//TODO: Insert error handling
+		versionStackIndex--;
 
-	  // Get the root element from the parser.
-	  vtkPVXMLElement *root = xmlParser->GetRootElement();
-	  if (root)
-		{
-		pqApplicationCore::instance()->loadState(root, server);
+	} else if (undoStack->getInRedo()) {
+		//TODO: Insert error handling
+		versionStackIndex++;
 
-		// Add this to the list of recent server resources ...
-		pqServerResource resource;
-		resource.setScheme("session");
-		resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-		resource.setSessionServer(server->getResource());
-		pqApplicationCore::instance()->serverResources().add(resource);
-		pqApplicationCore::instance()->serverResources().save(
-		  *pqApplicationCore::instance()->settings());
+	} else {
+		if (!canUndo) {
+			qCritical() << "can't undo - not sending version!";
+			return;
 		}
-	  else
-		{
-		qCritical("Root does not exist. Either state file could not be opened "
-		  "or it does not contain valid xml");
-		}
-	  xmlParser->Delete();
+
+		// Get the xml delta for the operation at the top of the undo stack.
+		std::stringstream xmlStream;
+		std::string xmlString;
+
+		vtkUndoSet *uset = undoStack->getLastUndoSet();
+		vtkPVXMLElement* xml = uset->SaveState(NULL);
+
+		xml->PrintXML(xmlStream, vtkIndent());
+		QString xmlStr(xmlStream.str().c_str());
+
+		xml->Delete();
+		uset->Delete();
+
+		// This is an xml delta - make the first character start with an 'x'
+		xmlStr = "x"+xmlStr;
+		int version;
+		//TODO: communicate xml file name to other application
+		//int version;
+		//// Update the stack of version id's - truncate the version stack
+		//// since we can't redo anything now.
+		//versionStack.erase(versionStack.begin()+versionStackIndex+1, versionStack.end());
+		//versionStack.push_back(version);
+		//versionStackIndex++;
+	}
 }
