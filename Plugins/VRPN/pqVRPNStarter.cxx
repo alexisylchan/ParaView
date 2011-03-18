@@ -128,7 +128,9 @@ pqVRPNStarter::pqVRPNStarter() : QThread()
 	stateFileIndex = 0;
 
 	pqMultiView* multiView = qobject_cast<pqMultiView*>(pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
-	multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
+	pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
+	pqApplicationCore::instance()->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+	//multiViewFrame->c
 	mainThread = QThread::currentThread();
 }
 
