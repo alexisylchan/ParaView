@@ -49,6 +49,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqUndoStack.h"
 #include "vtkUndoSet.h"
 
+#include "pqOutputPort.h"
+
+#include "pqDataRepresentation.h"
+#include "pqRepresentation.h"
 
 
 
@@ -68,7 +72,14 @@ public slots:
   void handleStackChanged(bool canUndo, QString undoLabel,
 	  bool canRedo, QString redoLabel);
   void stateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
-  
+  void serverResourcesChanged();
+  void sourceChanged(pqPipelineSource* pipelineSource);
+  void viewChanged(pqView* view);
+
+  void portChanged(pqOutputPort* outputPort);
+
+  void representationChanged(pqDataRepresentation* rep);
+  void representationChanged(pqRepresentation* rep);
 	
 private:
   QThread *mainThread;

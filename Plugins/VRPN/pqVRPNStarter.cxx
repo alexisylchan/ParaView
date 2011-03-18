@@ -43,6 +43,8 @@
 #include "pqProxyUnRegisterUndoElement.h"
 #include "pqObjectBuilder.h"
 #include "pqServerResources.h"
+#include "pqActiveObjects.h"
+
 
 #include <QMessageBox>
 #include <QTextStream>
@@ -139,7 +141,17 @@ void pqVRPNStarter::run()
 
 	connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)),
 		this, SLOT(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)));
-	
+	connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
+		this, SLOT(serverResourcesChanged()));
+	connect(&pqActiveObjects::instance(), SIGNAL(viewChanged(pqView* )),this,SLOT(viewChanged(pqView* )));
+	connect(&pqActiveObjects::instance(), SIGNAL(portChanged(pqOutputPort* )),this,SLOT(portChanged(pqOutputPort* )));
+
+	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqDataRepresentation* )),this,SLOT(representationChanged(pqDataRepresentation* )));
+
+	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqRepresentation* )),this,SLOT(representationChanged(pqRepresentation* )));
+
+	connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource* )),this,SLOT(sourceChanged(pqPipelineSource* )));
+
 }
 /**
 This is the slot for handling the signals when ParaView updates its 
@@ -219,4 +231,60 @@ void pqVRPNStarter::stateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locato
 	qDebug() << "state loaded";
 	cout<<"state loaded"<<endl;
 	stateLoading = true;
+}
+
+void pqVRPNStarter::serverResourcesChanged() {
+	if (stateLoading) {
+		qDebug() << "state file:" << pqApplicationCore::instance()->serverResources().list()[0].path();
+		stateLoading = false;
+
+
+		// This is a state file delta - make the first character start with an 's'
+		QString filename = "s"+pqApplicationCore::instance()->serverResources().list()[0].path();
+
+		////Send VisTrails the filename representation of this version
+		//vtSender->writeInt(vtNEW_VERSION);
+		//vtSender->writeString("State Load");
+		//vtSender->writeString(filename);
+		//vtSender->writeInt(vtkProcessModule::GetProcessModule()->GetUniqueID().ID+1);
+		//vtSender->waitForBytesWritten(-1);
+
+		//// VisTrails sends back the id of the new version.
+		//int version;
+		//if (!vtSender->readInt(version))
+		//	qCritical() << "socket error";
+		//if (version < 0)
+		//	qCritical() << "vistrail error";
+
+		// Update the stack of version id's - truncate the version stack
+		// since we can't redo anything now.
+	/*	versionStack.erase(versionStack.begin()+versionStackIndex+1, versionStack.end());
+		versionStack.push_back(version);
+		versionStackIndex++;*/
+	}
+}
+
+void pqVRPNStarter::sourceChanged(pqPipelineSource* pipelineSource) {
+		qWarning() << "Source Changed";
+		
+}
+
+void pqVRPNStarter::viewChanged(pqView* view) {
+		qWarning() << "View Changed";
+		
+}
+
+void pqVRPNStarter::portChanged(pqOutputPort* outputPort) {
+		qWarning() << "Output Port Changed";
+		
+}
+
+void pqVRPNStarter::representationChanged(pqDataRepresentation* rep) {
+		qWarning() << "Representation data Changed";
+		
+}
+
+void pqVRPNStarter::representationChanged(pqRepresentation* rep) {
+		qWarning() << "Representation Changed";
+		
 }
