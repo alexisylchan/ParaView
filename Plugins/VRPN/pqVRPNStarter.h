@@ -53,7 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqDataRepresentation.h"
 #include "pqRepresentation.h"
-
+#include "pqMultiViewFrame.h"
 
 
 class QTimer;
@@ -81,7 +81,10 @@ public slots:
 
   void representationChanged(pqDataRepresentation* rep);
   void representationChanged(pqRepresentation* rep);
-	
+  
+ //void splitHorizontalWidget(QWidget* w);
+  
+  void splitView(pqMultiViewFrame* multiFrame);
 protected:
     QTimer *VRPNTimer;
 protected slots:

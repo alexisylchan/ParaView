@@ -38,7 +38,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
 #include "ParticlesViewerDisplayPolicy.h"
-
+#include "pqActiveObjects.h"
+#include "pqServerManagerModel.h"
+#include "pqRenderView.h"
+#include "pqObjectBuilder.h"
 //-----------------------------------------------------------------------------
 ParticlesViewerStarter::ParticlesViewerStarter(QObject* parentObject)
   : Superclass(parentObject)
@@ -62,7 +65,38 @@ void ParticlesViewerStarter::startApplication()
   QObject::connect(ui.action_Exit, SIGNAL(triggered()),
     pqApplicationCore::instance(), SLOT(quit()));
 
-  pqApplicationCore::instance()->setDisplayPolicy(
+ /* pqMultiView::Index index = this->indexOf(w);
+  pqMultiView::Index newindex = this->splitView(index, o);
+  QWidget *newWidget=this->widgetOfIndex(newindex);
+  pqMultiViewFrame* frame = qobject_cast<pqMultiViewFrame*>(newWidget); 
+  this->setup(frame);*/
+
+
+ // pqView* view = &pqActiveObjects::activeView();
+  //pqMultiView* multiView = qobject_cast<pqMultiView*>(pqApplicationCore::instance()->manager(
+  pqMultiView* viewManager = qobject_cast<pqMultiView*>(
+    pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
+  //pq
+  /*
+ pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+pqServer* server = serverManager->getItemAtIndex<pqServer*>(0);
+  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder(); */
+ /* pqRenderView* view2 = qobject_cast<pqRenderView*>(
+  builder->createView(pqRenderView::renderViewType(), server));
+ */ /*viewManager->assignFrame(qobject_cast<pqRenderView*>(
+  builder->createView(pqRenderView::renderViewType(), server)));*/
+
+ // pqView* view1 = serverManager->getItemAtIndex<pqView*>(0);
+  //viewManager->splitWidgetHorizontal(window);
+
+  //viewManager->assignFrame(pqActiveObjects::instance().activeView());//,Qt::Horizontal);
+	  
+	/*  splitWidgetHorizontal
+	  splitWidget(,Qt::Horizontal);*/
+ /* pqServerManagerModel* smm = pqApplicationCore::getServerManagerModel();*/
+
+
+pqApplicationCore::instance()->setDisplayPolicy(
     new ParticlesViewerDisplayPolicy(this));
 
   pqParaViewMenuBuilders::buildViewMenu(*ui.menu_View, *window);

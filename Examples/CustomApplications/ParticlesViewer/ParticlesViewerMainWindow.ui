@@ -19,7 +19,12 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="pqViewManager" name="MultiViewManager" native="true"/>
+      <widget class="QSplitter" name="splitter_5" >
+        <property name="orientation" >
+          <enum>Qt::Vertical</enum>
+        </property>
+        <widget class="pqViewManager" name="MultiViewManager" native="true"/>
+            </widget>
     </item>
    </layout>
   </widget>
@@ -113,7 +118,7 @@
    <class>pqViewManager</class>
    <extends>QWidget</extends>
    <header>pqViewManager.h</header>
-   <container>1</container>
+   <container>2</container>
   </customwidget>
  </customwidgets>
  <resources/>

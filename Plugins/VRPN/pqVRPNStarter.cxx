@@ -44,7 +44,7 @@
 #include "pqObjectBuilder.h"
 #include "pqServerResources.h"
 #include "pqActiveObjects.h"
-
+#include "pqMultiView.h"
 
 #include <QMessageBox>
 #include <QTextStream>
@@ -127,6 +127,8 @@ pqVRPNStarter::pqVRPNStarter() : QThread()
 
 	stateFileIndex = 0;
 
+	pqMultiView* multiView = qobject_cast<pqMultiView*>(pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
+	multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
 	mainThread = QThread::currentThread();
 }
 
@@ -138,6 +140,7 @@ void pqVRPNStarter::onStartup()
     //Connect timer callback for tracker updates
     /*connect(this->VRPNTimer,SIGNAL(timeout()),this,SLOT(saveState()));*/
 	//this->VRPNTimer->start();
+	
   start();
 }
 
@@ -148,7 +151,8 @@ void pqVRPNStarter::onShutdown()
 void pqVRPNStarter::run() 
 {
 
-
+ /* QObject::connect(HorizontalSignalMapper, SIGNAL(mapped(QWidget*)), 
+                   this, SLOT(splitWidgetHorizontal(QWidget*)));*/
 	//connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)),
 	//	this, SLOT(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)));
 	//connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
@@ -156,11 +160,13 @@ void pqVRPNStarter::run()
 	//connect(&pqActiveObjects::instance(), SIGNAL(viewChanged(pqView* )),this,SLOT(viewChanged(pqView* )));
 	//connect(&pqActiveObjects::instance(), SIGNAL(portChanged(pqOutputPort* )),this,SLOT(portChanged(pqOutputPort* )));
 
-	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqDataRepresentation* )),this,SLOT(representationChanged(pqDataRepresentation* )));
+	//connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqDataRepresentation* )),this,SLOT(representationChanged(pqDataRepresentation* )));
 
-	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqRepresentation* )),this,SLOT(representationChanged(pqRepresentation* )));
+	//connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqRepresentation* )),this,SLOT(representationChanged(pqRepresentation* )));
 
-	connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource* )),this,SLOT(sourceChanged(pqPipelineSource* )));
+	//connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource* )),this,SLOT(sourceChanged(pqPipelineSource* )));
+	//connect(viewManager,SIGNAL(frameAdded(pqMultiViewFrame*)),this,SLOT(splitView(pqMultiViewFrame*)));
+    //connect(this,SIGNAL(simulateHorizontalPressed(QWidget*)),multiView,SLOT(
 
 }
 
@@ -321,4 +327,9 @@ void pqVRPNStarter::representationChanged(pqRepresentation* rep) {
 	std::string filename = "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/file" + stateFileIndexStr.str()+".pvsm";
 	pqApplicationCore::instance()->saveState(QString(filename.c_str()));
 	stateFileIndex++;
+}
+
+void pqVRPNStarter::splitView(pqMultiViewFrame* multiFrame)
+{
+	qWarning()<<"View splitting time!";
 }
