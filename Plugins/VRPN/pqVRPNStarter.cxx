@@ -45,7 +45,8 @@
 #include "pqServerResources.h"
 #include "pqActiveObjects.h"
 #include "pqMultiView.h"
-
+#include "pqPluginManager.h"
+#include "pqStandardViewModules.h"
 #include <QMessageBox>
 #include <QTextStream>
 #include <QByteArray>
@@ -126,7 +127,8 @@ pqVRPNStarter::pqVRPNStarter() : QThread()
 	stateLoading = false;*/
 
 	stateFileIndex = 0;
-
+	pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
+	pgm->addInterface(new pqStandardViewModules(qobject_cast<QWidget*>(this)));
 	pqMultiView* multiView = qobject_cast<pqMultiView*>(pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
 	pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
 	pqApplicationCore::instance()->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
