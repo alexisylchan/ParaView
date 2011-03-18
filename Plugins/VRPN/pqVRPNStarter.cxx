@@ -56,6 +56,7 @@
 #include <QStringList>
 #include <QHostAddress>
 #include <QFileDialog>
+#include <QTimer>
 
 #include <iostream>
 #include <sstream>
@@ -114,7 +115,7 @@ between the VisTrails client and ParaView.
 pqVRPNStarter::pqVRPNStarter() : QThread() 
 {
 	//it seems that at this time the undoStack is NULL
-	undoStack = pqApplicationCore::instance()->getUndoStack();
+	/*undoStack = pqApplicationCore::instance()->getUndoStack();
 
 	versionStackIndex = 0;
 	versionStack.push_back(0);
@@ -122,13 +123,21 @@ pqVRPNStarter::pqVRPNStarter() : QThread()
 	ignoreStackSignal = false;
 
 	activeServer = NULL;
-	stateLoading = false;
+	stateLoading = false;*/
+
+	stateFileIndex = 0;
 
 	mainThread = QThread::currentThread();
 }
 
 void pqVRPNStarter::onStartup() 
 {
+	
+	this->VRPNTimer=new QTimer(this);
+    this->VRPNTimer->setInterval(500); // in ms
+    //Connect timer callback for tracker updates
+    connect(this->VRPNTimer,SIGNAL(timeout()),this,SLOT(saveState()));
+	this->VRPNTimer->start();
   start();
 }
 
@@ -139,19 +148,29 @@ void pqVRPNStarter::onShutdown()
 void pqVRPNStarter::run() 
 {
 
-	connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)),
-		this, SLOT(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)));
-	connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
-		this, SLOT(serverResourcesChanged()));
-	connect(&pqActiveObjects::instance(), SIGNAL(viewChanged(pqView* )),this,SLOT(viewChanged(pqView* )));
-	connect(&pqActiveObjects::instance(), SIGNAL(portChanged(pqOutputPort* )),this,SLOT(portChanged(pqOutputPort* )));
 
-	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqDataRepresentation* )),this,SLOT(representationChanged(pqDataRepresentation* )));
+	//connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)),
+	//	this, SLOT(stateLoaded(vtkPVXMLElement*,vtkSMProxyLocator*)));
+	//connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
+	//	this, SLOT(serverResourcesChanged()));
+	//connect(&pqActiveObjects::instance(), SIGNAL(viewChanged(pqView* )),this,SLOT(viewChanged(pqView* )));
+	//connect(&pqActiveObjects::instance(), SIGNAL(portChanged(pqOutputPort* )),this,SLOT(portChanged(pqOutputPort* )));
 
-	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqRepresentation* )),this,SLOT(representationChanged(pqRepresentation* )));
+	//connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqDataRepresentation* )),this,SLOT(representationChanged(pqDataRepresentation* )));
 
-	connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource* )),this,SLOT(sourceChanged(pqPipelineSource* )));
+	//connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqRepresentation* )),this,SLOT(representationChanged(pqRepresentation* )));
 
+	//connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource* )),this,SLOT(sourceChanged(pqPipelineSource* )));
+
+}
+
+void pqVRPNStarter::saveState()
+{
+	std::stringstream stateFileIndexStr;
+	stateFileIndexStr << stateFileIndex;
+	std::string filename = "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/file" + stateFileIndexStr.str()+".pvsm";
+	pqApplicationCore::instance()->saveState(QString(filename.c_str()));
+	stateFileIndex++;
 }
 /**
 This is the slot for handling the signals when ParaView updates its 

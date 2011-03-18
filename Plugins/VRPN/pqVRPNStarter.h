@@ -56,6 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
+class QTimer;
 class pqVRPNStarter : public QThread
 {
    Q_OBJECT
@@ -81,6 +82,10 @@ public slots:
   void representationChanged(pqDataRepresentation* rep);
   void representationChanged(pqRepresentation* rep);
 	
+protected:
+    QTimer *VRPNTimer;
+protected slots:
+	void saveState();
 private:
   QThread *mainThread;
     // ParaView's undo stack
@@ -107,10 +112,7 @@ private:
   // The current version is versionStack[versionStackIndex].
   QList<int> versionStack;
   int versionStackIndex;
-
-
-signals:
-
+  int stateFileIndex;
 };
 
 
