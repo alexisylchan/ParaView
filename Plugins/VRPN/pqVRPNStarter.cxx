@@ -133,11 +133,11 @@ pqVRPNStarter::pqVRPNStarter() : QThread()
 void pqVRPNStarter::onStartup() 
 {
 	
-	this->VRPNTimer=new QTimer(this);
-    this->VRPNTimer->setInterval(500); // in ms
+	//this->VRPNTimer=new QTimer(this);
+ //   this->VRPNTimer->setInterval(500); // in ms
     //Connect timer callback for tracker updates
-    connect(this->VRPNTimer,SIGNAL(timeout()),this,SLOT(saveState()));
-	this->VRPNTimer->start();
+    /*connect(this->VRPNTimer,SIGNAL(timeout()),this,SLOT(saveState()));*/
+	//this->VRPNTimer->start();
   start();
 }
 
@@ -156,11 +156,11 @@ void pqVRPNStarter::run()
 	//connect(&pqActiveObjects::instance(), SIGNAL(viewChanged(pqView* )),this,SLOT(viewChanged(pqView* )));
 	//connect(&pqActiveObjects::instance(), SIGNAL(portChanged(pqOutputPort* )),this,SLOT(portChanged(pqOutputPort* )));
 
-	//connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqDataRepresentation* )),this,SLOT(representationChanged(pqDataRepresentation* )));
+	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqDataRepresentation* )),this,SLOT(representationChanged(pqDataRepresentation* )));
 
-	//connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqRepresentation* )),this,SLOT(representationChanged(pqRepresentation* )));
+	connect(&pqActiveObjects::instance(), SIGNAL(representationChanged(pqRepresentation* )),this,SLOT(representationChanged(pqRepresentation* )));
 
-	//connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource* )),this,SLOT(sourceChanged(pqPipelineSource* )));
+	connect(&pqActiveObjects::instance(), SIGNAL(sourceChanged(pqPipelineSource* )),this,SLOT(sourceChanged(pqPipelineSource* )));
 
 }
 
@@ -286,6 +286,11 @@ void pqVRPNStarter::serverResourcesChanged() {
 void pqVRPNStarter::sourceChanged(pqPipelineSource* pipelineSource) {
 		qWarning() << "Source Changed";
 		
+	std::stringstream stateFileIndexStr;
+	stateFileIndexStr << stateFileIndex;
+	std::string filename = "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/file" + stateFileIndexStr.str()+".pvsm";
+	pqApplicationCore::instance()->saveState(QString(filename.c_str()));
+	stateFileIndex++;
 }
 
 void pqVRPNStarter::viewChanged(pqView* view) {
@@ -301,9 +306,19 @@ void pqVRPNStarter::portChanged(pqOutputPort* outputPort) {
 void pqVRPNStarter::representationChanged(pqDataRepresentation* rep) {
 		qWarning() << "Representation data Changed";
 		
+	std::stringstream stateFileIndexStr;
+	stateFileIndexStr << stateFileIndex;
+	std::string filename = "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/file" + stateFileIndexStr.str()+".pvsm";
+	pqApplicationCore::instance()->saveState(QString(filename.c_str()));
+	stateFileIndex++;
 }
 
 void pqVRPNStarter::representationChanged(pqRepresentation* rep) {
 		qWarning() << "Representation Changed";
 		
+	std::stringstream stateFileIndexStr;
+	stateFileIndexStr << stateFileIndex;
+	std::string filename = "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/file" + stateFileIndexStr.str()+".pvsm";
+	pqApplicationCore::instance()->saveState(QString(filename.c_str()));
+	stateFileIndex++;
 }
