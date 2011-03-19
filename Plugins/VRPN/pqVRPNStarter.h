@@ -62,6 +62,7 @@ protected:
 private:
   FILE* vrpnpluginlog;
   void loadState();
+  void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
 

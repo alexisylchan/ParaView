@@ -61,6 +61,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplicationCore.h"
 #include "pqServer.h"
 
+//Create two views includes
+#include "pqApplicationCore.h"
+#include "pqServer.h"
+#include "pqObjectBuilder.h"
+#include "pqActiveObjects.h"
+#include "pqMultiView.h"
+
+
 //-----------------------------------------------------------------------------
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
   : QObject(p)
@@ -79,7 +87,11 @@ void pqVRPNStarter::onStartup()
   qWarning() << "Message from pqVRPNStarter: Application Started";
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
-    loadState();
+  
+pqMultiView* multiView = qobject_cast<pqMultiView*>(pqApplicationCore::instance()->manager("MULTIVIEW_MANAGER"));
+pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
+pqApplicationCore::instance()->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+
   if(options->GetUseVRPN())
     {
     // VRPN input events.
@@ -136,17 +148,10 @@ void pqVRPNStarter::onStartup()
 	
 	//Set the View Proxy's vtkRenderWindowInteractor
 	proxy->GetRenderWindow()->SetInteractor(interactor);
-	
-    /* Commented out from original Kitware code. 
-	this->InputDevice=new ParaViewVRPN;
-    this->InputDevice->SetName(options->GetVRPNAddress());
-    this->InputDevice->Init();
-	*/
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(callback()));
     this->VRPNTimer->start();
     }
-   // vrpnpluginlog = fopen("D://vrpnplugin.txt","w" );
 }
 
 //-----------------------------------------------------------------------------
@@ -165,11 +170,6 @@ void pqVRPNStarter::callback()
 	vtkSMRenderViewProxy *proxy = 0;
     proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
     proxy->GetRenderWindow()->Render();
-
-	//Log device information for debugging
-	//std::stringstream stream;
-	//this->inputInteractor->PrintSelf(stream, vtkIndent());
-	//fprintf(vrpnpluginlog,"%s",stream.str().c_str());
 	
 }
 
@@ -207,3 +207,39 @@ void pqVRPNStarter::loadState()
 		}
 	  xmlParser->Delete();
 }
+
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void pqVRPNStarter::loadState(QString* filename)
+{
+	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
+	  pqServer *server = activeObjects->activeServer();
+
+	  // Read in the xml file to restore.
+	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	  xmlParser->SetFileName(filename->toStdString().c_str());
+	 // xmlParser->
+	  xmlParser->Parse();
+
+	  // Get the root element from the parser.
+	  vtkPVXMLElement *root = xmlParser->GetRootElement();
+	  if (root)
+		{
+		pqApplicationCore::instance()->loadState(root, server);
+
+		// Add this to the list of recent server resources ...
+		pqServerResource resource;
+		resource.setScheme("session");
+		resource.setPath(*filename);
+		resource.setSessionServer(server->getResource());
+		pqApplicationCore::instance()->serverResources().add(resource);
+		pqApplicationCore::instance()->serverResources().save(
+		  *pqApplicationCore::instance()->settings());
+		}
+	  else
+		{
+		qCritical("Root does not exist. Either state file could not be opened "
+		  "or it does not contain valid xml");
+		}
+	  xmlParser->Delete();
+}
+
