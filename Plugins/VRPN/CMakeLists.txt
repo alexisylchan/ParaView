@@ -71,6 +71,14 @@ ${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTracker.h
 ${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTracker.cxx
 ${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTrackerStyleCamera.h 
 ${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTrackerStyleCamera.cxx
+${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTrackerCustomSensor.h 
+${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTrackerCustomSensor.cxx
+${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTrackerCustomSensorStyleCamera.h 
+${VTK_INTERACTION_INCLUDE_DIR}/vtkVRPNTrackerCustomSensorStyleCamera.cxx
+${VTK_INTERACTION_INCLUDE_DIR}/vtkSpaceNavigatorStyle.h 
+${VTK_INTERACTION_INCLUDE_DIR}/vtkSpaceNavigatorStyle.cxx
+${VTK_INTERACTION_INCLUDE_DIR}/vtkSpaceNavigatorStyleCamera.h 
+${VTK_INTERACTION_INCLUDE_DIR}/vtkSpaceNavigatorStyleCamera.cxx
 ${VTK_INTERACTION_INCLUDE_DIR}/vtkWiiMoteStyleCamera.h 
 ${VTK_INTERACTION_INCLUDE_DIR}/vtkWiiMoteStyleCamera.cxx
 ${VTK_INTERACTION_INCLUDE_DIR}/vtkWiiMoteStyle.h 

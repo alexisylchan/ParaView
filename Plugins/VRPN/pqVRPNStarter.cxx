@@ -53,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkRenderWindowInteractor.h>
 #include <vtkVRPNTrackerCustomSensor.h>
 #include <vtkVRPNTrackerCustomSensorStyleCamera.h>
+#include <vtkVRPNAnalogOutput.h>
 #include <sstream>
 //Load state includes
 #include "pqServerResource.h"
@@ -203,6 +204,14 @@ void pqVRPNStarter::onStartup()
 	proxy2->GetRenderWindow()->SetInteractor(interactor2);
 
 
+
+	//Create connection to vtkVRPNAnalog using vtkInteractionDevice.lib
+	vtkVRPNAnalogOutput* navigator = vtkVRPNAnalogOutput::New();
+    navigator->SetDeviceName("Mouse0@localhost");
+    navigator->Initialize();
+
+
+
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(callback()));
     this->VRPNTimer->start();
@@ -229,6 +238,7 @@ void pqVRPNStarter::callback()
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 		proxy->GetRenderWindow()->Render();
 	}
+	//this->inputInteractor->
 }
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
