@@ -247,15 +247,15 @@ void pqVRPNStarter::callback()
 	this->spaceNavigator1->mainloop();
 
 	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
-	// Get the Server Manager Model so that we can get each view
-	//pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
-	//{
-	//	pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-	//	//serverManager->
-	//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-	//	proxy->GetRenderWindow()->Render();
-	//}
+	//Get the Server Manager Model so that we can get each view
+	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+	{
+		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+		//serverManager->
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+		proxy->GetRenderWindow()->Render();
+	}
 }
 
 // Analog Code adapted from https://github.com/Kitware/ParaView/blob/master/Plugins/VRPN/ParaViewVRPN.cxx
