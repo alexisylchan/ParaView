@@ -34,9 +34,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QObject>
 #include <vtkInteractionDeviceManager.h>
+#include <vrpn_Analog.h>
 
 class QTimer;
 class ParaViewVRPN;
+class t_user_callback;
 
 class pqVRPNStarter : public QObject
 {
@@ -58,11 +60,13 @@ protected:
     QTimer *VRPNTimer;
     vtkInteractionDeviceManager* inputDeviceManager;
 	vtkDeviceInteractor* inputInteractor;
+	vrpn_Analog_Remote* spaceNavigator1;
+	t_user_callback *AC1;
 
 private:
   FILE* vrpnpluginlog;
-  void loadState();
-  void loadState(QString* filename);
+  //void loadState();
+  //void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
 

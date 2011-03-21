@@ -45,18 +45,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqView.h"
 #include "pqActiveObjects.h"
 #include "vtkSMRenderViewProxy.h"
-#include "vtkDeviceInteractor.h"
-#include "vtkInteractionDeviceManager.h"
-#include "vtkInteractorStyleTrackballCamera.h"  
-#include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkVRPNTrackerCustomSensor.h"
-#include "vtkVRPNTrackerCustomSensorStyleCamera.h"
-#include "vtkVRPNAnalogOutput.h"
-#include "vtkSMRepresentationProxy.h"
-#include "vtkSMPropertyHelper.h"
-
+#include <vtkDeviceInteractor.h>
+#include <vtkInteractionDeviceManager.h>
+#include <vtkInteractorStyleTrackballCamera.h>  
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkVRPNTrackerCustomSensor.h>
+#include <vtkVRPNTrackerCustomSensorStyleCamera.h>
+#include <vtkVRPNAnalogOutput.h>
 #include <sstream>
 //Load state includes
 #include "pqServerResource.h"
@@ -72,24 +69,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqActiveObjects.h"
 #include "pqMultiView.h"
 #include "pqServerManagerModel.h"
-#include "pqDataRepresentation.h"
 
 
-// From Cory's code
-class t_user_callback
-{
-public:
-  char t_name[vrpn_MAX_TEXT_LEN];
-  vtkstd::vector<unsigned> t_counts;
-};
-
-//Forward declaration
-void VRPN_CALLBACK handleSpaceNavigatorPos(void *userdata,const vrpn_ANALOGCB t);
 //-----------------------------------------------------------------------------
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
   : QObject(p)
 {
-	spaceNavigator1 = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -218,13 +203,14 @@ void pqVRPNStarter::onStartup()
 	proxy1->GetRenderWindow()->SetInteractor(interactor1);
 	proxy2->GetRenderWindow()->SetInteractor(interactor2);
 
-	//Cory's Code
-	const char * spaceNavigatorAddress = "device0@localhost";
-	spaceNavigator1 = new vrpn_Analog_Remote(spaceNavigatorAddress);
-	AC1 = new t_user_callback;
-	strncpy(AC1->t_name,spaceNavigatorAddress,sizeof(AC1->t_name));
-	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
-	
+
+
+	//Create connection to vtkVRPNAnalog using vtkInteractionDevice.lib
+	vtkVRPNAnalogOutput* navigator = vtkVRPNAnalogOutput::New();
+    navigator->SetDeviceName("Mouse0@localhost");
+    navigator->Initialize();
+
+
 
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(callback()));
@@ -242,8 +228,7 @@ void pqVRPNStarter::onShutdown()
 
 void pqVRPNStarter::callback()
 {
-	//this->inputInteractor->Update(); 
-	this->spaceNavigator1->mainloop();
+	this->inputInteractor->Update(); 
 	// Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
 	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
@@ -253,248 +238,76 @@ void pqVRPNStarter::callback()
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 		proxy->GetRenderWindow()->Render();
 	}
+	this->inputInteractor->
 }
 
-// Analog Code adapted from https://github.com/Kitware/ParaView/blob/master/Plugins/VRPN/ParaViewVRPN.cxx
-vrpn_ANALOGCB SNAugmentChannelsToRetainLargestMagnitude(const vrpn_ANALOGCB t)
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void pqVRPNStarter::loadState()
 {
-  vrpn_ANALOGCB at;
-  // Make a list of the magnitudes into at
-  for(int i=0;i<6;++i)
-    {
-      if(t.channel[i] < 0.0)
-        at.channel[i] = t.channel[i]*-1;
-      else
-        at.channel[i]= t.channel[i];
-    }
+	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
+	  pqServer *server = activeObjects->activeServer();
 
-  // Get the max value;
-  int max =0;
-  for(int i=1;i<6;++i)
-    {
-      if(at.channel[i] > at.channel[max])
-          max = i;
-    }
+	  // Read in the xml file to restore.
+	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	  xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+	 // xmlParser->
+	  xmlParser->Parse();
 
-  // copy the max value of t into at (rest are 0)
-  for (int i = 0; i < 6; ++i)
-    {
-      (i==max)?at.channel[i]=t.channel[i]:at.channel[i]=0.0;
-    }
-  return at;
+	  // Get the root element from the parser.
+	  vtkPVXMLElement *root = xmlParser->GetRootElement();
+	  if (root)
+		{
+		pqApplicationCore::instance()->loadState(root, server);
+
+		// Add this to the list of recent server resources ...
+		pqServerResource resource;
+		resource.setScheme("session");
+		resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+		resource.setSessionServer(server->getResource());
+		pqApplicationCore::instance()->serverResources().add(resource);
+		pqApplicationCore::instance()->serverResources().save(
+		  *pqApplicationCore::instance()->settings());
+		}
+	  else
+		{
+		qCritical("Root does not exist. Either state file could not be opened "
+		  "or it does not contain valid xml");
+		}
+	  xmlParser->Delete();
 }
 
-void VRPN_CALLBACK handleSpaceNavigatorPos(void *userdata,
-const vrpn_ANALOGCB t)
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void pqVRPNStarter::loadState(QString* filename)
 {
-  t_user_callback *tData=static_cast<t_user_callback *>(userdata);
+	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
+	  pqServer *server = activeObjects->activeServer();
 
-  if ( tData->t_counts.size() == 0 )
-    {
-    tData->t_counts.push_back(0);
-    }
+	  // Read in the xml file to restore.
+	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	  xmlParser->SetFileName(filename->toStdString().c_str());
+	 // xmlParser->
+	  xmlParser->Parse();
 
-  if ( tData->t_counts[0] == 1 )
-    {
-    tData->t_counts[0] = 0;
+	  // Get the root element from the parser.
+	  vtkPVXMLElement *root = xmlParser->GetRootElement();
+	  if (root)
+		{
+		pqApplicationCore::instance()->loadState(root, server);
 
-    // printf("Rendering\n");
-    // printf("%6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f\n", t.channel[0],
-    // t.channel[1], t.channel[2], t.channel[3], t.channel[4],
-    // t.channel[5]);
-    vrpn_ANALOGCB at = SNAugmentChannelsToRetainLargestMagnitude(t);
-    // printf("%6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f\n", at.channel[0],
-    // at.channel[1], at.channel[2], at.channel[3], at.channel[4],
-    // at.channel[5]);
-    // Apply up-down motion
-
-    pqDataRepresentation *data =0;
-   /* pqView *view = 0;*/
-
-   /* view = pqActiveObjects::instance().activeView();*/
-    data = pqActiveObjects::instance().activeRepresentation();
-
-    if(data)
-      {
-        /*vtkCamera* camera;*/
-        double pos[3], up[3], dir[3];
-        double orient[3];
-
-        /*vtkSMRenderViewProxy *viewProxy = 0;*/
-        vtkSMRepresentationProxy *repProxy = 0;
-       /* viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );*/
-        repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
-
-        if ( repProxy /*&& viewProxy*/ )
-          {
-            vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
-            vtkSMPropertyHelper(repProxy,"Orientation").Get(orient,3);
-            /*camera = viewProxy->GetActiveCamera();
-            camera->GetDirectionOfProjection(dir);
-            camera->OrthogonalizeViewUp();
-            camera->GetViewUp(up);*/
-
-            for (int i = 0; i < 3; i++)
-              {
-                double dx = -0.0001*at.channel[2]*up[i];
-                pos[i] += dx;
-              }
-
-            double r[3];
-            vtkMath::Cross(dir, up, r);
-
-            for (int i = 0; i < 3; i++)
-              {
-                double dx = 0.0001*at.channel[0]*r[i];
-                pos[i] += dx;
-              }
-
-            for(int i=0;i<3;++i)
-              {
-                double dx = -0.0001*at.channel[1]*dir[i];
-                pos[i] +=dx;
-              }
-
-
-            // pos[0] += at.channel[0];
-            // pos[1] += at.channel[1];
-            // pos[2] += at.channel[2];
-            orient[0] += 0.00040*at.channel[3];
-            orient[1] += 0.00040*at.channel[5];
-            orient[2] += 0.00040*at.channel[4];
-            vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
-            vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
-            repProxy->UpdateVTKObjects();
-          }
-      }
-    //else if ( view )
-    //  {
-    //    vtkSMRenderViewProxy *viewProxy = 0;
-    //    viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-
-    //    if ( viewProxy )
-    //      {
-    //        vtkCamera* camera;
-    //        double pos[3], fp[3], up[3], dir[3];
-
-    //        camera = viewProxy->GetActiveCamera();
-    //        camera->GetPosition(pos);
-    //        camera->GetFocalPoint(fp);
-    //        camera->GetDirectionOfProjection(dir);
-    //        camera->OrthogonalizeViewUp();
-    //        camera->GetViewUp(up);
-
-    //        for (int i = 0; i < 3; i++)
-    //          {
-    //            double dx = 0.01*at.channel[2]*up[i];
-    //            pos[i] += dx;
-    //            fp[i] += dx;
-    //          }
-
-    //        // Apply right-left motion
-    //        double r[3];
-    //        vtkMath::Cross(dir, up, r);
-
-    //        for (int i = 0; i < 3; i++)
-    //          {
-    //            double dx = -0.01*at.channel[0]*r[i];
-    //            pos[i] += dx;
-    //            fp[i] += dx;
-    //          }
-
-    //        camera->SetPosition(pos);
-    //        camera->SetFocalPoint(fp);
-
-    //        camera->Dolly(pow(1.01,at.channel[1]));
-    //        camera->Elevation( 4.0*at.channel[3]);
-    //        camera->Azimuth( 4.0*at.channel[5]);
-    //        camera->Roll( 4.0*at.channel[4]);
-
-    //        viewProxy->GetRenderer()->ResetCameraClippingRange();
-    //        viewProxy->GetRenderWindow()->Render();
-    //      }
-    //  }
-    }
-  else
-    {
-      tData->t_counts[0]++;
-    }
+		// Add this to the list of recent server resources ...
+		pqServerResource resource;
+		resource.setScheme("session");
+		resource.setPath(*filename);
+		resource.setSessionServer(server->getResource());
+		pqApplicationCore::instance()->serverResources().add(resource);
+		pqApplicationCore::instance()->serverResources().save(
+		  *pqApplicationCore::instance()->settings());
+		}
+	  else
+		{
+		qCritical("Root does not exist. Either state file could not be opened "
+		  "or it does not contain valid xml");
+		}
+	  xmlParser->Delete();
 }
 
-
-
-
-
-
-/////////LOAD STATE ATTEMPT///////////////////////
-//
-////Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-//void pqVRPNStarter::loadState()
-//{
-//	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
-//	  pqServer *server = activeObjects->activeServer();
-//
-//	  // Read in the xml file to restore.
-//	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-//	  xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-//	 // xmlParser->
-//	  xmlParser->Parse();
-//
-//	  // Get the root element from the parser.
-//	  vtkPVXMLElement *root = xmlParser->GetRootElement();
-//	  if (root)
-//		{
-//		pqApplicationCore::instance()->loadState(root, server);
-//
-//		// Add this to the list of recent server resources ...
-//		pqServerResource resource;
-//		resource.setScheme("session");
-//		resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-//		resource.setSessionServer(server->getResource());
-//		pqApplicationCore::instance()->serverResources().add(resource);
-//		pqApplicationCore::instance()->serverResources().save(
-//		  *pqApplicationCore::instance()->settings());
-//		}
-//	  else
-//		{
-//		qCritical("Root does not exist. Either state file could not be opened "
-//		  "or it does not contain valid xml");
-//		}
-//	  xmlParser->Delete();
-//}
-//
-////Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-//void pqVRPNStarter::loadState(QString* filename)
-//{
-//	  pqActiveObjects* activeObjects = &pqActiveObjects::instance();
-//	  pqServer *server = activeObjects->activeServer();
-//
-//	  // Read in the xml file to restore.
-//	  vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-//	  xmlParser->SetFileName(filename->toStdString().c_str());
-//	 // xmlParser->
-//	  xmlParser->Parse();
-//
-//	  // Get the root element from the parser.
-//	  vtkPVXMLElement *root = xmlParser->GetRootElement();
-//	  if (root)
-//		{
-//		pqApplicationCore::instance()->loadState(root, server);
-//
-//		// Add this to the list of recent server resources ...
-//		pqServerResource resource;
-//		resource.setScheme("session");
-//		resource.setPath(*filename);
-//		resource.setSessionServer(server->getResource());
-//		pqApplicationCore::instance()->serverResources().add(resource);
-//		pqApplicationCore::instance()->serverResources().save(
-//		  *pqApplicationCore::instance()->settings());
-//		}
-//	  else
-//		{
-//		qCritical("Root does not exist. Either state file could not be opened "
-//		  "or it does not contain valid xml");
-//		}
-//	  xmlParser->Delete();
-//}
-//
