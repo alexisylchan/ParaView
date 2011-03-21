@@ -76,7 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqDataRepresentation.h"
 
 
-// From Cory's code
+// From Cory Quammen's code
 class t_user_callback
 {
 public:
@@ -116,7 +116,7 @@ void pqVRPNStarter::onStartup()
     {
     // VRPN input events.
     this->VRPNTimer=new QTimer(this);
-    this->VRPNTimer->setInterval(40); // in ms
+    this->VRPNTimer->setInterval(4); // in ms
     // to define: obj and callback()
    
 	/////////////////////////GET VIEWS////////////////////////////
@@ -151,7 +151,7 @@ void pqVRPNStarter::onStartup()
 	tracker1->SetSensorIndex(0);//TODO: Fix error handling if there is only  1 sensor?
 
 	//My custom Tracker placement
-	tracker1->SetTracker2WorldTranslation(-7.47, 0, -1.5);
+	tracker1->SetTracker2WorldTranslation(-8.68, -5.4, -1.3);
 
     // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
     double t2w1[3][3] = { 1, 0,  0,
@@ -170,7 +170,7 @@ void pqVRPNStarter::onStartup()
 	tracker2->SetSensorIndex(1);//TODO: Fix error handling if there is only  1 sensor?
 
 	//My custom Tracker placement
-	tracker2->SetTracker2WorldTranslation(-7.47, 0, -1.5);
+	tracker2->SetTracker2WorldTranslation(-8.68, -5.4, -1.3);
 
     // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
     double t2w2[3][3] = { 1, 0,  0,
@@ -219,7 +219,7 @@ void pqVRPNStarter::onStartup()
 	proxy1->GetRenderWindow()->SetInteractor(interactor1);
 	proxy2->GetRenderWindow()->SetInteractor(interactor2);
 
-	//Cory's Code
+	//Cory Quammen's Code
 	const char * spaceNavigatorAddress = "device0@localhost";
 	spaceNavigator1 = new vrpn_Analog_Remote(spaceNavigatorAddress);
 	AC1 = new t_user_callback;
@@ -243,8 +243,8 @@ void pqVRPNStarter::onShutdown()
 
 void pqVRPNStarter::callback()
 {
-	this->inputInteractor->Update(); 
 	this->spaceNavigator1->mainloop();
+	this->inputInteractor->Update(); 
 
 	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
 	//Get the Server Manager Model so that we can get each view
@@ -302,17 +302,15 @@ const vrpn_ANALOGCB t)
     tData->t_counts[0] = 0;
 
     vrpn_ANALOGCB at = SNAugmentChannelsToRetainLargestMagnitude(t);
-    pqDataRepresentation *data =0;
-    data = pqActiveObjects::instance().activeRepresentation();
-
-    if(data)
-      {
-	    pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	    for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+    pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
+	{
+		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
+		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
 		{
 			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
 			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-	
+
 			vtkCamera* camera;
 			double pos[3], up[3], dir[3];
 			double orient[3];
@@ -320,7 +318,7 @@ const vrpn_ANALOGCB t)
 			vtkSMRepresentationProxy *repProxy = 0;
 			repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
 
-			if ( repProxy /*&& viewProxy*/ )
+			if ( repProxy && viewProxy)
 			  {
 				vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Get(orient,3);
@@ -332,7 +330,7 @@ const vrpn_ANALOGCB t)
 				// Update Object Position
 				for (int i = 0; i < 3; i++)
 				  {
-					double dx = -0.01*at.channel[2]*up[i];
+					double dx = -0.001*at.channel[2]*up[i];
 					pos[i] += dx;
 				  }
 
@@ -341,25 +339,26 @@ const vrpn_ANALOGCB t)
 
 				for (int i = 0; i < 3; i++)
 				  {
-					double dx = 0.01*at.channel[0]*r[i];
+					double dx = 0.001*at.channel[0]*r[i];
 					pos[i] += dx;
 				  }
 
 				for(int i=0;i<3;++i)
 				  {
-					double dx = -0.01*at.channel[1]*dir[i];
+					double dx = -0.001*at.channel[1]*dir[i];
 					pos[i] +=dx;
 				  }
 				// Update Object Orientation
-				orient[0] += 4.0*at.channel[3];
-				orient[1] += 4.0*at.channel[5];
-				orient[2] += 4.0*at.channel[4];
+				orient[0] += 1.0*at.channel[3];
+				orient[1] += 1.0*at.channel[5];
+				orient[2] += 1.0*at.channel[4];
 				vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
 				repProxy->UpdateVTKObjects();
-				viewProxy->GetRenderWindow()->Render();
+				//viewProxy->GetRenderWindow()->Render();
 			  }
-          }
+		  }
+		
       }
     }
   else
