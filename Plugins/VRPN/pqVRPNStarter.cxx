@@ -56,6 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkVRPNAnalogOutput.h"
 #include "vtkSMRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
+#include "vtkCamera.h"
 
 #include <sstream>
 //Load state includes
@@ -242,7 +243,7 @@ void pqVRPNStarter::onShutdown()
 
 void pqVRPNStarter::callback()
 {
-	//this->inputInteractor->Update(); 
+	this->inputInteractor->Update(); 
 	this->spaceNavigator1->mainloop();
 
 	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
@@ -331,7 +332,7 @@ const vrpn_ANALOGCB t)
 				// Update Object Position
 				for (int i = 0; i < 3; i++)
 				  {
-					double dx = -0.0001*at.channel[2]*up[i];
+					double dx = -0.01*at.channel[2]*up[i];
 					pos[i] += dx;
 				  }
 
@@ -340,19 +341,19 @@ const vrpn_ANALOGCB t)
 
 				for (int i = 0; i < 3; i++)
 				  {
-					double dx = 0.0001*at.channel[0]*r[i];
+					double dx = 0.01*at.channel[0]*r[i];
 					pos[i] += dx;
 				  }
 
 				for(int i=0;i<3;++i)
 				  {
-					double dx = -0.0001*at.channel[1]*dir[i];
+					double dx = -0.01*at.channel[1]*dir[i];
 					pos[i] +=dx;
 				  }
 				// Update Object Orientation
-				orient[0] += 0.00040*at.channel[3];
-				orient[1] += 0.00040*at.channel[5];
-				orient[2] += 0.00040*at.channel[4];
+				orient[0] += 4.0*at.channel[3];
+				orient[1] += 4.0*at.channel[5];
+				orient[2] += 4.0*at.channel[4];
 				vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
 				repProxy->UpdateVTKObjects();
