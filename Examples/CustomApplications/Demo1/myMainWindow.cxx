@@ -39,7 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqActiveObjects.h"
 #include "pqObjectBuilder.h"
 #include "pqServerResource.h"
-
+#include "pqMultiView.h"
+#include "pqMultiViewFrame.h"
 //-----------------------------------------------------------------------------
 myMainWindow::myMainWindow(QWidget* parentObject,
   Qt::WindowFlags wflags) : Superclass(parentObject, wflags)
@@ -56,14 +57,22 @@ myMainWindow::myMainWindow(QWidget* parentObject,
   core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
 
   // Create render view
-  pqRenderView* view = qobject_cast<pqRenderView*>(
-    pqApplicationCore::instance()->getObjectBuilder()->createView(
-      pqRenderView::renderViewType(),
-      pqActiveObjects::instance().activeServer()));
-  pqActiveObjects::instance().setActiveView(view);
+  //pqRenderView* view = qobject_cast<pqRenderView*>(
+  //  pqApplicationCore::instance()->getObjectBuilder()->createView(
+  //    pqRenderView::renderViewType(),
+  //    pqActiveObjects::instance().activeServer()));
+  //pqActiveObjects::instance().setActiveView(view);
+  
+  pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
+ // pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
+  pqView* view1 = core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+  ui.viewDock->setWidget(view1->getWidget());
+  pqView* view2 = core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+  ui.viewDock2->setWidget(view2->getWidget());
+
 
   // Set it as the central widget
-  this->setCentralWidget(view->getWidget());  
+  this->setCentralWidget(new QWidget());  
 }
 
 
