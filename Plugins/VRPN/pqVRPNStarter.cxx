@@ -108,9 +108,9 @@ void pqVRPNStarter::onStartup()
 
   pqApplicationCore* core = pqApplicationCore::instance();
   
-  pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
+ /* pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
   pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
-  core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+  core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());*/
 
   if(options->GetUseVRPN())
     {
