@@ -1,7 +1,7 @@
 /*=========================================================================
 
    Program: ParaView
-   Module:    myMainWindow.cxx
+   Module:    EVEMainWindow.cxx
 
    Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
    All rights reserved.
@@ -29,29 +29,20 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
-#include "myMainWindow.h"
-#include "ui_myMainWindow.h"
+#include "EVEMainWindow.h"
+#include "ui_EVEMainWindow.h"
 
 #include "pqHelpReaction.h"
 #include "pqObjectInspectorWidget.h"
 #include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
 
-// Alexis hacking includes
-#include "pqApplicationCore.h"
-#include "pqObjectBuilder.h"
-#include "pqServerResource.h"
-#include "pqMultiView.h"
-#include "pqMultiViewFrame.h"
-#include "pqView.h"
-#include "pqActiveObjects.h" 
-
-class myMainWindow::pqInternals : public Ui::pqClientMainWindow
+class EVEMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
 
 //-----------------------------------------------------------------------------
-myMainWindow::myMainWindow()
+EVEMainWindow::EVEMainWindow()
 {
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
@@ -65,7 +56,7 @@ myMainWindow::myMainWindow()
   this->Internals->animationViewDock->hide();
   this->Internals->statisticsDock->hide();
   this->Internals->selectionInspectorDock->hide();
- // this->Internals->comparativePanelDock->hide();
+  this->Internals->comparativePanelDock->hide();
   this->tabifyDockWidget(this->Internals->animationViewDock,
     this->Internals->statisticsDock);
 
@@ -105,34 +96,21 @@ myMainWindow::myMainWindow()
 
   // Setup the help menu.
   pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
- 
 
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
-  // Make a connection to the builtin server
-  pqApplicationCore* core = pqApplicationCore::instance();
-  core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
-  
-  //pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
- // pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
-  pqView* view1 = core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
-  QDockWidget* dockWidget = this->Internals->viewDock;
-  dockWidget->setWidget(view1->getWidget());
-  pqView* view2 = core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
-  this->Internals->viewDock2->setWidget(view2->getWidget());
-
 }
 
 //-----------------------------------------------------------------------------
-myMainWindow::~myMainWindow()
+EVEMainWindow::~EVEMainWindow()
 {
   delete this->Internals;
 }
 
 
 //-----------------------------------------------------------------------------
-void myMainWindow::showHelpForProxy(const QString& proxyname)
+void EVEMainWindow::showHelpForProxy(const QString& proxyname)
 {
   pqHelpReaction::showHelp(
     QString("qthelp://paraview.org/paraview/%1.html").arg(proxyname));

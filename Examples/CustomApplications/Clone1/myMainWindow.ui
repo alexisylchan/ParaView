@@ -14,14 +14,14 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
+   <!--layout class="QGridLayout" name="gridLayout">
     <property name="margin">
      <number>0</number>
     </property>
     <item row="0" column="0">
-     <widget class="pqViewManager" name="MultiViewManager" native="true"/>
+      <widget class="pqViewManager" name="MultiViewManager" native="true"/>
     </item>
-   </layout>
+   </layout-->
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -149,7 +149,24 @@
    </attribute>
    <widget class="pqComparativeVisPanel" name="comparativeVisPanel"/>
   </widget>
+   <widget class="QDockWidget" name="viewDock">
+     <property name="windowTitle">
+       <string>View</string>
+     </property>
+     <attribute name="dockWidgetArea">
+       <number>4</number>
+     </attribute>
+   </widget>
+   <widget class="QDockWidget" name="viewDock2">
+     <property name="windowTitle">
+       <string>View2</string>
+     </property>
+     <attribute name="dockWidgetArea">
+       <number>4</number>
+     </attribute>
+   </widget>
  </widget>
+  
  <customwidgets>
   <customwidget>
    <class>pqPipelineBrowserWidget</class>
