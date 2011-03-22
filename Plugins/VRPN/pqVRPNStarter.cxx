@@ -123,7 +123,7 @@ void pqVRPNStarter::onStartup()
 
 	// Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = core->getServerManagerModel();
-	if (serverManager->getNumberOfItems<pqView*> () == 2) //Check that there really are 2 views
+	if (serverManager->getNumberOfItems<pqView*> () >= 2) //Check that there really are 2 views
 	{
 		//Get Views
 		pqView* view1 = serverManager->getItemAtIndex<pqView*>(0); // First View

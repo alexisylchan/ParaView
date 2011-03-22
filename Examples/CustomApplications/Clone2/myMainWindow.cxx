@@ -44,6 +44,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqApplicationCore.h"
 #include "pqStandardViewModules.h"
 #include "pqPVNewSourceBehavior.h"
+#include "pqObjectBuilder.h"
+#include "pqServerResource.h"
+#include "pqMultiView.h"
+#include "pqMultiViewFrame.h"
+#include "pqView.h"
+#include "pqActiveObjects.h" 
 
 #include <QToolBar>
 #include <QList>
@@ -69,8 +75,8 @@ myMainWindow::myMainWindow()
   // Setup default GUI layout.
 
   // Set up the dock window corners to give the vertical docks more room.
-  this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-  this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+ // this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+ // this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);
@@ -141,6 +147,20 @@ myMainWindow::myMainWindow()
   new pqDeleteBehavior(this);
   new pqAutoLoadPluginXMLBehavior(this);
 #endif
+
+
+ // Make a connection to the builtin server
+  pqApplicationCore* core = pqApplicationCore::instance();
+  core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
+  
+  pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
+ // pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
+  pqView* view1 = core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+  this->Internals->viewDock->setWidget(view1->getWidget());
+  pqView* view2 = core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+  this->Internals->viewDock2->setWidget(view2->getWidget());
+
+
 }
 
 //-----------------------------------------------------------------------------
