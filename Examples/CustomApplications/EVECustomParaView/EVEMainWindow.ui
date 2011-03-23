@@ -19,8 +19,16 @@
      <number>0</number>
     </property>
     <item row="0" column="0">
-     <widget class="pqViewManager" name="MultiViewManager" native="true"/>
-    </item>
+      <widget class="QDockWidget" name="myViewDock">
+        <property name="windowTitle">
+          <string>MyViewDock</string>
+        </property>
+        <attribute name="dockWidgetArea">
+          <number>2</number>
+        </attribute>
+        <widget class="pqViewManager" name="MultiViewManager" native="true"/>
+      </widget>
+    </item>     
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
