@@ -55,6 +55,7 @@ public:
   vtkGetMacro(UseStereoRendering, int);
   vtkGetStringMacro(StereoType);
   vtkGetMacro(UseVRPN, int);
+  vtkGetMacro(EVEParaView, int);
   vtkGetStringMacro(VRPNAddress);
   vtkGetMacro(UseVRUI, int);
   vtkGetStringMacro(VRUIAddress);
@@ -212,6 +213,7 @@ private:
   int UseOffscreenRendering;
   int UseStereoRendering;
   int UseVRPN;
+  int EVEParaView;
   int UseVRUI;
   int DisableComposite;
   int UseSoftwareRendering;

@@ -114,8 +114,8 @@ myMainWindow::myMainWindow()
   pqApplicationCore* core = pqApplicationCore::instance();
   core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
   
-  //pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
- // pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
+  pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
+  //pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
   pqView* view1 = core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
   QDockWidget* dockWidget = this->Internals->viewDock;
   dockWidget->setWidget(view1->getWidget());

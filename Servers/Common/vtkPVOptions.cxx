@@ -75,6 +75,7 @@ vtkPVOptions::vtkPVOptions()
   this->UseSatelliteSoftwareRendering = 0;
   this->UseStereoRendering = 0;
   this->UseVRPN = 0;
+  this->EVEParaView = 0;
   this->UseVRUI = 0;
   this->UseOffscreenRendering = 0;
   this->DisableComposite = 0;
@@ -180,6 +181,9 @@ void vtkPVOptions::Initialize()
                     "\"Tracker0@localhost\", \"Head0@localhost\""
                     "Please check VRPN configuration file",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddBooleanArgument("--eve-paraview", 0, &this->EVEParaView,
+                           "Tell the application that EVE ParaView is running. Used for debugging.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
   this->AddBooleanArgument("--vrui", 0, &this->UseVRUI,
                            "Tell the application to use VRUI for head tracking",
                            vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);

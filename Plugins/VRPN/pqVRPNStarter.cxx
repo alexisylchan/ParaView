@@ -107,11 +107,12 @@ void pqVRPNStarter::onStartup()
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
   pqApplicationCore* core = pqApplicationCore::instance();
-  
+  if (!options->GetEVEParaView())
+  {
   pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
   pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
   core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
-
+  }
   if(options->GetUseVRPN())
     {
     // VRPN input events.
