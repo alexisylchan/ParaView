@@ -1,20 +1,19 @@
 /*=========================================================================
 
-   Program: ParaView
-   Module:    myMainWindow.h
+Program: ParaView
+Module: myMainWindow.h
 
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
+All rights reserved.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
-   
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
+ParaView is a free software; you can redistribute it and/or modify it
+under the terms of the ParaView license version 1.2.
+See License_v1.2.txt for the full ParaView license.
+A copy of this license can be obtained by contacting
+Kitware Inc.
+28 Corporate Drive
+Clifton Park, NY 12065
+USA
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -33,6 +32,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __myMainWindow_h
 
 #include <QMainWindow>
+#include <QTimer>
+#include <vtkActor.h>
+
+#include <HD/hd.h>
+#include <HDU/hdu.h>
 
 class myMainWindow : public QMainWindow
 {
@@ -42,12 +46,22 @@ class myMainWindow : public QMainWindow
 public:
   myMainWindow(QWidget *parent = 0, Qt::WindowFlags flags=0);
   ~myMainWindow();
-
+  vtkActor* ConeActor;
+  void initHD();
+  int exitHandler();
+  static HDCallbackCode HDCALLBACK touchScene(void *pUserData); 
+  HDdouble* workspacemodel;
+  static HDdouble* vtkMatrix4x4ToHDdouble(vtkMatrix4x4* matrix);
+  static vtkMatrix4x4* HDdoubleTovtkMatrix4x4(HDdouble* hdmatrix);
+public slots:
+	void renderCallback();
 protected slots:
 
 private:
-  Q_DISABLE_COPY(myMainWindow)  
+  Q_DISABLE_COPY(myMainWindow)
+  QTimer* timer;
 };
 
 #endif
+
 

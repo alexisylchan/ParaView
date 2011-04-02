@@ -43,6 +43,8 @@ INCLUDE_DIRECTORIES(
 SET( VRPN_SOURCE_FILES 
   ParaViewVRPN.cxx
   ParaViewVRPN.h
+  vtkVRPNPhantomStyleCamera.h 
+  vtkVRPNPhantomStyleCamera.cxx
   ${MOC_SRCS})
 
 SET ( VTK_INTERACTION_SOURCE_FILES ${VTK_INTERACTION_INCLUDE_DIR}/vtkDeviceInteractor.h 

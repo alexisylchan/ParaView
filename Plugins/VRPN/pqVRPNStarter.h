@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QObject>
 #include <vtkInteractionDeviceManager.h>
+#include "vtkVRPNPhantomStyleCamera.h"
 #include <vrpn_Analog.h>
 
 class QTimer;
@@ -69,6 +70,7 @@ private:
   //void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
+  void createArrow();
 
 
 };
