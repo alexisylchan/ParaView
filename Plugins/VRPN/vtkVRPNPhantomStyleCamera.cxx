@@ -91,43 +91,11 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
 			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 
-			vtkCamera* camera;
-			double pos[3], up[3], dir[3];
-			double orient[3];
-
 			vtkSMRepresentationProxy *repProxy = 0;
 			repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
 
 			if ( repProxy && viewProxy)
 			  {
-				vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
-				vtkSMPropertyHelper(repProxy,"Orientation").Get(orient,3);
-				camera = viewProxy->GetActiveCamera();
-				camera->GetDirectionOfProjection(dir);
-				camera->OrthogonalizeViewUp();
-				camera->GetViewUp(up);
-
-				// Update Object Position
-				for (int i = 0; i < 3; i++)
-				  {
-					  double dx = 0.01*Phantom->GetVelocity()[i]*up[i];
-					pos[i] += dx;
-				  }
-
-				double r[3];
-				vtkMath::Cross(dir, up, r);
-
-				for (int i = 0; i < 3; i++)
-				  {
-					double dx =0.01*Phantom->GetVelocity()[0]*r[i];
-					pos[i] += dx;
-				  }
-
-				for(int i=0;i<3;++i)
-				  {
-					double dx = 0.01*Phantom->GetVelocity()[1]*dir[i];
-					pos[i] +=dx;
-				  }
 				// Update Object Orientation
                 double  matrix[3][3];
 				double orientNew[3] ;
@@ -147,59 +115,15 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 					}
 				}
 				// Change matrix to orientation values
-				vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient);
-				
-				/*vtkMath::Multiply4x4(matrix,orient,orientNew);
-				orientNew[0]*=0.001;
-				orientNew[1]*=0.001;
-				orientNew[2]*=0.001;*/
-				
-				/*double orientX[3] = {0,0,0};
-				orientX[0]=orient[0];
-				vtkMath::Multiply3x3(matrix,orientX,orientX);
-				double orientY[3] = {0,0,0};
-				orientY[1]=orient[1];
-				vtkMath::Multiply3x3(matrix,orientY,orientY);
-				double orientZ[3] = {0,0,0};
-				orientZ[1]=orient[2];
-				vtkMath::Multiply3x3(matrix,orientZ,orientZ);*/
-				/*orient[0] = orientX[0];
-				orient[1] = orientY[1];
-				orient[2] = orientZ[2];*/
-				//vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
-				vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3);
-				//repProxy->get
-				repProxy->UpdateVTKObjects();
-				//viewProxy->GetRenderWindow()->Render();
+				vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
+				vtkSMPropertyHelper(repProxy,"Position").Set(Phantom->GetPosition(),3);
+				vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
+				repProxy->UpdateVTKObjects(); 
 			  }
 		  }
 		
       }
-
-  //vtkCamera* camera = this->Renderer->GetActiveCamera();
-
-  //// Get the rotation matrix
-  //double matrix[3][3];
-  //vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
-
-  //// Calculate the view direction
-  //double forward[3] = { 0.0, 0.0, 1.0 };
-  //vtkMath::Multiply3x3(matrix, forward, forward);
-  //for (int i = 0; i < 3; i++) forward[i] += Phantom->GetPosition()[i];
-
-  //// Calculate the up vector
-  //double up[3] = { 0.0, 1.0, 0.0 };
-  //vtkMath::Multiply3x3(matrix, up, up);
-
-  //// Set camera parameters
-  //camera->SetPosition(Phantom->GetPosition());
-  //camera->SetFocalPoint(forward);
-  //camera->SetViewUp(up);
-  //camera->Modified();
-
-  //// Render
-  //this->Renderer->ResetCameraClippingRange();
-  //// Render() will be called in the interactor
+ 
 }
 
 //----------------------------------------------------------------------------

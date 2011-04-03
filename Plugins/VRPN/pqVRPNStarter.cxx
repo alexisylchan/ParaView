@@ -123,7 +123,18 @@ void pqVRPNStarter::onStartup()
     this->VRPNTimer->setInterval(4); // in ms
 	createArrow(); 
 	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
-    phantom1->SetDeviceName("Phantom0@localhost");    
+    phantom1->SetDeviceName("Phantom0@localhost");   
+
+	 double t2w[3][3] = { 0, 0,  1,
+                          0, 1,  0, 
+                          1, 0,  0 };
+    double t2wQuat[4];
+    vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
+    phantom1->SetPhantom2WorldRotation(t2wQuat);
+
+
+	//double p2wQuat[4] ={0.17,-0.09,-0.47,-0.86};
+ //   phantom1->SetPhantom2WorldRotation(p2wQuat);
     phantom1->Initialize();
     
 	inputInteractor = vtkDeviceInteractor::New();
@@ -429,7 +440,7 @@ void pqVRPNStarter::createArrow()
 
 		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();  
 
-		double origOrient[3] = {1,1,1};
+		//double origOrient[3] = {1,1,1};
 		for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
 		{
 			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
@@ -437,9 +448,7 @@ void pqVRPNStarter::createArrow()
 			if (!repr || !repr->getView())
 			 {
 				continue;
-			 }
-			
-			vtkSMPropertyHelper(vtkSMRepresentationProxy::SafeDownCast(repr->getProxy()), "Orientation").Set(origOrient,3);
+			 }  
 			pqView* cur_view = repr->getView();
 			pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
 			if (filter)
