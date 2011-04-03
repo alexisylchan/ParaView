@@ -177,7 +177,7 @@ The Cone source can be used to add a polygonal cone to the 3D scene. The output 
          command="SetRadius"
          number_of_elements="1"
          animateable="1"
-         default_values="0.001" >
+         default_values="0.1" >
         <DoubleRangeDomain name="range" min="0"/>
         <Documentation>
           This property specifies the radius of the base of the cone.
@@ -189,7 +189,7 @@ The Cone source can be used to add a polygonal cone to the 3D scene. The output 
          command="SetHeight"
          number_of_elements="1"
          animateable="1"
-         default_values="0.003" >
+         default_values="0.3" >
         <DoubleRangeDomain name="range" min="0" />
         <Documentation>
           This property specifies the height of the cone.

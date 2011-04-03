@@ -122,9 +122,9 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 	
 	// CODE FOR ADDING ARROW TO PARAVIEW - DO NOT REMOVE
     pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
-	{
-		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
+	/*for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
+	{*/
+		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(0);
 		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
 		{
 			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
@@ -155,13 +155,21 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 				}
 				// Change matrix to orientation values
 				vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
-				vtkSMPropertyHelper(repProxy,"Position").Set(Phantom->GetPosition(),3);
+				double* position = Phantom->GetPosition();
+				double newPosition[3];
+				//Scale up position. TODO: Determine how much to scale between phantom position and world position
+				for (int s = 0; s<3;s++)
+				{
+					newPosition[s]= position[s]*10;
+				}
+
+				vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
 				repProxy->UpdateVTKObjects(); 
 			  }
 		  }
 		
-      }
+    /*  }*/
  
 }
 

@@ -63,7 +63,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "vtkMatrix4x4.h"
-//#include "
+#include "vtkOBBTree.h"
 
 #include <sstream>
 //Load state includes
@@ -122,42 +122,8 @@ void pqVRPNStarter::onStartup()
     // VRPN input events.
     this->VRPNTimer=new QTimer(this);
     this->VRPNTimer->setInterval(4); // in ms
-	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
-    phantom1->SetDeviceName("Phantom0@localhost");   
-
-	 double t2w[3][3] = { 0, 0,  1,
-                          0, 1,  0, 
-                          -1, 0,  0 };
-    double t2wQuat[4];
-    vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
-    phantom1->SetPhantom2WorldRotation(t2wQuat); 
-    phantom1->Initialize();
-    
-	inputInteractor = vtkDeviceInteractor::New();
-    inputInteractor->AddInteractionDevice(phantom1);
-
-
-	vtkSMRenderViewProxy *proxy1 = 0;
-	proxy1 = vtkSMRenderViewProxy::SafeDownCast( pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0)->getViewProxy() ); 
-	vtkRenderWindow* window1 = proxy1->GetRenderWindow();
-	vtkRenderer* renderer1 = proxy1->GetRenderer();
-
-	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
 	
-	createArrowFromParaView(); 
-	// Only uncomment if createArrowFromVTK
-	//phantomStyleCamera1->SetActor(ArrowActor);
-	phantomStyleCamera1->SetPhantom(phantom1);
-    phantomStyleCamera1->SetRenderer(renderer1);
-    inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
-
-	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
-	vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
-	interactor1->SetRenderWindow(window1);
-    interactor1->SetInteractorStyle(interactorStyle1);
-	proxy1->GetRenderWindow()->SetInteractor(interactor1);
-
-
+	InitializePhantom();
 
  // vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
  // vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
@@ -443,7 +409,7 @@ void pqVRPNStarter::createArrowFromVTK()
 	renderer1->AddActor(ArrowActor);
 }
 
-void pqVRPNStarter::createArrowFromParaView()
+void pqVRPNStarter::createArrowInParaView()
 {
  
   pqApplicationCore* core = pqApplicationCore::instance();
@@ -474,6 +440,84 @@ void pqVRPNStarter::createArrowFromParaView()
 			}
 			//cur_view->render(); // these renders are collapsed.
 		} 
-		proxy->GetRenderWindow()->Render();
 	}
+}
+
+
+void pqVRPNStarter::createSphereInParaView()
+{
+ 
+  pqApplicationCore* core = pqApplicationCore::instance();
+	// Get the Server Manager Model so that we can get each view
+	pqServerManagerModel* serverManager = core->getServerManagerModel();
+	pqPipelineSource* pipelineSource = core->getObjectBuilder()->createSource("sources","SphereSource",pqActiveObjects::instance().activeServer());
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+	{
+		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+
+		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();  
+
+		
+		for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
+		{
+			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+			pipelineSource->getOutputPort(cc), view, false);
+			if (!repr || !repr->getView())
+			 {
+				continue;
+			 }  
+			pqView* cur_view = repr->getView();
+			pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
+			if (filter)
+			{
+				filter->hideInputIfRequired(cur_view);
+			}
+			//cur_view->render(); // these renders are collapsed.
+		} 
+		proxy->GetRenderer()->ResetCameraClippingRange();
+	}
+}
+
+void pqVRPNStarter::InitializePhantom()
+{
+	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
+    phantom1->SetDeviceName("Phantom0@localhost");   
+
+	 double t2w[3][3] = { 0, 0,  1,
+                          0, 1,  0, 
+                          -1, 0,  0 };
+    double t2wQuat[4];
+    vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
+    phantom1->SetPhantom2WorldRotation(t2wQuat); 
+    phantom1->Initialize();
+    
+	inputInteractor = vtkDeviceInteractor::New();
+    inputInteractor->AddInteractionDevice(phantom1);
+
+
+	vtkSMRenderViewProxy *proxy1 = 0;
+	proxy1 = vtkSMRenderViewProxy::SafeDownCast( pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0)->getViewProxy() ); 
+	vtkRenderWindow* window1 = proxy1->GetRenderWindow();
+	vtkRenderer* renderer1 = proxy1->GetRenderer();
+
+	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
+	
+	createArrowInParaView(); 
+	// Only uncomment if createArrowFromVTK
+	//phantomStyleCamera1->SetActor(ArrowActor);
+	phantomStyleCamera1->SetPhantom(phantom1);
+    phantomStyleCamera1->SetRenderer(renderer1);
+    inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
+
+	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
+	vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
+	interactor1->SetRenderWindow(window1);
+    interactor1->SetInteractorStyle(interactorStyle1);
+	proxy1->GetRenderWindow()->SetInteractor(interactor1);
+
+	createSphereInParaView();
+	//hapticsOBBTree = vtkOBBTree::New();
+	//hapticsOBBTree->
+
 }

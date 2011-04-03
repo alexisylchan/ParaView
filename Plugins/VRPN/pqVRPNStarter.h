@@ -41,6 +41,7 @@ class QTimer;
 class ParaViewVRPN;
 class t_user_callback;
 class vtkActor;
+class vtkOBBTree;
 
 class pqVRPNStarter : public QObject
 {
@@ -73,7 +74,10 @@ private:
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
   void createArrowFromVTK();
-  void createArrowFromParaView();
+  void createArrowInParaView();
+  void createSphereInParaView();
+
+  vtkOBBTree* hapticsOBBTree;
 
 
 };
