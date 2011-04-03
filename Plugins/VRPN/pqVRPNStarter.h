@@ -76,6 +76,7 @@ private:
   void createArrowFromVTK();
   void createArrowInParaView();
   void createSphereInParaView();
+  void InitializePhantom();
 
   vtkOBBTree* hapticsOBBTree;
 
