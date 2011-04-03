@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class QTimer;
 class ParaViewVRPN;
 class t_user_callback;
+class vtkActor;
 
 class pqVRPNStarter : public QObject
 {
@@ -54,6 +55,7 @@ public:
 
   // Callback for startup.
   void onStartup();
+  vtkActor* ArrowActor;
 
 public slots:
     void callback();

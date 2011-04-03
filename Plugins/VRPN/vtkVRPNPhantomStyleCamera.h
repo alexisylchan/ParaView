@@ -30,11 +30,12 @@
 #include "vtkDeviceInteractorStyle.h"
 
 #include "vtkVRPNPhantom.h"
+#include "vtkActor.h"
 
 class vtkVRPNPhantomStyleCamera : public vtkDeviceInteractorStyle
 {
 public:
-  static vtkVRPNPhantomStyleCamera* New();
+  static vtkVRPNPhantomStyleCamera* New(); 
   vtkTypeRevisionMacro(vtkVRPNPhantomStyleCamera,vtkDeviceInteractorStyle);
   void PrintSelf(ostream&, vtkIndent); 
 
@@ -45,6 +46,8 @@ public:
   // Description:
   // Set the tracker receiving events from
   void SetPhantom(vtkVRPNPhantom*);
+  void SetActor(vtkActor* myActor);
+  vtkActor* myActor;
 
 protected:
   vtkVRPNPhantomStyleCamera();

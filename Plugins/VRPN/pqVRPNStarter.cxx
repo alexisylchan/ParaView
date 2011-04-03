@@ -59,9 +59,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkCamera.h"
 
 //Phantom
-#include "vtkConeSource.h"
+#include "vtkArrowSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
+#include "vtkMatrix4x4.h"
 //#include "
 
 #include <sstream>
@@ -82,7 +83,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqDataRepresentation.h"
 
 //Phantom
-#include "vtkConeSource.h"
+#include "vtkArrowSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "pqSourcesMenuReaction.h"
@@ -127,14 +128,10 @@ void pqVRPNStarter::onStartup()
 
 	 double t2w[3][3] = { 0, 0,  1,
                           0, 1,  0, 
-                          1, 0,  0 };
+                          -1, 0,  0 };
     double t2wQuat[4];
     vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
-    phantom1->SetPhantom2WorldRotation(t2wQuat);
-
-
-	//double p2wQuat[4] ={0.17,-0.09,-0.47,-0.86};
- //   phantom1->SetPhantom2WorldRotation(p2wQuat);
+    phantom1->SetPhantom2WorldRotation(t2wQuat); 
     phantom1->Initialize();
     
 	inputInteractor = vtkDeviceInteractor::New();
@@ -147,6 +144,7 @@ void pqVRPNStarter::onStartup()
 	vtkRenderer* renderer1 = proxy1->GetRenderer();
 
 	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
+	phantomStyleCamera1->SetActor(ArrowActor);
 	phantomStyleCamera1->SetPhantom(phantom1);
     phantomStyleCamera1->SetRenderer(renderer1);
     inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
@@ -412,7 +410,6 @@ const vrpn_ANALOGCB t)
 				vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
 				repProxy->UpdateVTKObjects();
-				//viewProxy->GetRenderWindow()->Render();
 			  }
 		  }
 		
@@ -429,34 +426,51 @@ const vrpn_ANALOGCB t)
 
 void pqVRPNStarter::createArrow()
 {
-  pqApplicationCore* core = pqApplicationCore::instance();
-	// Get the Server Manager Model so that we can get each view
-	pqServerManagerModel* serverManager = core->getServerManagerModel();
-	pqPipelineSource* pipelineSource = core->getObjectBuilder()->createSource("sources","ArrowSource",pqActiveObjects::instance().activeServer());
-	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
-	{
-		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+	// Normal geometry creation
+    vtkArrowSource* Arrow = vtkArrowSource::New();
+    vtkPolyDataMapper* ArrowMapper = vtkPolyDataMapper::New();
+    ArrowMapper->SetInputConnection(Arrow->GetOutputPort());
+    ArrowActor = vtkActor::New();
+    ArrowActor->SetMapper(ArrowMapper);
+	double* origin; 
+	origin = ArrowActor->GetOrigin();
+	origin[0] += ArrowActor->GetLength();
+	ArrowActor->SetOrigin(origin);
 
-		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();  
+	pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0);
+	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+	vtkRenderer* renderer1 = proxy->GetRenderer();
+	renderer1->AddActor(ArrowActor);
 
-		//double origOrient[3] = {1,1,1};
-		for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
-		{
-			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-			pipelineSource->getOutputPort(cc), view, false);
-			if (!repr || !repr->getView())
-			 {
-				continue;
-			 }  
-			pqView* cur_view = repr->getView();
-			pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
-			if (filter)
-			{
-				filter->hideInputIfRequired(cur_view);
-			}
-			//cur_view->render(); // these renders are collapsed.
-		} 
-		proxy->GetRenderWindow()->Render();
-	}
+	// CODE FOR ADDING ARROW TO PARAVIEW - DO NOT REMOVE
+ // pqApplicationCore* core = pqApplicationCore::instance();
+	//// Get the Server Manager Model so that we can get each view
+	//pqServerManagerModel* serverManager = core->getServerManagerModel();
+	//pqPipelineSource* pipelineSource = core->getObjectBuilder()->createSource("sources","ArrowSource",pqActiveObjects::instance().activeServer());
+	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+	//{
+	//	pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+	//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+
+	//	pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();  
+
+	//	
+	//	for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
+	//	{
+	//		pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+	//		pipelineSource->getOutputPort(cc), view, false);
+	//		if (!repr || !repr->getView())
+	//		 {
+	//			continue;
+	//		 }  
+	//		pqView* cur_view = repr->getView();
+	//		pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
+	//		if (filter)
+	//		{
+	//			filter->hideInputIfRequired(cur_view);
+	//		}
+	//		//cur_view->render(); // these renders are collapsed.
+	//	} 
+	//	proxy->GetRenderWindow()->Render();
+	//}
 }
