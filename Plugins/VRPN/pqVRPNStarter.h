@@ -72,7 +72,8 @@ private:
   //void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
-  void createArrow();
+  void createArrowFromVTK();
+  void createArrowFromParaView();
 
 
 };

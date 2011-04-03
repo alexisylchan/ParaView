@@ -122,7 +122,6 @@ void pqVRPNStarter::onStartup()
     // VRPN input events.
     this->VRPNTimer=new QTimer(this);
     this->VRPNTimer->setInterval(4); // in ms
-	createArrow(); 
 	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
     phantom1->SetDeviceName("Phantom0@localhost");   
 
@@ -144,7 +143,10 @@ void pqVRPNStarter::onStartup()
 	vtkRenderer* renderer1 = proxy1->GetRenderer();
 
 	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
-	phantomStyleCamera1->SetActor(ArrowActor);
+	
+	createArrowFromParaView(); 
+	// Only uncomment if createArrowFromVTK
+	//phantomStyleCamera1->SetActor(ArrowActor);
 	phantomStyleCamera1->SetPhantom(phantom1);
     phantomStyleCamera1->SetRenderer(renderer1);
     inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
@@ -422,11 +424,9 @@ const vrpn_ANALOGCB t)
 }
 
 
-
-
-void pqVRPNStarter::createArrow()
+void pqVRPNStarter::createArrowFromVTK()
 {
-	// Normal geometry creation
+		// Normal geometry creation
     vtkArrowSource* Arrow = vtkArrowSource::New();
     vtkPolyDataMapper* ArrowMapper = vtkPolyDataMapper::New();
     ArrowMapper->SetInputConnection(Arrow->GetOutputPort());
@@ -441,36 +441,39 @@ void pqVRPNStarter::createArrow()
 	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 	vtkRenderer* renderer1 = proxy->GetRenderer();
 	renderer1->AddActor(ArrowActor);
+}
 
-	// CODE FOR ADDING ARROW TO PARAVIEW - DO NOT REMOVE
- // pqApplicationCore* core = pqApplicationCore::instance();
-	//// Get the Server Manager Model so that we can get each view
-	//pqServerManagerModel* serverManager = core->getServerManagerModel();
-	//pqPipelineSource* pipelineSource = core->getObjectBuilder()->createSource("sources","ArrowSource",pqActiveObjects::instance().activeServer());
-	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
-	//{
-	//	pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-	//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+void pqVRPNStarter::createArrowFromParaView()
+{
+ 
+  pqApplicationCore* core = pqApplicationCore::instance();
+	// Get the Server Manager Model so that we can get each view
+	pqServerManagerModel* serverManager = core->getServerManagerModel();
+	pqPipelineSource* pipelineSource = core->getObjectBuilder()->createSource("sources","PhantomCursorSource",pqActiveObjects::instance().activeServer());
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+	{
+		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 
-	//	pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();  
+		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();  
 
-	//	
-	//	for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
-	//	{
-	//		pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-	//		pipelineSource->getOutputPort(cc), view, false);
-	//		if (!repr || !repr->getView())
-	//		 {
-	//			continue;
-	//		 }  
-	//		pqView* cur_view = repr->getView();
-	//		pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
-	//		if (filter)
-	//		{
-	//			filter->hideInputIfRequired(cur_view);
-	//		}
-	//		//cur_view->render(); // these renders are collapsed.
-	//	} 
-	//	proxy->GetRenderWindow()->Render();
-	//}
+		
+		for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
+		{
+			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+			pipelineSource->getOutputPort(cc), view, false);
+			if (!repr || !repr->getView())
+			 {
+				continue;
+			 }  
+			pqView* cur_view = repr->getView();
+			pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
+			if (filter)
+			{
+				filter->hideInputIfRequired(cur_view);
+			}
+			//cur_view->render(); // these renders are collapsed.
+		} 
+		proxy->GetRenderWindow()->Render();
+	}
 }

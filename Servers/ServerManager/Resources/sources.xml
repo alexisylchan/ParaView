@@ -25,7 +25,8 @@ The 2D Glyph source is used for generating a family of 2D glyphs, each of which 
          <Entry value="9" text="Arrow"/>
          <Entry value="10" text="ThickArrow"/>
          <Entry value="11" text="HookedArrow"/>
-         <Entry value="12" text="EdgeArrow"/>
+         <Entry value="12" text="EdgeArrow"/>         
+         <Entry value="13" text="PhantomCursor"/>
        </EnumerationDomain>
        <Documentation>
          This property specifies the type of the 2D glyph.
@@ -151,6 +152,88 @@ The Arrow source appends a cylinder to a cone to form a 3D arrow. The length of 
        
    <!-- End Arrow -->
    </SourceProxy>
+   <!-- ==================================================================== -->
+ 
+   <SourceProxy name="PhantomCursorSource" class="vtkConeSource" label="PhantomCursor">
+      <Documentation
+        short_help="3D cone of a given radius and height" 
+        long_help="Create a 3D cone of a given radius and height.">
+The Cone source can be used to add a polygonal cone to the 3D scene. The output of the Cone source is polygonal data.
+      </Documentation>
+      <IntVectorProperty
+         name="Resolution"
+         command="SetResolution"
+         number_of_elements="1"
+         animateable="1"
+         default_values="6" >
+        <IntRangeDomain name="range" min="0" max="512" />
+        <Documentation>
+          This property indicates the number of divisions around the cone. The higher this number, the closer the polygonal approximation will come to representing a cone, and the more polygons it will contain.
+        </Documentation>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+         name="Radius"
+         command="SetRadius"
+         number_of_elements="1"
+         animateable="1"
+         default_values="0.001" >
+        <DoubleRangeDomain name="range" min="0"/>
+        <Documentation>
+          This property specifies the radius of the base of the cone.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+         name="Height"
+         command="SetHeight"
+         number_of_elements="1"
+         animateable="1"
+         default_values="0.003" >
+        <DoubleRangeDomain name="range" min="0" />
+        <Documentation>
+          This property specifies the height of the cone.
+        </Documentation>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+         name="Center"
+         command="SetCenter"
+         number_of_elements="3"
+         animateable="1"
+         default_values="0.0 0.0 0.0" >
+        <DoubleRangeDomain name="range" />
+         <Documentation>
+           This property specifies the center of the cone.
+         </Documentation>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+         name="Direction"
+         command="SetDirection"
+         number_of_elements="3"
+         animateable="1"
+         default_values="1.0 0.0 0.0" >
+        <DoubleRangeDomain name="range"/>
+        <Documentation>
+          Set the orientation vector of the cone.  The vector does not have to be normalized.  The cone will point in the direction specified.
+        </Documentation>
+      </DoubleVectorProperty>
+
+     <IntVectorProperty 
+        name="Capping" 
+        command="SetCapping" 
+        number_of_elements="1"
+        animateable="1"
+        default_values="1" > 
+       <BooleanDomain name="bool"/>
+       <Documentation>
+         If this property is set to 1, the base of the cone will be capped with a filled polygon. Otherwise, the base of the cone will be open.
+       </Documentation>
+     </IntVectorProperty>
+   <!-- End Cone -->
+   </SourceProxy>
+
 
    <!-- ==================================================================== -->
    <SourceProxy name="Axes" class="vtkAxes" label="Axes">
