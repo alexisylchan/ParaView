@@ -3,7 +3,7 @@
 	url = git://paraview.org/IceT.git
 [submodule "VTK"]
 	path = VTK
-	url = git://vtk.org/VTK.git
+	url = git@github.com:alexisylchan/VTK.git
 [submodule "Xdmf"]
 	path = Utilities/Xdmf2
 	url = git://paraview.org/Xdmf.git
