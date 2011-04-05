@@ -37,6 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <HD/hd.h>
 #include <HDU/hdu.h>
+#include <QPointer>
+#include "pqRenderView.h"
 
 class myMainWindow : public QMainWindow
 {
@@ -53,6 +55,7 @@ public:
   HDdouble* workspacemodel;
   static HDdouble* vtkMatrix4x4ToHDdouble(vtkMatrix4x4* matrix);
   static vtkMatrix4x4* HDdoubleTovtkMatrix4x4(HDdouble* hdmatrix);
+  QPointer<pqRenderView> RenderView;
 public slots:
 	void renderCallback();
 protected slots:

@@ -63,6 +63,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkCamera.h>
 #include <vtkTransform.h>
 
+#include "QVTKWidget.h"
+#include "vtkObjectFactory.h"
+#include "vtkSmartPointer.h"
+#include "vtkSMSourceProxy.h"
+
+#include "pqApplicationCore.h"
+#include "pqCoreTestUtility.h"
+#include "pqObjectBuilder.h"
+#include "pqOptions.h"
+#include "pqPipelineSource.h"
+#include "pqPluginManager.h"
+#include "pqServer.h"
+#include "pqStandardViewModules.h"
+#include "vtkProcessModule.h"
 #if defined(WIN32)
 # include <windows.h>
 #endif
@@ -175,41 +189,71 @@ myMainWindow::myMainWindow(QWidget* parentObject,
 
   timer = new QTimer(this);
   timer->setInterval(4);
-
-  // Get access to the for standard paraview views.
+  pqApplicationCore* core = pqApplicationCore::instance();
+  pqObjectBuilder* ob = core->getObjectBuilder();
+  pqServer* server = ob->createServer(pqServerResource("builtin:"));// Register ParaView interfaces.
   pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
+
+  // * adds support for standard paraview views.
   pgm->addInterface(new pqStandardViewModules(pgm));
 
-  // Make a connection to the builtin server
-  pqApplicationCore* core = pqApplicationCore::instance();
-  core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
+  // create a graphics window and put it in our main window
+  this->RenderView = qobject_cast<pqRenderView*>(
+    ob->createView(pqRenderView::renderViewType(), server));
+  this->setCentralWidget(this->RenderView->getWidget());
 
-  // Create render view
-  pqRenderView* view = qobject_cast<pqRenderView*>(
-    pqApplicationCore::instance()->getObjectBuilder()->createView(
-      pqRenderView::renderViewType(),
-      pqActiveObjects::instance().activeServer()));
-  pqActiveObjects::instance().setActiveView(view);
+  // create source and elevation filter
+  pqPipelineSource* source;
+  pqPipelineSource* elevation;
 
-  // Set it as the central widget
-  this->setCentralWidget(view->getWidget());
+  source = ob->createSource("sources", "SphereSource", server);
+  // updating source so that when elevation filter is created, the defaults
+  // are setup correctly using the correct data bounds etc.
+  vtkSMSourceProxy::SafeDownCast(source->getProxy())->UpdatePipeline();
+
+  elevation = ob->createFilter("filters", "ElevationFilter", source);
+
+  // put the elevation in the window
+  ob->createDataRepresentation(elevation->getOutputPort(0), this->RenderView);
+
+  // zoom to sphere
+  this->RenderView->resetCamera();
+  // make sure we update
+  this->RenderView->render();
+ // // Get access to the for standard paraview views.
+ // pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
+ // pgm->addInterface(new pqStandardViewModules(pgm));
+
+ // // Make a connection to the builtin server
+ // pqApplicationCore* core = pqApplicationCore::instance();
+ // core->getObjectBuilder()->createServer(pqServerResource("builtin:"));
+
+ // // Create render view
+ // pqRenderView* view = qobject_cast<pqRenderView*>(
+ //   pqApplicationCore::instance()->getObjectBuilder()->createView(
+ //     pqRenderView::renderViewType(),
+ //     pqActiveObjects::instance().activeServer()));
+ // pqActiveObjects::instance().setActiveView(view);
+
+ // // Set it as the central widget
+ // this->setCentralWidget(view->getWidget());
 
 
 
-    // Normal geometry creation
-    vtkConeSource* Cone = vtkConeSource::New();
-    vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
-    ConeMapper->SetInputConnection(Cone->GetOutputPort());
-    ConeActor = vtkActor::New();
-    ConeActor->SetMapper(ConeMapper);
-	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-	vtkRenderer* renderer1 = proxy->GetRenderer();
-	renderer1->AddActor(ConeActor);
-	 
-    Cone->Delete();
-    ConeMapper->Delete();
+ //   // Normal geometry creation
+ //   vtkConeSource* Cone = vtkConeSource::New();
+ //   vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
+ //   ConeMapper->SetInputConnection(Cone->GetOutputPort());
+ //   ConeActor = vtkActor::New();
+ //   ConeActor->SetMapper(ConeMapper);
+	//vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+	//vtkRenderer* renderer1 = proxy->GetRenderer();
+	//renderer1->AddActor(ConeActor);
+	// 
+ //   Cone->Delete();
+ //   ConeMapper->Delete();
     
- 	initHD();
+ 	/*initHD();*/
 	/*vtkMatrix4x4* coneMatrix = ConeActor->GetMatrix();  
 	vtkCamera* camera = proxy->GetActiveCamera();
 	vtkMatrix4x4* viewMatrix = camera->GetViewTransformMatrix();
@@ -220,8 +264,8 @@ myMainWindow::myMainWindow(QWidget* parentObject,
     hduMapWorkspaceModel(modelview, projection, workspacemodel);
 	vtkMatrix4x4* phantomToWorldMatrix = HDdoubleTovtkMatrix4x4(workspacemodel);*/
 
-    connect(timer,SIGNAL(timeout()),this,SLOT(renderCallback()));
-	timer->start();
+    /*connect(timer,SIGNAL(timeout()),this,SLOT(renderCallback()));
+	timer->start();*/
  
     
 

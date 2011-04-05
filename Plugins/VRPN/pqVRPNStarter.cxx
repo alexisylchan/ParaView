@@ -59,11 +59,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkCamera.h"
 
 //Phantom
-#include "vtkArrowSource.h"
+#include "vtkConeSource.h"
+#include "vtkSphereSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "vtkMatrix4x4.h"
 #include "vtkOBBTree.h"
+#include "vtkProperty.h"
 
 #include <sstream>
 //Load state includes
@@ -83,7 +85,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqDataRepresentation.h"
 
 //Phantom
-#include "vtkArrowSource.h"
+#include "vtkConeSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "pqSourcesMenuReaction.h"
@@ -91,6 +93,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqDisplayPolicy.h"
 #include "pqPipelineFilter.h"
 #include "vtkVRPNPhantom.h"
+#include "vtkCollisionDetectionFilter.h"
 
 // From Cory Quammen's code
 class t_user_callback
@@ -118,6 +121,7 @@ pqVRPNStarter::~pqVRPNStarter()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onStartup()
 {
+	UseVTKSources = true;
   qWarning() << "Message from pqVRPNStarter: Application Started";
     // VRPN input events.
     this->VRPNTimer=new QTimer(this);
@@ -267,6 +271,8 @@ void pqVRPNStarter::onShutdown()
 
 void pqVRPNStarter::callback()
 {
+
+	//handleCollisions();
 	//this->spaceNavigator1->mainloop();
 	this->inputInteractor->Update(); 
 
@@ -390,26 +396,72 @@ const vrpn_ANALOGCB t)
 }
 
 
-void pqVRPNStarter::createArrowFromVTK()
+void pqVRPNStarter::createConeAndSphereFromVTK()
 {
-		// Normal geometry creation
-    vtkArrowSource* Arrow = vtkArrowSource::New();
-    vtkPolyDataMapper* ArrowMapper = vtkPolyDataMapper::New();
-    ArrowMapper->SetInputConnection(Arrow->GetOutputPort());
-    ArrowActor = vtkActor::New();
-    ArrowActor->SetMapper(ArrowMapper);
-	double* origin; 
-	origin = ArrowActor->GetOrigin();
-	origin[0] += ArrowActor->GetLength();
-	ArrowActor->SetOrigin(origin);
+	// ConeSource
+    vtkConeSource* Cone = vtkConeSource::New();
+	Cone->SetRadius(0.1);
+	Cone->SetHeight(0.2);
+	//Cone->SetCenter(0.1,0,0);
+
+	//Collision detection code
+ 	vtkMatrix4x4 *matrix0 = vtkMatrix4x4::New();
+    collide = vtkCollisionDetectionFilter::New();
+    collide->SetInputConnection(0, Cone->GetOutputPort());
+    collide->SetMatrix(0, matrix0);
+
+   	// Sphere source
+    vtkSphereSource* Sphere = vtkSphereSource::New();
+
+	//Collision detection code
+	vtkMatrix4x4 *matrix1 = vtkMatrix4x4::New();
+    collide->SetInputConnection(1, Sphere->GetOutputPort());
+    collide->SetMatrix(1, matrix1);
+    collide->SetBoxTolerance(0.0);
+    collide->SetCellTolerance(0.0);
+    collide->SetNumberOfCellsPerBucket(2);
+    collide->SetCollisionModeToAllContacts();
+    collide->GenerateScalarsOn();
+
+	//Cone Mapper
+    vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
+	ConeMapper->SetInputConnection(collide->GetOutputPort(0));
+    
+	ConeActor = vtkActor::New();
+    ConeActor->SetMapper(ConeMapper);
+	(ConeActor->GetProperty())->BackfaceCullingOn();
+	ConeActor->SetUserMatrix(matrix0);
+
+	/*double* origin; 
+	origin = ConeActor->GetOrigin();
+	origin[0] += ConeActor->GetLength();
+	ConeActor->SetOrigin(origin);
+	ConeActor->SetScale(0.2,0.1,0.1);*/
+
+	//Sphere Mapper
+    vtkPolyDataMapper* SphereMapper = vtkPolyDataMapper::New();
+    SphereMapper->SetInputConnection(collide->GetOutputPort(1));
+
+    SphereActor = vtkActor::New();
+    SphereActor->SetMapper(SphereMapper); 
+	(SphereActor->GetProperty())->BackfaceCullingOn();
+	SphereActor->SetUserMatrix(matrix1);
 
 	pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0);
 	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 	vtkRenderer* renderer1 = proxy->GetRenderer();
-	renderer1->AddActor(ArrowActor);
+	renderer1->AddActor(ConeActor);
+
+
+	//pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0);
+	//vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+	//vtkRenderer* renderer1 = proxy->GetRenderer();
+	renderer1->AddActor(SphereActor);
+
+	
 }
 
-void pqVRPNStarter::createArrowInParaView()
+void pqVRPNStarter::createConeInParaView()
 {
  
   pqApplicationCore* core = pqApplicationCore::instance();
@@ -503,9 +555,18 @@ void pqVRPNStarter::InitializePhantom()
 
 	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
 	
-	createArrowInParaView(); 
-	// Only uncomment if createArrowFromVTK
-	//phantomStyleCamera1->SetActor(ArrowActor);
+	if (UseVTKSources)
+	{		 
+		createConeAndSphereFromVTK();
+		//createSphereFromVTK();
+		phantomStyleCamera1->SetActor(ConeActor);
+		phantomStyleCamera1->SetCollisionDetectionFilter(collide);
+	}
+	else
+	{
+		createConeInParaView(); 
+		createSphereInParaView();
+	}
 	phantomStyleCamera1->SetPhantom(phantom1);
     phantomStyleCamera1->SetRenderer(renderer1);
     inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
@@ -515,9 +576,24 @@ void pqVRPNStarter::InitializePhantom()
 	interactor1->SetRenderWindow(window1);
     interactor1->SetInteractorStyle(interactorStyle1);
 	proxy1->GetRenderWindow()->SetInteractor(interactor1);
+}
 
-	createSphereInParaView();
-	//hapticsOBBTree = vtkOBBTree::New();
-	//hapticsOBBTree->
+void pqVRPNStarter::handleCollisions()
+{
+	collide->Modified();
+	/* vtkCollisionDetectionFilter* cd=vtkCollisionDetectionFilter::New();
+	 cd->SetInput(0,(vtkPolyData*)((vtkPolyDataMapper*)ConeActor->GetMapper())->GetInput());
+	 cd->SetInput(1,(vtkPolyData*)((vtkPolyDataMapper*)SphereActor->GetMapper())->GetInput());
+	 cd->SetCollisionModeToFirstContact();*/
+	 
+	//cd->setinput
+	//pqDataRepresentation *data = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0);
+	//	
+	//vtkSMRepresentationProxy *repProxy = 0;
+	//repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
 
+	//pqPipelineSource* coneSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(repProxy);
+	//QList<pqOutputPort*> coneoutputs = coneSource->getOutputPorts();
+	//repProxy->getpoly
+	//pqApplicationCore::instance()->get
 }

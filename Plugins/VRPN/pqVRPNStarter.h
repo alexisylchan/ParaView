@@ -42,6 +42,7 @@ class ParaViewVRPN;
 class t_user_callback;
 class vtkActor;
 class vtkOBBTree;
+class vtkCollisionDetectionFilter;
 
 class pqVRPNStarter : public QObject
 {
@@ -56,7 +57,8 @@ public:
 
   // Callback for startup.
   void onStartup();
-  vtkActor* ArrowActor;
+  vtkActor* ConeActor;
+  vtkActor* SphereActor;
 
 public slots:
     void callback();
@@ -73,12 +75,17 @@ private:
   //void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
-  void createArrowFromVTK();
-  void createArrowInParaView();
+  void createConeAndSphereFromVTK();
+ // void createSphereFromVTK();
+  void createConeInParaView();
   void createSphereInParaView();
   void InitializePhantom();
+  void handleCollisions();
 
   vtkOBBTree* hapticsOBBTree;
+  bool UseVTKSources;
+
+  vtkCollisionDetectionFilter* collide;
 
 
 };
