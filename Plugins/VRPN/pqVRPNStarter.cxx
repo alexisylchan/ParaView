@@ -402,50 +402,24 @@ void pqVRPNStarter::createConeAndSphereFromVTK()
     vtkConeSource* Cone = vtkConeSource::New();
 	Cone->SetRadius(0.1);
 	Cone->SetHeight(0.2);
-	//Cone->SetCenter(0.1,0,0);
-
-	//Collision detection code
- 	vtkMatrix4x4 *matrix0 = vtkMatrix4x4::New();
-    collide = vtkCollisionDetectionFilter::New();
-    collide->SetInputConnection(0, Cone->GetOutputPort());
-    collide->SetMatrix(0, matrix0);
-
+	 
    	// Sphere source
     vtkSphereSource* Sphere = vtkSphereSource::New();
 
-	//Collision detection code
-	vtkMatrix4x4 *matrix1 = vtkMatrix4x4::New();
-    collide->SetInputConnection(1, Sphere->GetOutputPort());
-    collide->SetMatrix(1, matrix1);
-    collide->SetBoxTolerance(0.0);
-    collide->SetCellTolerance(0.0);
-    collide->SetNumberOfCellsPerBucket(2);
-    collide->SetCollisionModeToAllContacts();
-    collide->GenerateScalarsOn();
-
 	//Cone Mapper
     vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
-	ConeMapper->SetInputConnection(collide->GetOutputPort(0));
+	ConeMapper->SetInput(Cone->GetOutput());
     
 	ConeActor = vtkActor::New();
     ConeActor->SetMapper(ConeMapper);
-	(ConeActor->GetProperty())->BackfaceCullingOn();
-	ConeActor->SetUserMatrix(matrix0);
-
-	/*double* origin; 
-	origin = ConeActor->GetOrigin();
-	origin[0] += ConeActor->GetLength();
-	ConeActor->SetOrigin(origin);
-	ConeActor->SetScale(0.2,0.1,0.1);*/
+	
 
 	//Sphere Mapper
     vtkPolyDataMapper* SphereMapper = vtkPolyDataMapper::New();
-    SphereMapper->SetInputConnection(collide->GetOutputPort(1));
+    SphereMapper->SetInput(Sphere->GetOutput());
 
     SphereActor = vtkActor::New();
     SphereActor->SetMapper(SphereMapper); 
-	(SphereActor->GetProperty())->BackfaceCullingOn();
-	SphereActor->SetUserMatrix(matrix1);
 
 	pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0);
 	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
@@ -560,7 +534,7 @@ void pqVRPNStarter::InitializePhantom()
 		createConeAndSphereFromVTK();
 		//createSphereFromVTK();
 		phantomStyleCamera1->SetActor(ConeActor);
-		phantomStyleCamera1->SetCollisionDetectionFilter(collide);
+		//phantomStyleCamera1->SetCollisionDetectionFilter(collide);
 	}
 	else
 	{

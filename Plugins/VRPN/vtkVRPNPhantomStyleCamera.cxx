@@ -72,10 +72,10 @@ void vtkVRPNPhantomStyleCamera::OnEvent(vtkObject* caller, unsigned long eid, vo
 	  Phantom = static_cast<vtkVRPNPhantom*>(caller);
       this->OnPhantom(Phantom);
       break;
-	case vtkCommand::EndEvent:
-	    CollisionFilter = static_cast<vtkCollisionDetectionFilter*>(caller);
-		this->PrintCollision(CollisionFilter);
-		break;
+	//case vtkCommand::EndEvent:
+	//    CollisionFilter = static_cast<vtkCollisionDetectionFilter*>(caller);
+	//	this->PrintCollision(CollisionFilter);
+	//	break;
     }
 }
 
@@ -146,17 +146,9 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			}
 		}
 		vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
-		vtkTransform* phantomTransform = vtkTransform::New();
-		phantomTransform->RotateX(orientNew[0]);
-		phantomTransform->RotateY(orientNew[1]);
-		phantomTransform->RotateZ(orientNew[2]);
-		phantomTransform->Translate(newPosition);
-	
-		//vtkTransform* orientationTran
-		vtkCollisionDetectionFilter* collide =(vtkCollisionDetectionFilter*)((vtkPolyDataMapper*)myActor->GetMapper())->GetInput();
-		collide->SetTransform(0,phantomTransform);
-			
-		//myActor->
+		myActor->SetPosition(newPosition);
+		myActor->SetOrientation(orientNew);
+		
 
 	}
 	else
