@@ -83,6 +83,7 @@ vtkPVOptions::vtkPVOptions()
   this->StereoType = 0;
   this->SetStereoType("Anaglyph");
   this->VRPNAddress = 0;
+  this->VRPNTrackerSensor = 0;
   this->SetVRPNAddress("Tracker0@localhost");
   this->VRUIAddress = 0;
   this->SetVRUIAddress("localhost");
@@ -179,6 +180,10 @@ void vtkPVOptions::Initialize()
                     "--vrpn is specified. Examples: "
                     "\"Tracker0@localhost\", \"Head0@localhost\""
                     "Please check VRPN configuration file",
+                    vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--vrpn-sensor", 0, &this->VRPNTrackerSensor,
+                   "Specify the VRPN tracker sensor. This valid only when "
+                    "--vrpn and --vrpn-address is specified",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
   this->AddBooleanArgument("--vrui", 0, &this->UseVRUI,
                            "Tell the application to use VRUI for head tracking",

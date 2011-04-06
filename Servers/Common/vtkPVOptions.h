@@ -56,6 +56,7 @@ public:
   vtkGetStringMacro(StereoType);
   vtkGetMacro(UseVRPN, int);
   vtkGetStringMacro(VRPNAddress);
+  vtkGetMacro(VRPNTrackerSensor, int);
   vtkGetMacro(UseVRUI, int);
   vtkGetStringMacro(VRUIAddress);
 
@@ -212,6 +213,7 @@ private:
   int UseOffscreenRendering;
   int UseStereoRendering;
   int UseVRPN;
+  int VRPNTrackerSensor;
   int UseVRUI;
   int DisableComposite;
   int UseSoftwareRendering;

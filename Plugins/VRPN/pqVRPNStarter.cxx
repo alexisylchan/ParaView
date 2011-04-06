@@ -108,9 +108,9 @@ void pqVRPNStarter::onStartup()
 
   pqApplicationCore* core = pqApplicationCore::instance();
   
-  pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
-  pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
-  core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
+  //pqMultiView* multiView = qobject_cast<pqMultiView*>(core->manager("MULTIVIEW_MANAGER"));
+  //pqMultiViewFrame* multiViewFrame = multiView->splitWidgetHorizontal(qobject_cast<QWidget*>(this));
+  //core->getObjectBuilder()->createView(QString("RenderView"),pqActiveObjects::instance().activeServer());
 
   if(options->GetUseVRPN())
     {
@@ -123,32 +123,32 @@ void pqVRPNStarter::onStartup()
 
 	// Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = core->getServerManagerModel();
-	if (serverManager->getNumberOfItems<pqView*> () == 2) //Check that there really are 2 views
-	{
+	//if (serverManager->getNumberOfItems<pqView*> () == 2) //Check that there really are 2 views
+	//{
 		//Get Views
 		pqView* view1 = serverManager->getItemAtIndex<pqView*>(0); // First View
-		pqView* view2 = serverManager->getItemAtIndex<pqView*>(1); // Second View
+		//pqView* view2 = serverManager->getItemAtIndex<pqView*>(1); // Second View
 	
 		//Get View Proxies
 		vtkSMRenderViewProxy *proxy1 = 0;
 		proxy1 = vtkSMRenderViewProxy::SafeDownCast( view1->getViewProxy() ); 
-		vtkSMRenderViewProxy *proxy2 = 0;
-		proxy2 = vtkSMRenderViewProxy::SafeDownCast( view2->getViewProxy() ); 
+		/*vtkSMRenderViewProxy *proxy2 = 0;
+		proxy2 = vtkSMRenderViewProxy::SafeDownCast( view2->getViewProxy() ); */
       
 		//Get Renderer and Render Window
 		vtkRenderer* renderer1 = proxy1->GetRenderer();
 		vtkRenderWindow* window1 = proxy1->GetRenderWindow();
 
-		//Get Renderer and Render Window
-		vtkRenderer* renderer2 = proxy2->GetRenderer();
-		vtkRenderWindow* window2 = proxy2->GetRenderWindow();
+		////Get Renderer and Render Window
+		//vtkRenderer* renderer2 = proxy2->GetRenderer();
+		//vtkRenderWindow* window2 = proxy2->GetRenderWindow();
 
 	/////////////////////////CREATE FIRST TRACKER////////////////////////////
 
 	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
 	vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
     tracker1->SetDeviceName(options->GetVRPNAddress()); 
-	tracker1->SetSensorIndex(0);//TODO: Fix error handling if there is only  1 sensor?
+	tracker1->SetSensorIndex( options->GetVRPNTrackerSensor());//TODO: Fix error handling  
 
 	//My custom Tracker placement
 	tracker1->SetTracker2WorldTranslation(-8.68, -5.4, -1.3);
@@ -162,25 +162,25 @@ void pqVRPNStarter::onStartup()
     tracker1->SetTracker2WorldRotation(t2wQuat1);
 
     tracker1->Initialize();
-	/////////////////////////CREATE SECOND TRACKER////////////////////////////
+	///////////////////////////CREATE SECOND TRACKER////////////////////////////
 
-	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
-	vtkVRPNTrackerCustomSensor* tracker2 = vtkVRPNTrackerCustomSensor::New();
-    tracker2->SetDeviceName(options->GetVRPNAddress()); 
-	tracker2->SetSensorIndex(1);//TODO: Fix error handling if there is only  1 sensor?
+	////Create connection to VRPN Tracker using vtkInteractionDevice.lib
+	//vtkVRPNTrackerCustomSensor* tracker2 = vtkVRPNTrackerCustomSensor::New();
+ //   tracker2->SetDeviceName(options->GetVRPNAddress()); 
+	//tracker2->SetSensorIndex(1);//TODO: Fix error handling if there is only  1 sensor?
 
-	//My custom Tracker placement
-	tracker2->SetTracker2WorldTranslation(-8.68, -5.4, -1.3);
+	////My custom Tracker placement
+	//tracker2->SetTracker2WorldTranslation(-8.68, -5.4, -1.3);
 
-    // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
-    double t2w2[3][3] = { 1, 0,  0,
-                         0, 0, -1, 
-                         0, 1,  0 };
-    double t2wQuat2[4];
-    vtkMath::Matrix3x3ToQuaternion(t2w2, t2wQuat2);
-    tracker2->SetTracker2WorldRotation(t2wQuat2);
+ //   // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
+ //   double t2w2[3][3] = { 1, 0,  0,
+ //                        0, 0, -1, 
+ //                        0, 1,  0 };
+ //   double t2wQuat2[4];
+ //   vtkMath::Matrix3x3ToQuaternion(t2w2, t2wQuat2);
+ //   tracker2->SetTracker2WorldRotation(t2wQuat2);
 
-    tracker2->Initialize();
+ //   tracker2->Initialize();
 
 	/////////////////////////CREATE FIRST TRACKER STYLE////////////////////////////
 
@@ -188,36 +188,37 @@ void pqVRPNStarter::onStartup()
     vtkVRPNTrackerCustomSensorStyleCamera* trackerStyleCamera1 = vtkVRPNTrackerCustomSensorStyleCamera::New();
     trackerStyleCamera1->SetTracker(tracker1);
     trackerStyleCamera1->SetRenderer(renderer1);
-	/////////////////////////CREATE SECOND TRACKER STYLE////////////////////////////
+	///////////////////////////CREATE SECOND TRACKER STYLE////////////////////////////
 
-	//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
-    vtkVRPNTrackerCustomSensorStyleCamera* trackerStyleCamera2 = vtkVRPNTrackerCustomSensorStyleCamera::New();
-    trackerStyleCamera2->SetTracker(tracker2);
-    trackerStyleCamera2->SetRenderer(renderer2);
+	////Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
+ //   vtkVRPNTrackerCustomSensorStyleCamera* trackerStyleCamera2 = vtkVRPNTrackerCustomSensorStyleCamera::New();
+ //   trackerStyleCamera2->SetTracker(tracker2);
+ //   trackerStyleCamera2->SetRenderer(renderer2);
 
 	/////////////////////////INTERACTORS////////////////////////////
 	// Initialize Device Interactor to manage all trackers
     inputInteractor = vtkDeviceInteractor::New();
     inputInteractor->AddInteractionDevice(tracker1);
     inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
-    inputInteractor->AddInteractionDevice(tracker2);
-    inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera2);
+   /* inputInteractor->AddInteractionDevice(tracker2);
+    inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera2);*/
 
 	//Get vtkRenderWindowInteractors
 	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
-	vtkRenderWindowInteractor* interactor2 = vtkRenderWindowInteractor::New();
+	/*vtkRenderWindowInteractor* interactor2 = vtkRenderWindowInteractor::New();*/
 
 	//Set the vtkRenderWindowInteractor's style (trackballcamera) and window 
 	vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
     interactor1->SetRenderWindow(window1);
     interactor1->SetInteractorStyle(interactorStyle1);
-	vtkInteractorStyleTrackballCamera* interactorStyle2 = vtkInteractorStyleTrackballCamera::New();
+	/*vtkInteractorStyleTrackballCamera* interactorStyle2 = vtkInteractorStyleTrackballCamera::New();
     interactor2->SetRenderWindow(window2);
     interactor2->SetInteractorStyle(interactorStyle2);
-	
+	*/
 	//Set the View Proxy's vtkRenderWindowInteractor
 	proxy1->GetRenderWindow()->SetInteractor(interactor1);
-	proxy2->GetRenderWindow()->SetInteractor(interactor2);
+	/*proxy2->GetRenderWindow()->SetInteractor(interactor2);
+	*/
 
 	//Cory Quammen's Code
 	const char * spaceNavigatorAddress = "device0@localhost";
@@ -230,7 +231,7 @@ void pqVRPNStarter::onStartup()
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(callback()));
     this->VRPNTimer->start();
-	}
+	/*}*/
     }
 }
 
@@ -249,10 +250,9 @@ void pqVRPNStarter::callback()
 	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
 	//Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
 	{
 		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-		//serverManager->
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 		proxy->GetRenderWindow()->Render();
 	}
