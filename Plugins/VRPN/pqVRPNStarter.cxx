@@ -108,9 +108,19 @@ void pqVRPNStarter::onStartup()
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
-  pqApplicationCore* core = pqApplicationCore::instance();
+  this->useVRPN = options->GetUseVRPN();
+  this->vrpnAddress = options->GetVRPNAddress();
+  this->sensorIndex = options->GetVRPNTrackerSensor(); 
+  this->loadState();
+  this->initializeDevices();
+}
+//-----------------------------------------------------------------------------
 
-  if(options->GetUseVRPN())
+void pqVRPNStarter::initializeDevices()
+{
+	pqApplicationCore* core = pqApplicationCore::instance();
+
+  if(this->useVRPN)
     {
     // VRPN input events.
     this->VRPNTimer=new QTimer(this);
@@ -135,8 +145,8 @@ void pqVRPNStarter::onStartup()
 
 	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
 	vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
-    tracker1->SetDeviceName(options->GetVRPNAddress()); 
-	tracker1->SetSensorIndex( options->GetVRPNTrackerSensor());//TODO: Fix error handling  
+	tracker1->SetDeviceName(this->vrpnAddress); 
+	tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
 
 	//My custom Tracker placement
 	tracker1->SetTracker2WorldTranslation(-8.68, -5.4, -1.3);
@@ -181,13 +191,26 @@ void pqVRPNStarter::onStartup()
 	strncpy(AC1->t_name,spaceNavigatorAddress,sizeof(AC1->t_name));
 	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
 	
-
+	//Delete objects . TODO: need to delete interactors?
+	/*tracker1->Delete();
+	trackerStyleCamera1->Delete();
+	interactor1->Delete();
+	interactorStyle1->Delete();*/
+	
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(callback()));
     this->VRPNTimer->start();
     }
 }
 
+void pqVRPNStarter::uninitializeDevices()
+{
+	this->VRPNTimer->stop();
+	delete this->VRPNTimer;
+	delete this->spaceNavigator1;
+	delete this->AC1;
+	this->inputInteractor->Delete();
+}
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
@@ -197,10 +220,17 @@ void pqVRPNStarter::onShutdown()
 
 void pqVRPNStarter::callback()
 {
-	//bool loadedState = this->loadState(); 
-	this->spaceNavigator1->mainloop();
-	this->inputInteractor->Update(); 
-
+	if (this->sharedStateModified())
+	{
+		this->uninitializeDevices();
+		this->loadState();
+		this->initializeDevices();
+	}
+	else
+	{
+		this->spaceNavigator1->mainloop();
+		this->inputInteractor->Update(); 
+	}
 	
 	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
 	//Get the Server Manager Model so that we can get each view
@@ -321,53 +351,58 @@ const vrpn_ANALOGCB t)
     }
 }
 
-
-
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-bool  pqVRPNStarter::loadState()
+bool pqVRPNStarter::sharedStateModified()
 {
-
 	struct stat filestat;
 	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )
 	{   if (last_write)
 		{
-			if (filestat.st_mtime != last_write)
+			if (filestat.st_mtime != this->last_write)
 			{
-				pqActiveObjects* activeObjects = &pqActiveObjects::instance();
-				pqServer *server = activeObjects->activeServer();
-
-				// Read in the xml file to restore.
-				vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-				xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-				xmlParser->Parse();
-
-				// Get the root element from the parser.
-				vtkPVXMLElement *root = xmlParser->GetRootElement();
-				if (root)
-				{
-				pqApplicationCore::instance()->loadState(root, server);
-
-				// Add this to the list of recent server resources ...
-				pqServerResource resource;
-				resource.setScheme("session");
-				resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-				resource.setSessionServer(server->getResource());
-				pqApplicationCore::instance()->serverResources().add(resource);
-				pqApplicationCore::instance()->serverResources().save(
-				*pqApplicationCore::instance()->settings());
-				}
-				else
-				{
-				qCritical("Root does not exist. Either state file could not be opened "
-				"or it does not contain valid xml");
-				}
-				xmlParser->Delete();
-				last_write = filestat.st_mtime;
 				return true;
 			}
 		}
 	}
 	return false;
-	
-	
+
+}
+
+
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadState()
+{
+
+		pqActiveObjects* activeObjects = &pqActiveObjects::instance();
+		pqServer *server = activeObjects->activeServer();
+
+		// Read in the xml file to restore.
+		vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+		xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+		xmlParser->Parse();
+
+		// Get the root element from the parser.
+		vtkPVXMLElement *root = xmlParser->GetRootElement();
+		if (root)
+		{
+		pqApplicationCore::instance()->loadState(root, server);
+
+		// Add this to the list of recent server resources ...
+		pqServerResource resource;
+		resource.setScheme("session");
+		resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+		resource.setSessionServer(server->getResource());
+		pqApplicationCore::instance()->serverResources().add(resource);
+		pqApplicationCore::instance()->serverResources().save(
+		*pqApplicationCore::instance()->settings());
+		}
+		else
+		{
+		qCritical("Root does not exist. Either state file could not be opened "
+		"or it does not contain valid xml");
+		}
+		xmlParser->Delete();
+		//Store timestamp of last loaded state .
+		struct stat filestat;
+		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
+		this->last_write = filestat.st_mtime;
 }

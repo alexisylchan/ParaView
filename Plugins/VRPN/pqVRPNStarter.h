@@ -58,7 +58,6 @@ public slots:
     void callback();
 protected:
     QTimer *VRPNTimer;
-    vtkInteractionDeviceManager* inputDeviceManager;
 	vtkDeviceInteractor* inputInteractor;
 	vrpn_Analog_Remote* spaceNavigator1;
 	t_user_callback *AC1;
@@ -69,8 +68,10 @@ private:
   //void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
-
-  bool loadState();
+  void loadState();
+  void initializeDevices();
+  void uninitializeDevices();
+  bool sharedStateModified();
 
   time_t last_write;
   const char* vrpnAddress;
