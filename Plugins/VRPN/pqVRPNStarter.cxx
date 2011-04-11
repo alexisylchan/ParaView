@@ -65,6 +65,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVXMLParser.h"
 #include "pqApplicationCore.h"
 #include "pqServer.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
 //Create two views includes
 #include "pqApplicationCore.h"
@@ -195,9 +197,11 @@ void pqVRPNStarter::onShutdown()
 
 void pqVRPNStarter::callback()
 {
+	//bool loadedState = this->loadState(); 
 	this->spaceNavigator1->mainloop();
 	this->inputInteractor->Update(); 
 
+	
 	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
 	//Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
@@ -319,3 +323,51 @@ const vrpn_ANALOGCB t)
 
 
 
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+bool  pqVRPNStarter::loadState()
+{
+
+	struct stat filestat;
+	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )
+	{   if (last_write)
+		{
+			if (filestat.st_mtime != last_write)
+			{
+				pqActiveObjects* activeObjects = &pqActiveObjects::instance();
+				pqServer *server = activeObjects->activeServer();
+
+				// Read in the xml file to restore.
+				vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+				xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+				xmlParser->Parse();
+
+				// Get the root element from the parser.
+				vtkPVXMLElement *root = xmlParser->GetRootElement();
+				if (root)
+				{
+				pqApplicationCore::instance()->loadState(root, server);
+
+				// Add this to the list of recent server resources ...
+				pqServerResource resource;
+				resource.setScheme("session");
+				resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
+				resource.setSessionServer(server->getResource());
+				pqApplicationCore::instance()->serverResources().add(resource);
+				pqApplicationCore::instance()->serverResources().save(
+				*pqApplicationCore::instance()->settings());
+				}
+				else
+				{
+				qCritical("Root does not exist. Either state file could not be opened "
+				"or it does not contain valid xml");
+				}
+				xmlParser->Delete();
+				last_write = filestat.st_mtime;
+				return true;
+			}
+		}
+	}
+	return false;
+	
+	
+}

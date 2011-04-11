@@ -70,6 +70,13 @@ private:
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
 
+  bool loadState();
+
+  time_t last_write;
+  const char* vrpnAddress;
+  int sensorIndex;
+  int useVRPN;
+
 
 };
 
