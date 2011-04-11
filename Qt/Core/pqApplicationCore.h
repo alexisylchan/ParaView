@@ -253,6 +253,9 @@ public slots:
 
   /// Renders all windows
   void render();
+  void increaseEyeAngle();
+  void decreaseEyeAngle();
+
 
 signals:
   /// Fired before a state xml is being loaded. One can add slots for this signal

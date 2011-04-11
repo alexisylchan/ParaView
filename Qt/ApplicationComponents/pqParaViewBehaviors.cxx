@@ -101,5 +101,13 @@ pqParaViewBehaviors::pqParaViewBehaviors(
     mainWindow);
   QObject::connect(altSpace, SIGNAL(activated()),
     pqApplicationCore::instance(), SLOT(quickLaunch()));
+  QShortcut *increaseEyeAngleSC = new QShortcut(Qt::Key_J,
+    mainWindow);
+  QShortcut *decreaseEyeAngleSC = new QShortcut(Qt::Key_K,
+    mainWindow);
+  QObject::connect(increaseEyeAngleSC, SIGNAL(activated()),
+    pqApplicationCore::instance(), SLOT(increaseEyeAngle()));
+  QObject::connect(decreaseEyeAngleSC, SIGNAL(activated()),
+    pqApplicationCore::instance(), SLOT(decreaseEyeAngle()));
 }
 

@@ -91,6 +91,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMWriterFactory.h"
 #include "vtkProcessModuleAutoMPI.h"
 
+//Eye Angle 
+#include "vtkSMRenderViewProxy.h"
+#include "vtkCamera.h"
+#include "vtkRenderWindow.h"
 //-----------------------------------------------------------------------------
 class pqApplicationCore::pqInternals
 {
@@ -724,4 +728,32 @@ void pqApplicationCore::loadDistributedPlugins(const char* filename)
 
   vtkSMApplication::GetApplication()->GetPluginManager()->LoadPluginConfigurationXML(
     config_file.toStdString().c_str());
+}
+void pqApplicationCore::increaseEyeAngle()
+{ 
+	pqServerManagerModel* serverManager = this->getServerManagerModel();
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+	{
+			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+
+			vtkCamera* camera = viewProxy->GetActiveCamera();
+			camera->SetEyeAngle(camera->GetEyeAngle()+0.5);
+			viewProxy->GetRenderWindow()->Render();
+	}
+
+}
+void pqApplicationCore::decreaseEyeAngle()
+{
+		pqServerManagerModel* serverManager = this->getServerManagerModel();
+		
+		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+		{
+			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+
+			vtkCamera* camera = viewProxy->GetActiveCamera();
+			camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
+			viewProxy->GetRenderWindow()->Render();
+		}
 }
