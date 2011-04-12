@@ -69,6 +69,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/stat.h>
 #include "pqDeleteReaction.h"
 #include "vtkPVXMLElement.h"
+#include "pqCommandLineOptionsBehavior.h"
+#include "pqLoadStateReaction.h"
 
 //Create two views includes
 #include "pqApplicationCore.h"
@@ -115,6 +117,12 @@ void pqVRPNStarter::onStartup()
   this->vrpnAddress = options->GetVRPNAddress();
   this->sensorIndex = options->GetVRPNTrackerSensor(); 
   this->listenToSelfSave();
+  this->loadState();
+  this->initializeDevices();
+
+  //For Debugging: remove everything and reload state
+  this->uninitializeDevices();
+  pqCommandLineOptionsBehavior::resetApplication();
   this->loadState();
   this->initializeDevices();
 }
@@ -208,11 +216,12 @@ void pqVRPNStarter::initializeDevices()
 	strncpy(AC1->t_name,spaceNavigatorAddress,sizeof(AC1->t_name));
 	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
 	
-	//Delete objects . TODO: need to delete interactors?
-	/*tracker1->Delete();
-	trackerStyleCamera1->Delete();
-	interactor1->Delete();
-	interactorStyle1->Delete();*/
+	//TODO: Uncomment after debugging
+	//Delete objects .
+	//tracker1->Delete();
+	//trackerStyleCamera1->Delete();
+	//interactor1->Delete();
+	//interactorStyle1->Delete();
 	
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(timerCallback()));
@@ -243,7 +252,10 @@ void pqVRPNStarter::timerCallback()
 	if (this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
 	{
 		this->uninitializeDevices();
-		this->loadState();
+		pqCommandLineOptionsBehavior::resetApplication();
+		//TODO: Uncomment post-debugging
+		/*this->loadState();*/
+		this->changeTimeStamp();
 		this->initializeDevices();
 	}
 	else
@@ -391,37 +403,7 @@ bool pqVRPNStarter::sharedStateModified()
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadState()
 {
-
-		pqActiveObjects* activeObjects = &pqActiveObjects::instance();
-		pqServer *server = activeObjects->activeServer();
-
-		// Read in the xml file to restore.
-		vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-		xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-		xmlParser->Parse();
-
-		// Get the root element from the parser.
-		vtkPVXMLElement *root = xmlParser->GetRootElement();
-		if (root)
-		{
-		pqApplicationCore::instance()->loadState(root, server);
-
-		// Add this to the list of recent server resources ...
-		pqServerResource resource;
-		resource.setScheme("session");
-		resource.setPath("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
-		resource.setSessionServer(server->getResource());
-		pqApplicationCore::instance()->serverResources().add(resource);
-		pqApplicationCore::instance()->serverResources().save(
-		*pqApplicationCore::instance()->settings());
-		}
-		else
-		{
-		qCritical("Root does not exist. Either state file could not be opened "
-		"or it does not contain valid xml");
-		}
-		xmlParser->Delete();
-		//Store timestamp of last loaded state .
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
 		this->changeTimeStamp();
 		
 }
