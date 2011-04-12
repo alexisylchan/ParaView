@@ -121,10 +121,10 @@ void pqVRPNStarter::onStartup()
   this->initializeDevices();
 
   //For Debugging: remove everything and reload state
-  this->uninitializeDevices();
-  pqCommandLineOptionsBehavior::resetApplication();
-  this->loadState();
-  this->initializeDevices();
+  //this->uninitializeDevices();
+  //pqCommandLineOptionsBehavior::resetApplication();
+  //this->loadState();
+  //this->initializeDevices();
 }
 //-----------------------------------------------------------------------------
 
@@ -254,7 +254,7 @@ void pqVRPNStarter::timerCallback()
 		this->uninitializeDevices();
 		pqCommandLineOptionsBehavior::resetApplication();
 		//TODO: Uncomment post-debugging
-		/*this->loadState();*/
+		this->loadState();
 		this->changeTimeStamp();
 		this->initializeDevices();
 	}
