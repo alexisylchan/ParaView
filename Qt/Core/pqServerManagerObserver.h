@@ -84,6 +84,9 @@ signals:
   
   /// Fired when state is being saved.
   void stateSaved(vtkPVXMLElement* root);
+  
+  /// Fired after state is saved and the state file is closed
+  void stateFileClosed();
 
 private slots:
   void proxyRegistered(vtkObject* object, unsigned long e, void* clientData,
@@ -94,6 +97,7 @@ private slots:
   void connectionClosed(vtkObject*, unsigned long, void*, void* callData);
   void stateLoaded(vtkObject*, unsigned long, void*, void* callData);
   void stateSaved(vtkObject*, unsigned long, void*, void* callData);
+  void stateFileClosed(vtkObject*, unsigned long, void*, void* callData);
 
 protected:
   pqServerManagerObserverInternal *Internal;  ///< Stores the pipeline objects.

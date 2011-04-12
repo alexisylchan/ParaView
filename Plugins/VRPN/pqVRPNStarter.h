@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class QTimer;
 class ParaViewVRPN;
 class t_user_callback;
+class vtkPVXMLElement;
 
 class pqVRPNStarter : public QObject
 {
@@ -55,7 +56,9 @@ public:
   void onStartup();
 
 public slots:
-    void callback();
+    void timerCallback();
+	void selfSaveEvent();
+
 protected:
     QTimer *VRPNTimer;
 	vtkDeviceInteractor* inputInteractor;
@@ -68,11 +71,13 @@ private:
   //void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
+  void listenToSelfSave();
   void loadState();
+  void removeRepresentations();
   void initializeDevices();
   void uninitializeDevices();
   bool sharedStateModified();
-
+  void changeTimeStamp();
   time_t last_write;
   const char* vrpnAddress;
   int sensorIndex;

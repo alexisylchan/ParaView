@@ -186,6 +186,9 @@ void pqApplicationCore::constructor()
   QObject::connect(this->ServerManagerObserver,
     SIGNAL(stateSaved(vtkPVXMLElement*)),
     this, SLOT(onStateSaved(vtkPVXMLElement*)));
+  QObject::connect(this->ServerManagerObserver,
+    SIGNAL(stateFileClosed()),
+    this, SLOT(onStateFileClosed()));
 }
 
 //-----------------------------------------------------------------------------
@@ -531,6 +534,12 @@ void pqApplicationCore::onStateLoaded(
     scene->getProxy()->UpdateProperty("AnimationTime", 1);
     }
   this->render();
+}
+
+//-----------------------------------------------------------------------------
+void pqApplicationCore::onStateFileClosed()
+{
+  emit this->stateFileClosed();
 }
 
 //-----------------------------------------------------------------------------

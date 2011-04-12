@@ -90,6 +90,8 @@ pqServerManagerObserver::pqServerManagerObserver(QObject* p) : QObject(p)
     this, SLOT(stateLoaded(vtkObject*, unsigned long, void*, void*)));
   this->Internal->VTKConnect->Connect(proxyManager, vtkCommand::SaveStateEvent,
     this, SLOT(stateSaved(vtkObject*, unsigned long, void*, void*)));
+  this->Internal->VTKConnect->Connect(proxyManager, vtkCommand::StateFileClosedEvent,
+    this, SLOT(stateFileClosed(vtkObject*, unsigned long, void*, void*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -177,5 +179,9 @@ void pqServerManagerObserver::stateSaved(vtkObject*, unsigned long, void*, void*
   vtkSMProxyManager::LoadStateInformation &info = *reinterpret_cast<
     vtkSMProxyManager::LoadStateInformation*>(callData);
   emit this->stateSaved(info.RootElement);
+}
+void pqServerManagerObserver::stateFileClosed(vtkObject*, unsigned long, void*, void* callData)
+{
+  emit this->stateFileClosed();
 }
 

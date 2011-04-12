@@ -275,6 +275,9 @@ signals:
   /// THE ROOT besides adding new children.
   void stateSaved(vtkPVXMLElement* root);
 
+    /// Fired after state is saved and xml file is closed
+  void stateFileClosed();
+
   /// Fired when the undo stack is set.
   void undoStackChanged(pqUndoStack*);
 
@@ -287,6 +290,7 @@ signals:
 protected slots:
   void onStateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
   void onStateSaved(vtkPVXMLElement* root);
+  void onStateFileClosed();
 
 protected:
   bool LoadingState;

@@ -67,6 +67,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServer.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "pqDeleteReaction.h"
+#include "vtkPVXMLElement.h"
 
 //Create two views includes
 #include "pqApplicationCore.h"
@@ -105,14 +107,29 @@ pqVRPNStarter::~pqVRPNStarter()
 void pqVRPNStarter::onStartup()
 {
   qWarning() << "Message from pqVRPNStarter: Application Started";
+
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
   this->useVRPN = options->GetUseVRPN();
   this->vrpnAddress = options->GetVRPNAddress();
   this->sensorIndex = options->GetVRPNTrackerSensor(); 
+  this->listenToSelfSave();
   this->loadState();
   this->initializeDevices();
+}
+//-----------------------------------------------------------------------------
+
+void pqVRPNStarter::listenToSelfSave()
+{
+	pqServerManagerObserver *observer = pqApplicationCore::instance()->getServerManagerObserver();
+	QObject::connect(pqApplicationCore::instance(),SIGNAL(stateFileClosed()),this,SLOT(selfSaveEvent( )));
+}
+//-----------------------------------------------------------------------------
+//Change the stored time stamp so that the current ParaView application will not reload upon next timer callback.
+void pqVRPNStarter::selfSaveEvent()
+{
+	this->changeTimeStamp();
 }
 //-----------------------------------------------------------------------------
 
@@ -198,10 +215,11 @@ void pqVRPNStarter::initializeDevices()
 	interactorStyle1->Delete();*/
 	
     connect(this->VRPNTimer,SIGNAL(timeout()),
-		 this,SLOT(callback()));
+		 this,SLOT(timerCallback()));
     this->VRPNTimer->start();
     }
 }
+//-----------------------------------------------------------------------------
 
 void pqVRPNStarter::uninitializeDevices()
 {
@@ -218,9 +236,11 @@ void pqVRPNStarter::onShutdown()
  // fclose(vrpnpluginlog);
 }
 
-void pqVRPNStarter::callback()
+//-----------------------------------------------------------------------------
+void pqVRPNStarter::timerCallback()
 {
-	if (this->sharedStateModified())
+
+	if (this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
 	{
 		this->uninitializeDevices();
 		this->loadState();
@@ -402,7 +422,12 @@ void  pqVRPNStarter::loadState()
 		}
 		xmlParser->Delete();
 		//Store timestamp of last loaded state .
-		struct stat filestat;
-		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
-		this->last_write = filestat.st_mtime;
+		this->changeTimeStamp();
+		
+}
+void pqVRPNStarter::changeTimeStamp()
+{
+	struct stat filestat;
+	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
+	this->last_write = filestat.st_mtime;
 }

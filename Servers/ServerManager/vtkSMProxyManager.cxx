@@ -1217,6 +1217,7 @@ void vtkSMProxyManager::SaveState(const char* filename)
   ofstream os(filename, ios::out);
   rootElement->PrintXML(os, vtkIndent());
   rootElement->Delete();
+  this->InvokeEvent(vtkCommand::StateFileClosedEvent);
 }
 
 //---------------------------------------------------------------------------
