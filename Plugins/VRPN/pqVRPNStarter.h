@@ -36,9 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkInteractionDeviceManager.h>
 #include <vrpn_Analog.h>
 
+
 class QTimer;
 class ParaViewVRPN;
-class t_user_callback;
+class sn_user_callback;
+class tng_user_callback;
 class vtkPVXMLElement;
 
 class pqVRPNStarter : public QObject
@@ -63,7 +65,9 @@ protected:
     QTimer *VRPNTimer;
 	vtkDeviceInteractor* inputInteractor;
 	vrpn_Analog_Remote* spaceNavigator1;
-	t_user_callback *AC1;
+	vrpn_Analog_Remote* tng1;
+	sn_user_callback *AC1;
+	tng_user_callback *TNGC1;
 
 private:
   FILE* vrpnpluginlog;
@@ -71,6 +75,7 @@ private:
   //void loadState(QString* filename);
   pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
   void operator=(const pqVRPNStarter&); // Not implemented.
+  void initializeEyeAngle();
   void listenToSelfSave();
   void loadState();
   void removeRepresentations();
@@ -82,6 +87,7 @@ private:
   const char* vrpnAddress;
   int sensorIndex;
   int useVRPN;
+  double trackerOrigin[3];
 
 
 };

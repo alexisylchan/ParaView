@@ -82,8 +82,10 @@ vtkPVOptions::vtkPVOptions()
   this->LogFileName = 0;
   this->StereoType = 0;
   this->SetStereoType("Anaglyph");
-  this->VRPNAddress = 0;
+  this->VRPNTrackerOrigin = 0;
+  this->SetVRPNTrackerOrigin("8.68,5.4,1.3");
   this->VRPNTrackerSensor = 0;
+  this->VRPNAddress = 0;
   this->SetVRPNAddress("Tracker0@localhost");
   this->VRUIAddress = 0;
   this->SetVRUIAddress("localhost");
@@ -116,6 +118,7 @@ vtkPVOptions::~vtkPVOptions()
   this->SetStereoType(0);
   this->SetParaViewDataName(0);
   this->SetVRPNAddress(0);
+  this->SetVRPNTrackerOrigin(0);
   this->SetVRUIAddress(0);
 }
 
@@ -184,6 +187,11 @@ void vtkPVOptions::Initialize()
   this->AddArgument("--vrpn-sensor", 0, &this->VRPNTrackerSensor,
                    "Specify the VRPN tracker sensor. This valid only when "
                     "--vrpn and --vrpn-address is specified",
+                    vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--vrpn-origin", 0, &this->VRPNTrackerOrigin,
+                    "Specify the VRPN tracker world origin \"x-coordinate,y-coordinate,z-coordinate\"."
+					"This valid only when --vrpn and --vrpn-address is specified. Examples: "
+                    "\"8.68,5.4,1.3\"",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
   this->AddBooleanArgument("--vrui", 0, &this->UseVRUI,
                            "Tell the application to use VRUI for head tracking",

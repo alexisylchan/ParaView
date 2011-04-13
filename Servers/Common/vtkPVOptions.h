@@ -56,6 +56,7 @@ public:
   vtkGetStringMacro(StereoType);
   vtkGetMacro(UseVRPN, int);
   vtkGetStringMacro(VRPNAddress);
+  vtkGetStringMacro(VRPNTrackerOrigin);
   vtkGetMacro(VRPNTrackerSensor, int);
   vtkGetMacro(UseVRUI, int);
   vtkGetStringMacro(VRUIAddress);
@@ -244,6 +245,9 @@ private:
 
   vtkSetStringMacro(VRPNAddress);
   char* VRPNAddress;
+  
+  vtkSetStringMacro(VRPNTrackerOrigin);
+  char* VRPNTrackerOrigin;
 
   vtkSetStringMacro(VRUIAddress);
   char* VRUIAddress;

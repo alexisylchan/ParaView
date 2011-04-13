@@ -83,15 +83,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 // From Cory Quammen's code
-class t_user_callback
+class sn_user_callback
 {
 public:
-  char t_name[vrpn_MAX_TEXT_LEN];
-  vtkstd::vector<unsigned> t_counts;
+  char sn_name[vrpn_MAX_TEXT_LEN];
+  vtkstd::vector<unsigned> sn_counts;
+};
+class tng_user_callback
+{
+public:
+  char tng_name[vrpn_MAX_TEXT_LEN];
+  vtkstd::vector<unsigned> tng_counts;
+  int channelIndex;
+  double initialValue;
 };
 
 //Forward declaration
 void VRPN_CALLBACK handleSpaceNavigatorPos(void *userdata,const vrpn_ANALOGCB t);
+void VRPN_CALLBACK handleTNG(void *userdata,const vrpn_ANALOGCB t);
 //-----------------------------------------------------------------------------
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
   : QObject(p)
@@ -108,7 +117,7 @@ pqVRPNStarter::~pqVRPNStarter()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onStartup()
 {
-  qWarning() << "Message from pqVRPNStarter: Application Started";
+  //qWarning() << "Message from pqVRPNStarter: Application Started";
 
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
@@ -116,15 +125,37 @@ void pqVRPNStarter::onStartup()
   this->useVRPN = options->GetUseVRPN();
   this->vrpnAddress = options->GetVRPNAddress();
   this->sensorIndex = options->GetVRPNTrackerSensor(); 
+  
+  //Parse tracker origin
+  char* trackerOriginStr = options->GetVRPNTrackerOrigin();
+  char* coordStr = strtok(trackerOriginStr,",");
+  int count = 0;
+  while (coordStr != NULL)
+  {
+	  this->trackerOrigin[count] = -1*atof(coordStr);
+	  count++;
+	  coordStr = strtok(NULL,",");
+  }
   this->listenToSelfSave();
   this->loadState();
+  this->initializeEyeAngle();
   this->initializeDevices();
+  
 
   //For Debugging: remove everything and reload state
   //this->uninitializeDevices();
   //pqCommandLineOptionsBehavior::resetApplication();
   //this->loadState();
   //this->initializeDevices();
+}
+void pqVRPNStarter::initializeEyeAngle()
+{
+	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
+	{
+			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
+			camera->SetEyeAngle(0);
+	}
 }
 //-----------------------------------------------------------------------------
 
@@ -173,9 +204,7 @@ void pqVRPNStarter::initializeDevices()
 	tracker1->SetDeviceName(this->vrpnAddress); 
 	tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
 
-	//My custom Tracker placement
-	tracker1->SetTracker2WorldTranslation(-8.68, -5.4, -1.3);
-
+	tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
     // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
     double t2w1[3][3] = { 1, 0,  0,
                          0, 0, -1, 
@@ -193,6 +222,7 @@ void pqVRPNStarter::initializeDevices()
     trackerStyleCamera1->SetTracker(tracker1);
     trackerStyleCamera1->SetRenderer(renderer1);
 
+	
 	/////////////////////////INTERACTOR////////////////////////////
 	// Initialize Device Interactor to manage all trackers
     inputInteractor = vtkDeviceInteractor::New();
@@ -212,9 +242,18 @@ void pqVRPNStarter::initializeDevices()
 	//Cory Quammen's Code
 	const char * spaceNavigatorAddress = "device0@localhost";
 	spaceNavigator1 = new vrpn_Analog_Remote(spaceNavigatorAddress);
-	AC1 = new t_user_callback;
-	strncpy(AC1->t_name,spaceNavigatorAddress,sizeof(AC1->t_name));
+	AC1 = new sn_user_callback;
+	strncpy(AC1->sn_name,spaceNavigatorAddress,sizeof(AC1->sn_name));
 	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
+
+	//TNG 
+	const char * TngAddress = "tng3name@localhost";
+	tng1 = new vrpn_Analog_Remote(TngAddress);
+	TNGC1 = new tng_user_callback;
+	TNGC1->channelIndex = this->sensorIndex;
+	TNGC1->initialValue = 0;
+	strncpy(TNGC1->tng_name,TngAddress,sizeof(TNGC1->tng_name));
+	tng1->register_change_handler(TNGC1,handleTNG);
 	
 	//TODO: Uncomment after debugging
 	//Delete objects .
@@ -237,11 +276,13 @@ void pqVRPNStarter::uninitializeDevices()
 	delete this->spaceNavigator1;
 	delete this->AC1;
 	this->inputInteractor->Delete();
+	delete this->TNGC1;
+	delete this->tng1;
 }
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
-  qWarning() << "Message from pqVRPNStarter: Application Shutting down";
+  //qWarning() << "Message from pqVRPNStarter: Application Shutting down";
  // fclose(vrpnpluginlog);
 }
 
@@ -261,6 +302,7 @@ void pqVRPNStarter::timerCallback()
 	else
 	{
 		this->spaceNavigator1->mainloop();
+		this->tng1->mainloop();
 		this->inputInteractor->Update(); 
 	}
 	
@@ -307,16 +349,16 @@ vrpn_ANALOGCB SNAugmentChannelsToRetainLargestMagnitude(const vrpn_ANALOGCB t)
 void VRPN_CALLBACK handleSpaceNavigatorPos(void *userdata,
 const vrpn_ANALOGCB t)
 {
-  t_user_callback *tData=static_cast<t_user_callback *>(userdata);
+  sn_user_callback *tData=static_cast<sn_user_callback *>(userdata);
 
-  if ( tData->t_counts.size() == 0 )
+  if ( tData->sn_counts.size() == 0 )
     {
-    tData->t_counts.push_back(0);
+    tData->sn_counts.push_back(0);
     }
 
-  if ( tData->t_counts[0] == 1 )
+  if ( tData->sn_counts[0] == 1 )
     {
-    tData->t_counts[0] = 0;
+    tData->sn_counts[0] = 0;
 
     vrpn_ANALOGCB at = SNAugmentChannelsToRetainLargestMagnitude(t);
     pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
@@ -356,7 +398,7 @@ const vrpn_ANALOGCB t)
 
 				for (int i = 0; i < 3; i++)
 				  {
-					double dx = 0.001*at.channel[0]*r[i];
+					double dx = -0.001*at.channel[0]*r[i];
 					pos[i] += dx;
 				  }
 
@@ -366,9 +408,9 @@ const vrpn_ANALOGCB t)
 					pos[i] +=dx;
 				  }
 				// Update Object Orientation
-				orient[0] += 1.0*at.channel[3];
-				orient[1] += 1.0*at.channel[5];
-				orient[2] += 1.0*at.channel[4];
+				orient[0] += 1.0*at.channel[4];
+				orient[1] += 1.0*at.channel[3];
+				orient[2] += 1.0*at.channel[5];
 				vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
 				repProxy->UpdateVTKObjects();
@@ -379,8 +421,40 @@ const vrpn_ANALOGCB t)
     }
   else
     {
-      tData->t_counts[0]++;
+      tData->sn_counts[0]++;
     }
+}
+
+
+void VRPN_CALLBACK handleTNG(void *userdata,
+const vrpn_ANALOGCB t)
+{
+  tng_user_callback *tData=static_cast<tng_user_callback *>(userdata);
+  //qWarning("%d %f \n",tData->channelIndex,t.channel[tData->channelIndex]);
+
+  //TODO: Determine what is delta?
+  double value = t.channel[tData->channelIndex];
+  
+  //if (!tData->initialValue)// If initial value is not set, set the initial value to first read value
+  //{
+	 // tData->initialValue = value;
+  //}
+  //else
+  //{
+	double delta = value - tData->initialValue;
+	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
+	{
+			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
+			if (delta > 0 )
+				camera->SetEyeAngle(camera->GetEyeAngle()+0.5);
+			else if (delta < 0)
+				camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
+			tData->initialValue = value;
+
+	}
+  /*}*/
+ 
 }
 
 bool pqVRPNStarter::sharedStateModified()
