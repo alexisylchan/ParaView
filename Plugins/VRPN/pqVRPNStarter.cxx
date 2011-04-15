@@ -81,6 +81,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 #include "pqDataRepresentation.h"
 
+//Off-axis projection includes
+#include "vtkMatrix4x4.h"
 
 // From Cory Quammen's code
 class sn_user_callback
@@ -111,6 +113,13 @@ pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
 //-----------------------------------------------------------------------------
 pqVRPNStarter::~pqVRPNStarter()
 {
+	uninitializeDevices();
+	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
+	{
+		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
+		camera->SetHeadTracked(false);
+	}
 }
 
 
@@ -152,9 +161,71 @@ void pqVRPNStarter::initializeEyeAngle()
 {
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
-			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
-			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
-			camera->SetEyeAngle(0);
+		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
+		camera->SetEyeAngle(0);
+		camera->SetHeadTracked(true);
+		//Code from vtkCaveSynchronizedRenderers::SetDisplayConfig
+		double DisplayX[3], DisplayY[3],DisplayOrigin[3];
+		double value = 100.0;
+		DisplayOrigin[0]= -value;
+		DisplayOrigin[1]= -value;//trackerOrigin[1]-0.15;
+		DisplayOrigin[2]= -value;//trackerOrigin[2];
+		DisplayX[0]= value;//trackerOrigin[0]+0.2;
+		DisplayX[1]= -value;//trackerOrigin[1]-0.15;
+		DisplayX[2]= -value;//trackerOrigin[2];
+		DisplayY[0]= value;//trackerOrigin[0]+0.2;
+		DisplayY[1]= value;//trackerOrigin[1]+0.15;
+		DisplayY[2]= -value;//trackerOrigin[2];
+
+		//DisplayOrigin[0]= 5.6;//trackerOrigin[0]-0.2;
+		//DisplayOrigin[1]= 1.0;//trackerOrigin[1]-0.15;
+		//DisplayOrigin[2]= 8.43;//trackerOrigin[2];
+		//DisplayX[0]= 5.3;//trackerOrigin[0]+0.2;
+		//DisplayX[1]= 1.0;//trackerOrigin[1]-0.15;
+		//DisplayX[2]= 8.43;//trackerOrigin[2];
+		//DisplayY[0]= 5.3;//trackerOrigin[0]+0.2;
+		//DisplayY[1]= 1.3;//trackerOrigin[1]+0.15;
+		//DisplayY[2]= 8.43;//trackerOrigin[2];
+
+		double xBase[3],yBase[3],zBase[3];
+		//Get Vectors of screen
+		for (int i =0; i < 3; ++i)
+		{
+		xBase[i] = DisplayX[i]-DisplayOrigin[i];
+		yBase[i] = DisplayY[i]-DisplayX[i];
+		}
+		vtkMath::Cross(xBase,yBase,zBase);
+		//Code from vtkCaveSynchronizedRenderers::SetSurfaceRotation
+		vtkMatrix4x4* SurfaceRot = vtkMatrix4x4::New();
+		vtkMath::Normalize( xBase );
+		vtkMath::Normalize( yBase );
+		vtkMath::Normalize( zBase );
+
+		SurfaceRot->SetElement( 0, 0, xBase[0] );
+		SurfaceRot->SetElement( 0, 1, xBase[1] );
+		SurfaceRot->SetElement( 0, 2, xBase[2] );
+
+		SurfaceRot->SetElement( 1, 0, yBase[0] );
+		SurfaceRot->SetElement( 1, 1, yBase[1] );
+		SurfaceRot->SetElement( 1, 2, yBase[2] );
+
+		SurfaceRot->SetElement( 2, 0, zBase[0]);
+		SurfaceRot->SetElement( 2, 1, zBase[1]);
+		SurfaceRot->SetElement( 2, 2, zBase[2]);
+		SurfaceRot->MultiplyPoint( DisplayOrigin, DisplayOrigin );
+		SurfaceRot->MultiplyPoint( DisplayX, DisplayX );
+		SurfaceRot->MultiplyPoint( DisplayY, DisplayY );
+
+		// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top
+		double O2Screen = - DisplayOrigin[2];
+		double O2Right  =   DisplayX[0];
+		double O2Left   = - DisplayOrigin[0];
+		double O2Top    =   DisplayY[1];
+		double O2Bottom = - DisplayX[1];
+		//qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
+		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0,1.0,SurfaceRot);
+			
 	}
 }
 //-----------------------------------------------------------------------------
@@ -206,12 +277,16 @@ void pqVRPNStarter::initializeDevices()
 
 	tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
     // Rotate 90 around x so that tracker is pointing upwards instead of towards view direction.
-    double t2w1[3][3] = { 1, 0,  0,
+  /*  double t2w1[3][3] = { 1, 0,  0,
                          0, 0, -1, 
-                         0, 1,  0 };
+                         0, 1,  0 };*/
+	  double t2w1[3][3] = { 0,  -1, 0,
+                            0,  0, 1, 
+                           -1,  0, 0 };
+
     double t2wQuat1[4];
     vtkMath::Matrix3x3ToQuaternion(t2w1, t2wQuat1);
-    tracker1->SetTracker2WorldRotation(t2wQuat1);
+   // tracker1->SetTracker2WorldRotation(t2wQuat1);
 
     tracker1->Initialize();
 
@@ -447,9 +522,10 @@ const vrpn_ANALOGCB t)
 			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 			if (delta > 0 )
-				camera->SetEyeAngle(camera->GetEyeAngle()+0.5);
+				camera->SetEyeOffset(camera->GetEyeOffset()+0.001);//camera->SetEyeAngle(camera->GetEyeAngle()+0.5);
 			else if (delta < 0)
-				camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
+				camera->SetEyeOffset(camera->GetEyeOffset()-0.001);
+				//camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
 			tData->initialValue = value;
 
 	}
