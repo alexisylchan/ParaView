@@ -36,15 +36,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt Includes.
 #include <QtDebug>
 #include <QTimer>
+#include <QString>
+#include <QStringList>
 // ParaView Includes.
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
+#include "pqApplicationCore.h"
+#include "pqLoadDataReaction.h"
+#include "pqAutoApplyReaction.h"
 
 //-----------------------------------------------------------------------------
 pqProject715Starter::pqProject715Starter(QObject* p/*=0*/)
   : QObject(p)
 {
-
+	pqAutoApplyReaction::
+	pqLoadDataReaction::loadData(QStringList(QString("C:/Users/alexisc/Documents/Comp715/Project/SST/SST.res_t2880/SST.res_t2880_2.vtu")));
+	
 }
 
 //-----------------------------------------------------------------------------
