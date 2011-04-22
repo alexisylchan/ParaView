@@ -1075,7 +1075,8 @@ void pqMultiView::toggleFullScreen()
     QShortcut *f11= new QShortcut(Qt::Key_F11, this->FullScreenParent);
     QObject::connect(f11, SIGNAL(activated()), this, SLOT(toggleFullScreen()));
 
-    this->FullScreenParent->showFullScreen();
+   // this->FullScreenParent->showFullScreen();
+	this->FullScreenParent->showMaximized();
     this->FullScreenParent->show();
     }
   else

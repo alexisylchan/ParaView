@@ -14,14 +14,18 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <property name="margin">
-     <number>0</number>
-    </property>
-    <item row="0" column="0">
-     <widget class="pqViewManager" name="MultiViewManager" native="true"/>
-    </item>
-   </layout>
+
+    <widget class="QDockWidget" name="proxyTabDock1">
+      <property name="allowedAreas">
+        <set>Qt::RightDockWidgetArea</set>
+      </property>
+      <attribute name="dockWidgetArea">
+        <number>1</number>
+      </attribute>
+          <widget class="pqViewManager" name="MultiViewManager" native="true"/>
+      
+    </widget>
+    
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

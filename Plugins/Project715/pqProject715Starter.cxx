@@ -50,7 +50,8 @@ pqProject715Starter::pqProject715Starter(QObject* p/*=0*/)
   : QObject(p)
 {
 	pqAutoApplyReaction::
-	pqLoadDataReaction::loadData(QStringList(QString("C:/Users/alexisc/Documents/Comp715/Project/SST/SST.res_t2880/SST.res_t2880_2.vtu")));
+	pqLoadDataReaction::loadData(QStringList(QString("C:/Users/alexisc/Documents/Comp715/Project/SST/SST.res_t2880/SST.res_t2880_2_q.vtu")));
+	
 	
 }
 

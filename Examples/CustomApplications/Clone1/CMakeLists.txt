@@ -39,6 +39,7 @@ build_paraview_client(paraview_revised
   VERSION_MAJOR 1 
   VERSION_MINOR 1
   VERSION_PATCH 1
+    REQUIRED_PLUGINS VRPNPlugin
 #  SPLASH_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/RSplash.png"
   PVMAIN_WINDOW myMainWindow
   PVMAIN_WINDOW_INCLUDE myMainWindow.h

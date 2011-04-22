@@ -37,6 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
 
+#include "pqMultiViewFrame.h"
+
 class myMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -100,6 +102,9 @@ myMainWindow::myMainWindow()
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
+   this->Internals->MultiViewManager->toggleFullScreen();
+   this->Internals->MultiViewManager->getFrame(this->Internals->MultiViewManager->getActiveView())->setMenuAutoHide(true);
+   //this->Internals->proxyTabDock1->showMaximized();
 }
 
 //-----------------------------------------------------------------------------

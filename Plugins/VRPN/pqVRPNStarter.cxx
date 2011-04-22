@@ -90,6 +90,7 @@ class sn_user_callback
 public:
   char sn_name[vrpn_MAX_TEXT_LEN];
   vtkstd::vector<unsigned> sn_counts;
+  int sensorIndex;
 };
 class tng_user_callback
 {
@@ -224,7 +225,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		double O2Top    =   DisplayY[1];
 		double O2Bottom = - DisplayX[1];
 		//qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
-		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0,1.0,SurfaceRot);
+		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0,3.0,SurfaceRot);
 			
 	}
 }
@@ -319,6 +320,7 @@ void pqVRPNStarter::initializeDevices()
 	spaceNavigator1 = new vrpn_Analog_Remote(spaceNavigatorAddress);
 	AC1 = new sn_user_callback;
 	strncpy(AC1->sn_name,spaceNavigatorAddress,sizeof(AC1->sn_name));
+	AC1->sensorIndex = this->sensorIndex;
 	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
 
 	//TNG 
@@ -483,9 +485,19 @@ const vrpn_ANALOGCB t)
 					pos[i] +=dx;
 				  }
 				// Update Object Orientation
-				orient[0] += 1.0*at.channel[4];
-				orient[1] += 1.0*at.channel[3];
-				orient[2] += 1.0*at.channel[5];
+				
+				if (tData->sensorIndex == 1)
+				{					
+					orient[0] += -1.0*at.channel[4];
+					orient[1] += -1.0*at.channel[5];
+					orient[2] += -1.0*at.channel[3];
+				}
+				else 
+				{					
+					orient[0] += -1.0*at.channel[3];
+					orient[1] += -1.0*at.channel[5];
+					orient[2] += -1.0*at.channel[4];
+				}
 				vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
 				repProxy->UpdateVTKObjects();
