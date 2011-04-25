@@ -812,50 +812,50 @@ void pqMultiView::setup(pqMultiViewFrame* frame)
     return;
     }
 
-  QSignalMapper* CloseSignalMapper = new QSignalMapper(frame);
-  QSignalMapper* HorizontalSignalMapper = new QSignalMapper(frame);
-  QSignalMapper* VerticalSignalMapper = new QSignalMapper(frame);
-  QSignalMapper* MaximizeSignalMapper = new QSignalMapper(frame);
-  QSignalMapper* RestoreSignalMapper = new QSignalMapper(frame);
+  //QSignalMapper* CloseSignalMapper = new QSignalMapper(frame);
+  //QSignalMapper* HorizontalSignalMapper = new QSignalMapper(frame);
+  //QSignalMapper* VerticalSignalMapper = new QSignalMapper(frame);
+  //QSignalMapper* MaximizeSignalMapper = new QSignalMapper(frame);
+  //QSignalMapper* RestoreSignalMapper = new QSignalMapper(frame);
 
-  CloseSignalMapper->setMapping(frame, frame);
-  HorizontalSignalMapper->setMapping(frame, frame);
-  VerticalSignalMapper->setMapping(frame, frame);
-  MaximizeSignalMapper->setMapping(frame, frame);
-  RestoreSignalMapper->setMapping(frame, frame);
+  //CloseSignalMapper->setMapping(frame, frame);
+  //HorizontalSignalMapper->setMapping(frame, frame);
+  //VerticalSignalMapper->setMapping(frame, frame);
+  //MaximizeSignalMapper->setMapping(frame, frame);
+  //RestoreSignalMapper->setMapping(frame, frame);
 
-  // connect close button
-  QObject::connect(frame, SIGNAL(closePressed()), 
-                   CloseSignalMapper, SLOT(map()));
-  QObject::connect(CloseSignalMapper, SIGNAL(mapped(QWidget*)), 
-                   this, SLOT(removeWidget(QWidget*)), Qt::QueuedConnection);
+  //// connect close button
+  //QObject::connect(frame, SIGNAL(closePressed()), 
+  //                 CloseSignalMapper, SLOT(map()));
+  //QObject::connect(CloseSignalMapper, SIGNAL(mapped(QWidget*)), 
+  //                 this, SLOT(removeWidget(QWidget*)), Qt::QueuedConnection);
 
-  // connect split buttons
-  QObject::connect(frame, SIGNAL(splitHorizontalPressed()), 
-                   HorizontalSignalMapper, SLOT(map()));
-  QObject::connect(HorizontalSignalMapper, SIGNAL(mapped(QWidget*)), 
-                   this, SLOT(splitWidgetHorizontal(QWidget*)));
-  
-  QObject::connect(frame, SIGNAL(splitVerticalPressed()), 
-                   VerticalSignalMapper, SLOT(map()));
-  QObject::connect(VerticalSignalMapper, SIGNAL(mapped(QWidget*)), 
-                   this, SLOT(splitWidgetVertical(QWidget*)));
-  
-  QObject::connect(frame, SIGNAL(maximizePressed()), 
-                   MaximizeSignalMapper, SLOT(map()));
-  QObject::connect(MaximizeSignalMapper, SIGNAL(mapped(QWidget*)), 
-                   this, SLOT(maximizeWidget(QWidget*)));
+  //// connect split buttons
+  //QObject::connect(frame, SIGNAL(splitHorizontalPressed()), 
+  //                 HorizontalSignalMapper, SLOT(map()));
+  //QObject::connect(HorizontalSignalMapper, SIGNAL(mapped(QWidget*)), 
+  //                 this, SLOT(splitWidgetHorizontal(QWidget*)));
+  //
+  //QObject::connect(frame, SIGNAL(splitVerticalPressed()), 
+  //                 VerticalSignalMapper, SLOT(map()));
+  //QObject::connect(VerticalSignalMapper, SIGNAL(mapped(QWidget*)), 
+  //                 this, SLOT(splitWidgetVertical(QWidget*)));
+  //
+  //QObject::connect(frame, SIGNAL(maximizePressed()), 
+  //                 MaximizeSignalMapper, SLOT(map()));
+  //QObject::connect(MaximizeSignalMapper, SIGNAL(mapped(QWidget*)), 
+  //                 this, SLOT(maximizeWidget(QWidget*)));
  
-  QObject::connect(frame, SIGNAL(restorePressed()), 
-                   RestoreSignalMapper, SLOT(map()));
-  QObject::connect(RestoreSignalMapper, SIGNAL(mapped(QWidget*)), 
-                   this, SLOT(restoreWidget(QWidget*)));
+  //QObject::connect(frame, SIGNAL(restorePressed()), 
+  //                 RestoreSignalMapper, SLOT(map()));
+  //QObject::connect(RestoreSignalMapper, SIGNAL(mapped(QWidget*)), 
+  //                 this, SLOT(restoreWidget(QWidget*)));
 
-  // Connect decorations signals.
-  QObject::connect(this, SIGNAL(hideFrameDecorations()),
-    frame, SLOT(hideDecorations()));
-  QObject::connect(this, SIGNAL(showFrameDecorations()),
-    frame, SLOT(showDecorations()));
+  //// Connect decorations signals.
+  //QObject::connect(this, SIGNAL(hideFrameDecorations()),
+  //  frame, SLOT(hideDecorations()));
+  //QObject::connect(this, SIGNAL(showFrameDecorations()),
+  //  frame, SLOT(showDecorations()));
 }
 
 //-----------------------------------------------------------------------------

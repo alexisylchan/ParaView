@@ -135,7 +135,6 @@ myMainWindow::myMainWindow()
   new pqParaViewBehaviors(this, this);
 #else
   pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
-  pgm->loadAutoLoadPlugins(
   pgm->addInterface(new pqStandardViewModules(pgm));
   new pqDefaultViewBehavior(this);
   new pqAlwaysConnectedBehavior(this);
