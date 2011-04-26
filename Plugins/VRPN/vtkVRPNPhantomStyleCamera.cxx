@@ -41,7 +41,7 @@
 #include "vtkCamera.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "vtkCollisionDetectionFilter.h"
+//#include "vtkCollisionDetectionFilter.h"
 
 #include "vtkConeSource.h"
 #include "vtkPolyDataMapper.h"
@@ -65,7 +65,7 @@ void vtkVRPNPhantomStyleCamera::OnEvent(vtkObject* caller, unsigned long eid, vo
 {
   
   vtkVRPNPhantom* Phantom ;
-  vtkCollisionDetectionFilter* CollisionFilter;
+  /*vtkCollisionDetectionFilter* CollisionFilter;*/
   switch(eid)
     {
     case vtkVRPNDevice::PhantomEvent:
@@ -88,74 +88,38 @@ void vtkVRPNPhantomStyleCamera::SetPhantom(vtkVRPNPhantom* Phantom)
     }
 } 
 //----------------------------------------------------------------------------
-void vtkVRPNPhantomStyleCamera::SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter)
-{  
-  if (CollisionFilter != NULL) 
-    {
-    CollisionFilter->AddObserver(vtkCommand::EndEvent, this->DeviceCallback);
-    }
-} 
+//void vtkVRPNPhantomStyleCamera::SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter)
+//{  
+//  if (CollisionFilter != NULL) 
+//    {
+//    CollisionFilter->AddObserver(vtkCommand::EndEvent, this->DeviceCallback);
+//    }
+//} 
 //----------------------------------------------------------------------------
 void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor) 
 { 
 	this->myActor = myActor;
 }
 //----------------------------------------------------------------------------
-void vtkVRPNPhantomStyleCamera::PrintCollision(vtkCollisionDetectionFilter* CollisionFilter)
-{
-		qWarning("Printing Collision");
-	 if (CollisionFilter->GetNumberOfContacts() > 0)
-        {
-        qWarning("Number Of Contacts: %d", CollisionFilter->GetNumberOfContacts());
-        }
-      else
-        {
-        qWarning("No Contacts");
-        }
-
-} 
+//void vtkVRPNPhantomStyleCamera::PrintCollision(vtkCollisionDetectionFilter* CollisionFilter)
+//{
+//		qWarning("Printing Collision");
+//	 if (CollisionFilter->GetNumberOfContacts() > 0)
+//        {
+//        qWarning("Number Of Contacts: %d", CollisionFilter->GetNumberOfContacts());
+//        }
+//      else
+//        {
+//        qWarning("No Contacts");
+//        }
+//
+//} 
 //----------------------------------------------------------------------------
 void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 {
-	if (myActor)
-	{
-		double* position = Phantom->GetPosition();
-		double newPosition[3];
-		//Scale up position. TODO: Determine how much to scale between phantom position and world position
-		for (int s = 0; s<3;s++)
-		{
-			newPosition[s]=position[s]*10;
-		}
-		//myActor->SetPosition(newPosition);	
-		// Update Object Orientation
-        double  matrix[3][3];
-		double orientNew[3] ;
-		//Change transform quaternion to matrix
-		vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
-		vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
-		for (int i =0; i<4;i++)
-		{
-			for (int j = 0; j<4; j++)
-			{
-				if ((i == 3) || (j==3))
-				{
-					vtkMatrixToOrient->SetElement(i,j, 0);
-				}
-				else
-					vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
-			}
-		}
-		vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
-		myActor->SetPosition(newPosition);
-		myActor->SetOrientation(orientNew);
-		
 
-	}
-	else
-	{	
-	// CODE FOR ADDING ARROW TO PARAVIEW - DO NOT REMOVE
-    pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	/*for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
+   pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	/**for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
 	{*/
 		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(0);
 		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
@@ -170,24 +134,24 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			  {
 				// Update Object Orientation
                 double  matrix[3][3];
-				double orientNew[3] ;
-				//Change transform quaternion to matrix
-				vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
-				vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
-				for (int i =0; i<4;i++)
-				{
-					for (int j = 0; j<4; j++)
-					{
-						if ((i == 3) || (j==3))
-						{
-							vtkMatrixToOrient->SetElement(i,j, 0);
-						}
-						else
-							vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
-					}
-				}
-				// Change matrix to orientation values
-				vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
+				//double orientNew[3] ;
+				////Change transform quaternion to matrix
+				//vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
+				//vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
+				//for (int i =0; i<4;i++)
+				//{
+				//	for (int j = 0; j<4; j++)
+				//	{
+				//		if ((i == 3) || (j==3))
+				//		{
+				//			vtkMatrixToOrient->SetElement(i,j, 0);
+				//		}
+				//		else
+				//			vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
+				//	}
+				//}
+				//// Change matrix to orientation values
+				//vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
 				double* position = Phantom->GetPosition();
 				double newPosition[3];
 				//Scale up position. TODO: Determine how much to scale between phantom position and world position
@@ -197,12 +161,98 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 				}
 
 				vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3);
-				vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
+			/*	vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); */
 				repProxy->UpdateVTKObjects(); 
 			  }
 		  }
 		
-      }
+
+	//if (myActor)
+	//{
+	//	double* position = Phantom->GetPosition();
+	//	double newPosition[3];
+	//	//Scale up position. TODO: Determine how much to scale between phantom position and world position
+	//	for (int s = 0; s<3;s++)
+	//	{
+	//		newPosition[s]=position[s]*10;
+	//	}
+	//	//myActor->SetPosition(newPosition);	
+	//	// Update Object Orientation
+ //       double  matrix[3][3];
+	//	double orientNew[3] ;
+	//	//Change transform quaternion to matrix
+	//	vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
+	//	vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
+	//	for (int i =0; i<4;i++)
+	//	{
+	//		for (int j = 0; j<4; j++)
+	//		{
+	//			if ((i == 3) || (j==3))
+	//			{
+	//				vtkMatrixToOrient->SetElement(i,j, 0);
+	//			}
+	//			else
+	//				vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
+	//		}
+	//	}
+	//	vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
+	//	myActor->SetPosition(newPosition);
+	//	myActor->SetOrientation(orientNew);
+	//	
+
+	//}
+	//else
+	//{	
+	//// CODE FOR ADDING ARROW TO PARAVIEW - DO NOT REMOVE
+ //   pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	///*for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
+	//{*/
+	//	pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(0);
+	//	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+	//	{
+	//		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+	//		vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+
+	//		vtkSMRepresentationProxy *repProxy = 0;
+	//		repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
+
+	//		if ( repProxy && viewProxy)
+	//		  {
+	//			// Update Object Orientation
+ //               double  matrix[3][3];
+	//			double orientNew[3] ;
+	//			//Change transform quaternion to matrix
+	//			vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
+	//			vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
+	//			for (int i =0; i<4;i++)
+	//			{
+	//				for (int j = 0; j<4; j++)
+	//				{
+	//					if ((i == 3) || (j==3))
+	//					{
+	//						vtkMatrixToOrient->SetElement(i,j, 0);
+	//					}
+	//					else
+	//						vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
+	//				}
+	//			}
+	//			// Change matrix to orientation values
+	//			vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
+	//			double* position = Phantom->GetPosition();
+	//			double newPosition[3];
+	//			//Scale up position. TODO: Determine how much to scale between phantom position and world position
+	//			for (int s = 0; s<3;s++)
+	//			{
+	//				newPosition[s]= position[s]*10;
+	//			}
+
+	//			vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3);
+	//			vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
+	//			repProxy->UpdateVTKObjects(); 
+	//		  }
+	//	  }
+	//	
+ //     }
  
 }
 

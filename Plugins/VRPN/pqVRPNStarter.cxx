@@ -85,6 +85,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkMatrix4x4.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
 
+//Phantom includes
+#include "vtkVRPNPhantom.h"
+#include "vtkVRPNPhantomStyleCamera.h"
+ 
+#include "pqPipelineSource.h"
+#include "pqDisplayPolicy.h"
+#include "pqPipelineFilter.h" 
+
+
 // From Cory Quammen's code
 class sn_user_callback
 {
@@ -148,7 +157,7 @@ void pqVRPNStarter::onStartup()
 	  coordStr = strtok(NULL,",");
   }
   this->listenToSelfSave();
-  this->loadState();
+  this->initialLoadState();
   this->initializeEyeAngle();
   this->initializeDevices();
   
@@ -336,12 +345,32 @@ void pqVRPNStarter::initializeDevices()
     trackerStyleCamera1->SetTracker(tracker1);
     trackerStyleCamera1->SetRenderer(renderer1);
 
-	
+	/////////////////////////CREATE  PHANTOM////////////////////////////
+	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
+    phantom1->SetDeviceName("Phantom0@localhost");
+
+	double t2w[3][3] = { 0, 0, 1,
+                          0, 1, 0,
+                          -1, 0, 0 };
+    double t2wQuat[4];
+    vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
+    phantom1->SetPhantom2WorldRotation(t2wQuat);
+    phantom1->Initialize();
+
+	/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
+	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
+	phantomStyleCamera1->SetPhantom(phantom1);
+	phantomStyleCamera1->SetRenderer(renderer1);
+
 	/////////////////////////INTERACTOR////////////////////////////
 	// Initialize Device Interactor to manage all trackers
     inputInteractor = vtkDeviceInteractor::New();
+	//Register Tracker to Device Interactor
     inputInteractor->AddInteractionDevice(tracker1);
     inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
+	//Register Phantom to Device Interactor 
+	inputInteractor->AddInteractionDevice(phantom1);
+    inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
 
 	//Get vtkRenderWindowInteractors
 	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
@@ -370,6 +399,9 @@ void pqVRPNStarter::initializeDevices()
 	strncpy(TNGC1->tng_name,TngAddress,sizeof(TNGC1->tng_name));
 	tng1->register_change_handler(TNGC1,handleTNG);
 	
+
+
+
 	//TODO: Uncomment after debugging
 	//Delete objects .
 	//tracker1->Delete();
@@ -408,10 +440,10 @@ void pqVRPNStarter::timerCallback()
 	if (this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
 	{
 		this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();
-		//TODO: Uncomment post-debugging
+		pqCommandLineOptionsBehavior::resetApplication();		 
 		this->loadState();
 		this->changeTimeStamp();
+		this->initializeEyeAngle();
 		this->initializeDevices();
 	}
 	else
@@ -550,7 +582,7 @@ const vrpn_ANALOGCB t)
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
 				repProxy->UpdateVTKObjects();
 			
-
+/*	Try to move Camera around  . .*/
 		//	vtkCamera* camera;
   //          double pos[3], fp[3], up[3], dir[3];
 
@@ -598,7 +630,8 @@ const vrpn_ANALOGCB t)
 		//	/*} */
   //           
 
-
+	
+/*	Try to move representation around  local coordinates . .*/
 			//vtkCamera* camera;
 			//double pos[3], up[3], dir[3];
 			//double orient[3];
@@ -678,14 +711,7 @@ const vrpn_ANALOGCB t)
   //qWarning("%d %f \n",tData->channelIndex,t.channel[tData->channelIndex]);
 
   //TODO: Determine what is delta?
-  double value = t.channel[tData->channelIndex];
-  
-  //if (!tData->initialValue)// If initial value is not set, set the initial value to first read value
-  //{
-	 // tData->initialValue = value;
-  //}
-  //else
-  //{
+  double value = t.channel[tData->channelIndex]; 
 	double delta = value - tData->initialValue;
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
@@ -698,9 +724,7 @@ const vrpn_ANALOGCB t)
 				//camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
 			tData->initialValue = value;
 
-	}
-  /*}*/
- 
+	} 
 }
 
 bool pqVRPNStarter::sharedStateModified()
@@ -722,10 +746,18 @@ bool pqVRPNStarter::sharedStateModified()
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadState()
-{
+{  
         pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
 		this->changeTimeStamp();
 		
+}
+
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::initialLoadState()
+{
+		//createConeInParaView(); 
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));
+		this->changeTimeStamp();
 }
 void pqVRPNStarter::changeTimeStamp()
 {
@@ -733,3 +765,39 @@ void pqVRPNStarter::changeTimeStamp()
 	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
 	this->last_write = filestat.st_mtime;
 }
+void pqVRPNStarter::createConeInParaView()
+{
+ 
+  pqApplicationCore* core = pqApplicationCore::instance();
+	// Get the Server Manager Model so that we can get each view
+	pqServerManagerModel* serverManager = core->getServerManagerModel();
+	pqPipelineSource* pipelineSource = core->getObjectBuilder()->createSource("sources","PhantomCursorSource",pqActiveObjects::instance().activeServer());
+	
+	//Display source in view
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+	{
+		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
+
+		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+
+
+		for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
+		{
+			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+			pipelineSource->getOutputPort(cc), view, false);
+			if (!repr || !repr->getView())
+			{
+				continue;
+			}
+			pqView* cur_view = repr->getView();
+			pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
+			if (filter)
+			{
+				filter->hideInputIfRequired(cur_view);
+			}
+
+		}
+	}
+}
+

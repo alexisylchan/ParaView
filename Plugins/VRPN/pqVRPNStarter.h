@@ -78,11 +78,13 @@ private:
   void initializeEyeAngle();
   void listenToSelfSave();
   void loadState();
+  void initialLoadState();
   void removeRepresentations();
   void initializeDevices();
   void uninitializeDevices();
   bool sharedStateModified();
   void changeTimeStamp();
+  void createConeInParaView();
   time_t last_write;
   const char* vrpnAddress;
   int sensorIndex;

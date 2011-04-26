@@ -31,8 +31,8 @@
 
 #include "vtkVRPNPhantom.h"
 #include "vtkActor.h"
-
-class vtkCollisionDetectionFilter;
+//
+//class vtkCollisionDetectionFilter;
 
 class vtkVRPNPhantomStyleCamera : public vtkDeviceInteractorStyle
 {
@@ -50,15 +50,15 @@ public:
   void SetPhantom(vtkVRPNPhantom*);
 
   void SetActor(vtkActor* myActor);
-  void SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter);
+  /*void SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter);*/
   vtkActor* myActor;
 
 protected:
   vtkVRPNPhantomStyleCamera();
   ~vtkVRPNPhantomStyleCamera();
 
-  virtual void OnPhantom(vtkVRPNPhantom*);
-  virtual void PrintCollision(vtkCollisionDetectionFilter* CollisionFilter);
+  virtual void OnPhantom(vtkVRPNPhantom*);/*
+  virtual void PrintCollision(vtkCollisionDetectionFilter* CollisionFilter);*/
 
 private:
   vtkVRPNPhantomStyleCamera(const vtkVRPNPhantomStyleCamera&);  // Not implemented.
