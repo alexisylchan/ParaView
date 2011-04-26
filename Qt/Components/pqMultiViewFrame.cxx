@@ -98,22 +98,22 @@ pqMultiViewFrame::pqMultiViewFrame(QWidget* p)
   a->setObjectName("CloseAction");
   this->CloseButton->setDefaultAction(a);
 
-  this->connect(this->ActiveButton->defaultAction(), SIGNAL(triggered(bool)), 
-                SLOT(setActive(bool)));
-  this->connect(this->CloseButton->defaultAction(), SIGNAL(triggered(bool)), 
-                SLOT(close()), Qt::QueuedConnection);
-  this->connect(this->MaximizeButton->defaultAction(), 
-                SIGNAL(triggered(bool)), 
-                SLOT(maximize()), Qt::QueuedConnection);
-  this->connect(this->RestoreButton->defaultAction(), 
-                SIGNAL(triggered(bool)), 
-                SLOT(restore()), Qt::QueuedConnection);
-  this->connect(this->SplitVerticalButton->defaultAction(), 
-                SIGNAL(triggered(bool)), 
-                SLOT(splitVertical()), Qt::QueuedConnection);
-  this->connect(this->SplitHorizontalButton->defaultAction(), 
-                SIGNAL(triggered(bool)), 
-                SLOT(splitHorizontal()), Qt::QueuedConnection);
+  //this->connect(this->ActiveButton->defaultAction(), SIGNAL(triggered(bool)), 
+  //              SLOT(setActive(bool)));
+  //this->connect(this->CloseButton->defaultAction(), SIGNAL(triggered(bool)), 
+  //              SLOT(close()), Qt::QueuedConnection);
+  //this->connect(this->MaximizeButton->defaultAction(), 
+  //              SIGNAL(triggered(bool)), 
+  //              SLOT(maximize()), Qt::QueuedConnection);
+  //this->connect(this->RestoreButton->defaultAction(), 
+  //              SIGNAL(triggered(bool)), 
+  //              SLOT(restore()), Qt::QueuedConnection);
+  //this->connect(this->SplitVerticalButton->defaultAction(), 
+  //              SIGNAL(triggered(bool)), 
+  //              SLOT(splitVertical()), Qt::QueuedConnection);
+  //this->connect(this->SplitHorizontalButton->defaultAction(), 
+  //              SIGNAL(triggered(bool)), 
+  //              SLOT(splitHorizontal()), Qt::QueuedConnection);
 
   // setup the context menu
   this->Menu->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -125,9 +125,9 @@ pqMultiViewFrame::pqMultiViewFrame(QWidget* p)
 
   this->ContextMenu = new QMenu(this->Menu);
   this->ContextMenu->setObjectName("FrameContextMenu");
-  this->ContextMenu->addAction(this->SplitHorizontalButton->defaultAction());
+  /*this->ContextMenu->addAction(this->SplitHorizontalButton->defaultAction());
   this->ContextMenu->addAction(this->SplitVerticalButton->defaultAction());
-  this->ContextMenu->addAction(this->CloseButton->defaultAction());
+  this->ContextMenu->addAction(this->CloseButton->defaultAction());*/
 
   this->MenuHidden=false;
   // TODO: temporary until they can be implemented or wanted

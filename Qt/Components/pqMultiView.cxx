@@ -752,10 +752,10 @@ void pqMultiView::restoreWidget(QWidget*)
     this->FillerFrame->setParent(this->MaximizeFrame);
     this->MaximizeFrame->layout()->addWidget(this->FillerFrame);
 
-    this->CurrentMaximizedFrame->MaximizeButton->show();
-    this->CurrentMaximizedFrame->CloseButton->show();
-    this->CurrentMaximizedFrame->SplitHorizontalButton->show();
-    this->CurrentMaximizedFrame->SplitVerticalButton->show();
+    //this->CurrentMaximizedFrame->MaximizeButton->show();
+    //this->CurrentMaximizedFrame->CloseButton->show();
+    //this->CurrentMaximizedFrame->SplitHorizontalButton->show();
+    //this->CurrentMaximizedFrame->SplitVerticalButton->show();
     this->CurrentMaximizedFrame->RestoreButton->hide();
 
     this->CurrentMaximizedFrame=NULL;

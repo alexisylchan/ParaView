@@ -294,10 +294,10 @@ void pqViewManager::onFrameAdded(pqMultiViewFrame* frame)
   // We need to know when the frame is resized, so that we can update view size
   // related properties on the view proxy.
   //frame->installEventFilter(this);
-  frame->MaximizeButton->show();
+  /*frame->MaximizeButton->show();
   frame->CloseButton->show();
   frame->SplitVerticalButton->show();
-  frame->SplitHorizontalButton->show();
+  frame->SplitHorizontalButton->show();*/
 
   frame->getContextMenu()->addSeparator();
   QAction* subAction = frame->getContextMenu()->addMenu(

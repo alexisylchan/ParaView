@@ -83,6 +83,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //Off-axis projection includes
 #include "vtkMatrix4x4.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
 
 // From Cory Quammen's code
 class sn_user_callback
@@ -343,14 +344,14 @@ void pqVRPNStarter::initializeDevices()
     inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
 
 	//Get vtkRenderWindowInteractors
-	//vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
+	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
 
 	//Set the vtkRenderWindowInteractor's style (trackballcamera) and window 
-	//vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
- //   interactor1->SetRenderWindow(window1);
- //   interactor1->SetInteractorStyle(interactorStyle1);
-	////Set the View Proxy's vtkRenderWindowInteractor
-	//proxy1->GetRenderWindow()->SetInteractor(interactor1);
+	vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
+    interactor1->SetRenderWindow(window1);
+    interactor1->SetInteractorStyle(interactorStyle1);
+	//Set the View Proxy's vtkRenderWindowInteractor
+	proxy1->GetRenderWindow()->SetInteractor(interactor1);
 
 	//Cory Quammen's Code
 	const char * spaceNavigatorAddress = "device0@localhost";
@@ -476,72 +477,35 @@ const vrpn_ANALOGCB t)
 
     vrpn_ANALOGCB at = SNAugmentChannelsToRetainLargestMagnitude(t);
     pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
+	
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
 	{
-		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
-		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+		for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
 		{
+			pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
+
 			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
 			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-			//vtkCamera* camera;
-   //         double pos[3], fp[3], up[3], dir[3];
-
-   //         camera = viewProxy->GetActiveCamera();
-   //         camera->GetPosition(pos);
-   //         camera->GetFocalPoint(fp);
-   //         camera->GetDirectionOfProjection(dir);
-			//
-
-   //         camera->OrthogonalizeViewUp();
-   //         camera->GetViewUp(up);
-
-   //         for (int i = 0; i < 3; i++)
-   //           {
-   //             double dx = 0.01*at.channel[2]*up[i];
-   //             pos[i] += dx;
-   //             fp[i]  += dx;
-   //           }
-
-   //         // Apply right-left motion
-   //         double r[3];
-   //         vtkMath::Cross(dir, up, r);
-
-   //         for (int i = 0; i < 3; i++)
-   //           {
-   //             double dx = 0.01*at.channel[0]*r[i];
-   //             pos[i] += dx;
-   //             fp[i]  += dx;
-   //           }
-
-   //         camera->SetPosition(pos);
-   //         camera->SetFocalPoint(fp);
-			//camera->Dolly(pow(1.01,at.channel[1]));
-			//if (tData->sensorIndex == 1)
-			//{	
-			//	camera->Elevation(  1.0*at.channel[4]);
-			//	camera->Azimuth(    1.0*at.channel[5]);
-			//	camera->Roll(       -1.0*at.channel[3]);
-			//}
-			//else 
-			//{					
-			//	camera->Elevation(  -1.0*at.channel[3]);
-			//	camera->Azimuth(    1.0*at.channel[5]);
-			//	camera->Roll(       -1.0*at.channel[4]);
-			//} 
-   //          
-
-
+		/*	Try to move actor around world coordinates. .*/
 			vtkCamera* camera;
 			double pos[3], up[3], dir[3];
 			double orient[3];
-
 			vtkSMPVRepresentationProxy *repProxy = 0;
 			repProxy = vtkSMPVRepresentationProxy::SafeDownCast(data->getProxy());
+			double center[3], centerWorldCoord[3];
+			viewProxy->GetInteractor()->GetCenterOfRotation(center[0],center[1],center[2]);
 
-			if ( repProxy && viewProxy)
-			  {
-				vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
+			viewProxy->GetRenderer()->SetDisplayPoint(center);
+			viewProxy->GetRenderer()->DisplayToWorld();
+			viewProxy->GetRenderer()->GetWorldPoint(centerWorldCoord);// Get Center in world coordinates.
+			for (int c =0; c<3;c++)
+			{
+				centerWorldCoord[c] = -1*centerWorldCoord[c];
+			}
+				vtkSMPropertyHelper(repProxy,"Origin").Set(centerWorldCoord,3);
+					vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Get(orient,3);
+
 				camera = viewProxy->GetActiveCamera();
 				camera->GetDirectionOfProjection(dir);
 				camera->OrthogonalizeViewUp();
@@ -585,7 +549,117 @@ const vrpn_ANALOGCB t)
 				vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
 				vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
 				repProxy->UpdateVTKObjects();
-			  }
+			
+
+		//	vtkCamera* camera;
+  //          double pos[3], fp[3], up[3], dir[3];
+
+  //          camera = viewProxy->GetActiveCamera();
+  //          camera->GetPosition(pos);
+  //          camera->GetFocalPoint(fp);
+  //          camera->GetDirectionOfProjection(dir);
+		//	
+
+  //          camera->OrthogonalizeViewUp();
+  //          camera->GetViewUp(up);
+
+  //          for (int i = 0; i < 3; i++)
+  //            {
+  //              double dx = 0.01*at.channel[2]*up[i];
+  //              pos[i] += dx;
+  //              fp[i]  += dx;
+  //            }
+
+  //          // Apply right-left motion
+  //          double r[3];
+  //          vtkMath::Cross(dir, up, r);
+
+  //          for (int i = 0; i < 3; i++)
+  //            {
+  //              double dx = 0.01*at.channel[0]*r[i];
+  //              pos[i] += dx;
+  //              fp[i]  += dx;
+  //            }
+
+  //          camera->SetPosition(pos);
+  //          camera->SetFocalPoint(fp);
+		//	camera->Dolly(pow(1.01,at.channel[1]));
+		///*	if (tData->sensorIndex == 1)
+		//	{	
+		//		camera->Elevation(  1.0*at.channel[4]);
+		//		camera->Azimuth(    1.0*at.channel[5]);
+		//		camera->Roll(       -1.0*at.channel[3]);
+		//	}
+		//	else 
+		//	{*/					
+		//		camera->Elevation(  -1.0*at.channel[3]);
+		//		camera->Azimuth(    1.0*at.channel[5]);
+		//		camera->Roll(       -1.0*at.channel[4]);
+		//	/*} */
+  //           
+
+
+			//vtkCamera* camera;
+			//double pos[3], up[3], dir[3];
+			//double orient[3];
+
+			//vtkSMPVRepresentationProxy *repProxy = 0;
+			//repProxy = vtkSMPVRepresentationProxy::SafeDownCast(data->getProxy());
+
+			//if ( repProxy && viewProxy)
+			//  {
+			//	vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
+			//	vtkSMPropertyHelper(repProxy,"Orientation").Get(orient,3);
+			//	camera = viewProxy->GetActiveCamera();
+			//	camera->GetDirectionOfProjection(dir);
+			//	camera->OrthogonalizeViewUp();
+			//	camera->GetViewUp(up);
+
+			//	// Update Object Position
+			//	for (int i = 0; i < 3; i++)
+			//	  {
+			//		double dx = -0.01*at.channel[2]*up[i];
+			//		pos[i] += dx;
+			//	  }
+
+			//	double r[3];
+			//	vtkMath::Cross(dir, up, r);
+
+			//	for (int i = 0; i < 3; i++)
+			//	  {
+			//		double dx = -0.01*at.channel[0]*r[i];
+			//		pos[i] += dx;
+			//	  }
+
+			//	for(int i=0;i<3;++i)
+			//	  {
+			//		double dx = -0.01*at.channel[1]*dir[i];
+			//		pos[i] +=dx;
+			//	  }
+			//	// Update Object Orientation
+			//	
+			//	/*if (tData->sensorIndex == 1)
+			//	{					
+			//		orient[0] += -1.0*at.channel[4];
+			//		orient[1] += -1.0*at.channel[5];
+			//		orient[2] += -1.0*at.channel[3];
+			//	}
+			//	else 
+			//	{*/					
+			//		orient[0] += -1.0*at.channel[3];
+			//		orient[1] += -1.0*at.channel[5];
+			//		orient[2] += -1.0*at.channel[4];
+			//	/*} */
+			//	vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
+			//	vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
+			//	repProxy->UpdateVTKObjects();
+			//  }
+
+
+
+
+
+			
 		  }
 		
       }

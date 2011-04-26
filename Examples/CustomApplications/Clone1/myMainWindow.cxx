@@ -55,12 +55,12 @@ myMainWindow::myMainWindow()
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-  this->Internals->animationViewDock->hide();
+  /*this->Internals->animationViewDock->hide();
   this->Internals->statisticsDock->hide();
   this->Internals->selectionInspectorDock->hide();
-  this->Internals->comparativePanelDock->hide();
-  this->tabifyDockWidget(this->Internals->animationViewDock,
-    this->Internals->statisticsDock);
+  this->Internals->comparativePanelDock->hide();*/
+  /*this->tabifyDockWidget(this->Internals->animationViewDock,
+    this->Internals->statisticsDock);*/
 
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);
