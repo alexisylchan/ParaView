@@ -118,53 +118,62 @@ void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor)
 void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 {
 
-   pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	/**for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
-	{*/
-		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(0);
-		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+
+	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 
+	
+	//Update Phantom Cursor position
+	pqDataRepresentation *cursorData = serverManager->getItemAtIndex<pqDataRepresentation*>(0); 
+	pqView* view = serverManager->getItemAtIndex<pqView*>(0);
+	vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+
+	vtkSMRepresentationProxy *repProxy = 0;
+	repProxy = vtkSMRepresentationProxy::SafeDownCast(cursorData->getProxy());
+
+	double* newPosition;
+	newPosition = Phantom->GetPosition();
+	if ( repProxy && viewProxy)
+	  { 
+		newPosition = this->ScalePosition(Phantom);
+		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
+		repProxy->UpdateVTKObjects(); 
+	 }  
+	viewProxy->GetRenderer()->SetDisplayPoint(newPosition);
+	viewProxy->GetRenderer()->DisplayToWorld();
+	double* worldPosition;
+	worldPosition= viewProxy->GetRenderer()->GetWorldPoint();
+	//Debug
+	for (int x = 0; x<3; x++)
+	{
+		worldPosition[x] = newPosition[x];
+	}
+	// End debug
+	for (int j = 1; j < serverManager->getNumberOfItems<pqDataRepresentation*>(); j++) // Check all  items except for first one (which is the cursor)
+	{
+		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
+		double bounds[6];
+
+		data->getDataBounds(bounds); //vtkPVDataInformation defines bounds
+		if (vtkMath::AreBoundsInitialized(bounds))
 		{
-			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+			if ((worldPosition[0] < bounds[1]  && worldPosition[0] > bounds[0]) 
+				&& (worldPosition[1] < bounds[3]  && worldPosition[1] > bounds[2])
+				&& (worldPosition[2] < bounds[5]  && worldPosition[2] > bounds[4]))
+			{
+				vtkSMRepresentationProxy *repProxy2 = 0;
+				repProxy2 = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());	
+				/*double red[3];
+				vtkSMPropertyHelper(repProxy2,"Color").Set(red,3);*/
+				//qWarning("YES");
+				repProxy2->UpdateVTKObjects(); 
+			}
+				/*qWarning("%f %f %f %f %f %f ",bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
+				qWarning("%f %f %f",worldPosition[0],worldPosition[1],worldPosition[2]);
+				qWarning("%f %f %f",newPosition[0],newPosition[1],newPosition[2]);*/
+		}
+		
+	} 
 
-			vtkSMRepresentationProxy *repProxy = 0;
-			repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
-
-			if ( repProxy && viewProxy)
-			  {
-				// Update Object Orientation
-                double  matrix[3][3];
-				//double orientNew[3] ;
-				////Change transform quaternion to matrix
-				//vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
-				//vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
-				//for (int i =0; i<4;i++)
-				//{
-				//	for (int j = 0; j<4; j++)
-				//	{
-				//		if ((i == 3) || (j==3))
-				//		{
-				//			vtkMatrixToOrient->SetElement(i,j, 0);
-				//		}
-				//		else
-				//			vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
-				//	}
-				//}
-				//// Change matrix to orientation values
-				//vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
-				double* position = Phantom->GetPosition();
-				double newPosition[3];
-				//Scale up position. TODO: Determine how much to scale between phantom position and world position
-				for (int s = 0; s<3;s++)
-				{
-					newPosition[s]= position[s]*10;
-				}
-
-				vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3);
-			/*	vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); */
-				repProxy->UpdateVTKObjects(); 
-			  }
-		  }
+		 /* }*/
 		
 
 	//if (myActor)
@@ -254,6 +263,26 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 	//	
  //     }
  
+}
+
+double* vtkVRPNPhantomStyleCamera::ScalePosition(vtkVRPNPhantom* Phantom)
+{
+	double* position = Phantom->GetPosition();
+
+	 
+
+	pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0);
+	vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
+	vtkCamera* camera = viewProxy->GetActiveCamera();
+	//camera->GetFrustumPlanes() 
+	
+	//Scale up position. TODO: Determine how much to scale between phantom position and world position
+	for (int s = 0; s<3;s++)
+	{
+		position[s] *= 1;//; (camera->GetScaleFactor());
+
+	}
+	return position;
 }
 
 //----------------------------------------------------------------------------

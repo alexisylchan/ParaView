@@ -349,12 +349,12 @@ void pqVRPNStarter::initializeDevices()
 	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
     phantom1->SetDeviceName("Phantom0@localhost");
 
-	double t2w[3][3] = { 0, 0, 1,
+	/*double t2w[3][3] = { 0, 0, 1,
                           0, 1, 0,
                           -1, 0, 0 };
     double t2wQuat[4];
     vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
-    phantom1->SetPhantom2WorldRotation(t2wQuat);
+    phantom1->SetPhantom2WorldRotation(t2wQuat);*/
     phantom1->Initialize();
 
 	/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
