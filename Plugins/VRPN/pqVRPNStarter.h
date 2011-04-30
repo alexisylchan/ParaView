@@ -90,6 +90,7 @@ private:
   int sensorIndex;
   int useVRPN;
   double trackerOrigin[3];
+  int useanalog;
 
 
 };
