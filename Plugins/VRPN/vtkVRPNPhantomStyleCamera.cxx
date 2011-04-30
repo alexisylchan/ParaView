@@ -274,7 +274,9 @@ double* vtkVRPNPhantomStyleCamera::ScalePosition(vtkVRPNPhantom* Phantom)
 	pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0);
 	vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
 	vtkCamera* camera = viewProxy->GetActiveCamera();
-	//camera->GetFrustumPlanes() 
+	/*double planes[24];
+	camera->GetFrustumPlanes(viewProxy->GetRenderer()->GetTiledAspectRatio(),planes); 
+	for (int i =0; i<*/
 	
 	//Scale up position. TODO: Determine how much to scale between phantom position and world position
 	for (int s = 0; s<3;s++)
