@@ -191,17 +191,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		DisplayX[2]= -value;//trackerOrigin[2];
 		DisplayY[0]= -value;//trackerOrigin[0]+0.2;
 		DisplayY[1]= value;//trackerOrigin[1]+0.15;
-		DisplayY[2]= -value;//trackerOrigin[2];
-
-		//		DisplayOrigin[0]= value;
-		//DisplayOrigin[1]= -value;//trackerOrigin[1]-0.15;
-		//DisplayOrigin[2]= -value;//trackerOrigin[2];
-		//DisplayX[0]= value;//trackerOrigin[0]+0.2;
-		//DisplayX[1]= -value;//trackerOrigin[1]-0.15;
-		//DisplayX[2]= value;//trackerOrigin[2];
-		//DisplayY[0]= value;//trackerOrigin[0]+0.2;
-		//DisplayY[1]= value;//trackerOrigin[1]+0.15;
-		//DisplayY[2]= value;//trackerOrigin[2];
+		DisplayY[2]= -value;//trackerOrigin[2]; 
 
 		}
 		else
@@ -216,15 +206,6 @@ void pqVRPNStarter::initializeEyeAngle()
 			DisplayY[1]= value;//trackerOrigin[1]+0.15;
 			DisplayY[2]= -value;//trackerOrigin[2];
 		}
-		//DisplayOrigin[0]= 5.6;//trackerOrigin[0]-0.2;
-		//DisplayOrigin[1]= 1.0;//trackerOrigin[1]-0.15;
-		//DisplayOrigin[2]= 8.43;//trackerOrigin[2];
-		//DisplayX[0]= 5.3;//trackerOrigin[0]+0.2;
-		//DisplayX[1]= 1.0;//trackerOrigin[1]-0.15;
-		//DisplayX[2]= 8.43;//trackerOrigin[2];
-		//DisplayY[0]= 5.3;//trackerOrigin[0]+0.2;
-		//DisplayY[1]= 1.3;//trackerOrigin[1]+0.15;
-		//DisplayY[2]= 8.43;//trackerOrigin[2];
 
 		double xBase[3],yBase[3],zBase[3];
 		//Get Vectors of screen
@@ -312,17 +293,6 @@ void pqVRPNStarter::initializeDevices()
 	vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
 	tracker1->SetDeviceName(this->vrpnAddress); 
 	tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
-	/*if (this->sensorIndex == 1) 
-	{
-		 double w2c1[3][3] = {0,  0, -1,
-                           0,  1, 0, 
-                           1,  0, 0 };
-
-		double w2cQuat1[4];
-		vtkMath::Matrix3x3ToQuaternion(w2c1, w2cQuat1);
-		
-		vtkMath::Multiply3x3(w2c1,this->trackerOrigin,this->trackerOrigin);
-	}*/
 	tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
     double t2w1[3][3] = { 0, -1,  0,
                           0,  0, 1, 
@@ -558,72 +528,8 @@ const vrpn_ANALOGCB t)
 			pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
 
 			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-		///*	Try to move actor around world coordinates. .*/
-		//	vtkCamera* camera;
-		//	double pos[3], up[3], dir[3];
-		//	double orient[3];
-		//	vtkSMPVRepresentationProxy *repProxy = 0;
-		//	repProxy = vtkSMPVRepresentationProxy::SafeDownCast(data->getProxy());
-		//	double center[3], centerWorldCoord[3];
-		//	viewProxy->GetInteractor()->GetCenterOfRotation(center[0],center[1],center[2]);
-
-		//	viewProxy->GetRenderer()->SetDisplayPoint(center);
-		//	viewProxy->GetRenderer()->DisplayToWorld();
-		//	viewProxy->GetRenderer()->GetWorldPoint(centerWorldCoord);// Get Center in world coordinates.
-		//	for (int c =0; c<3;c++)
-		//	{
-		//		centerWorldCoord[c] = -1*centerWorldCoord[c];
-		//	}
-		//		vtkSMPropertyHelper(repProxy,"Origin").Set(centerWorldCoord,3);
-		//			vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
-		//		vtkSMPropertyHelper(repProxy,"Orientation").Get(orient,3);
-
-		//		camera = viewProxy->GetActiveCamera();
-		//		camera->GetDirectionOfProjection(dir);
-		//		camera->OrthogonalizeViewUp();
-		//		camera->GetViewUp(up);
-
-		//		// Update Object Position
-		//		for (int i = 0; i < 3; i++)
-		//		  {
-		//			double dx = -0.01*at.channel[2]*up[i];
-		//			pos[i] += dx;
-		//		  }
-
-		//		double r[3];
-		//		vtkMath::Cross(dir, up, r);
-
-		//		for (int i = 0; i < 3; i++)
-		//		  {
-		//			double dx = -0.01*at.channel[0]*r[i];
-		//			pos[i] += dx;
-		//		  }
-
-		//		for(int i=0;i<3;++i)
-		//		  {
-		//			double dx = -0.01*at.channel[1]*dir[i];
-		//			pos[i] +=dx;
-		//		  }
-		//		// Update Object Orientation
-		//		
-		//		/*if (tData->sensorIndex == 1)
-		//		{					
-		//			orient[0] += -1.0*at.channel[4];
-		//			orient[1] += -1.0*at.channel[5];
-		//			orient[2] += -1.0*at.channel[3];
-		//		}
-		//		else 
-		//		{*/					
-		//			orient[0] += -1.0*at.channel[3];
-		//			orient[1] += -1.0*at.channel[5];
-		//			orient[2] += -1.0*at.channel[4];
-		//		/*} */
-		//		vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
-		//		vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
-		//		repProxy->UpdateVTKObjects();
-			
-/*	Try to move Camera around  . .*/
+			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
+			/*	Try to move Camera around  . .*/
 			vtkCamera* camera;
             double pos[3], fp[3], up[3], dir[3];
 			
@@ -659,127 +565,30 @@ const vrpn_ANALOGCB t)
             camera->SetPosition(pos);
             camera->SetFocalPoint(fp);
 			camera->Dolly(pow(1.01,at.channel[1]));
-			//if (tData->sensorIndex == 1)
-			//{	
-			//	camera->Azimuth(    1.0*at.channel[5]);
-			//	camera->Roll(       -1.0*at.channel[4]);
-			//	vtkMatrix4x4* surface2base = camera->GetSurface2Base();
-			//	vtkTransform* sftransform = vtkTransform::New();
-			//	sftransform->SetMatrix(surface2base);
-			//	 vtkMatrix4x4* vt = camera->GetViewTransformMatrix();
-			//	  double axis[3];
-
-			//	 //Get Same Axis as Elevation
-			//	  axis[0] = vt->GetElement(0,0);
-			//	  axis[1] = vt->GetElement(0,1);
-			//	  axis[2] = vt->GetElement(0,2);
-
-			//	sftransform->RotateWXYZ(at.channel[3],axis);
-			//	camera->SetSurface2Base(sftransform->GetMatrix());
-				 
-			/*vtkTransform* userTransform;
-			userTransform = vtkTransform::New();
-			userTransform->RotateX(at.channel[3]);
-			userTransform->RotateY(at.channel[4]);
-			userTransform->RotateZ(at.channel[5]);
-			userTransform->Translate(0.01*at.channel[0],
-									0.01*at.channel[1],
-									0.01*at.channel[2]);
-			camera->SetUserTransform(userTransform);*/ 
-
-				//camera->Pitch(  -1.0*at.channel[3]);
-				/*camera->ComputeProjAndViewParams();*/
-				//vtkMatrix4x4* vt = camera->GetViewTransformMatrix();
-				//  double axis[3];
-
-				// //Get Same Axis as Elevation
-				//  axis[0] = vt->GetElement(0,0);
-				//  axis[1] = vt->GetElement(0,1);
-				//  axis[2] = vt->GetElement(0,2);
-
-				//  //Perform same operation as Roll
-				//  vtkTransform* vtTrans = vtkTransform::New();
-				//  vtTrans->Translate(+pos[0],+pos[1],+pos[2]);
-				//  vtTrans->RotateWXYZ(-1.0*at.channel[3],axis); 
-				//  vtTrans->Translate(-pos[0],-pos[1],-pos[2]);
-				//  double newFocalPoint[3];
-				//  vtTrans->TransformPoint(camera->GetFocalPoint(),newFocalPoint);
-				//  camera->SetFocalPoint(newFocalPoint);
-				  /*double newViewUp[3];
-				  vtTrans->TransformPoint(camera->GetViewUp(),newViewUp);
-				  camera->SetViewUp(newViewUp);*/
-			/*}
+			camera->ViewingRaysModified(); 
+			if (tData->sensorIndex == 1)
+			{	
+				camera->Azimuth(    1.0*at.channel[5]);
+				camera->Roll(       -1.0*at.channel[4]);
+				 double axis[3], newPosition[3]; 
+				vtkTransform* vttrans = vtkTransform::New();
+				// snatch the axis from the view transform matrix
+				axis[0] = -camera->GetViewTransformMatrix()->GetElement(2,0);
+				axis[1] = -camera->GetViewTransformMatrix()->GetElement(2,1);
+				axis[2] = -camera->GetViewTransformMatrix()->GetElement(2,2); 
+				vttrans->Translate(+fp[0],+fp[1],+fp[2]);
+				vttrans->RotateWXYZ(-1.0*at.channel[3],axis);
+				vttrans->Translate(-fp[0],-fp[1],-fp[2]); 
+				vttrans->TransformPoint(camera->GetPosition(),newPosition);
+				camera->SetPosition(newPosition);
+			}
 			else 
 			{				
-			*/
+			
 				camera->Azimuth(    1.0*at.channel[5]);
 				camera->Roll(       -1.0*at.channel[4]);	
 				camera->Elevation(  -1.0*at.channel[3]);
-			/*} */
-   //          
-
-	
-/*	Try to move representation around  local coordinates . .*/
-			//vtkCamera* camera;
-			//double pos[3], up[3], dir[3];
-			//double orient[3];
-
-			//vtkSMPVRepresentationProxy *repProxy = 0;
-			//repProxy = vtkSMPVRepresentationProxy::SafeDownCast(data->getProxy());
-
-			//if ( repProxy && viewProxy)
-			//  {
-			//	vtkSMPropertyHelper(repProxy,"Position").Get(pos,3);
-			//	vtkSMPropertyHelper(repProxy,"Orientation").Get(orient,3);
-			//	camera = viewProxy->GetActiveCamera();
-			//	camera->GetDirectionOfProjection(dir);
-			//	camera->OrthogonalizeViewUp();
-			//	camera->GetViewUp(up);
-
-			//	// Update Object Position
-			//	for (int i = 0; i < 3; i++)
-			//	  {
-			//		double dx = -0.01*at.channel[2]*up[i];
-			//		pos[i] += dx;
-			//	  }
-
-			//	double r[3];
-			//	vtkMath::Cross(dir, up, r);
-
-			//	for (int i = 0; i < 3; i++)
-			//	  {
-			//		double dx = -0.01*at.channel[0]*r[i];
-			//		pos[i] += dx;
-			//	  }
-
-			//	for(int i=0;i<3;++i)
-			//	  {
-			//		double dx = -0.01*at.channel[1]*dir[i];
-			//		pos[i] +=dx;
-			//	  }
-			//	// Update Object Orientation
-			//	
-			//	/*if (tData->sensorIndex == 1)
-			//	{					
-			//		orient[0] += -1.0*at.channel[4];
-			//		orient[1] += -1.0*at.channel[5];
-			//		orient[2] += -1.0*at.channel[3];
-			//	}
-			//	else 
-			//	{*/					
-			//		orient[0] += -1.0*at.channel[3];
-			//		orient[1] += -1.0*at.channel[5];
-			//		orient[2] += -1.0*at.channel[4];
-			//	/*} */
-			//	vtkSMPropertyHelper(repProxy,"Position").Set(pos,3);
-			//	vtkSMPropertyHelper(repProxy,"Orientation").Set(orient,3);
-			//	repProxy->UpdateVTKObjects();
-			//  }
-
-
-
-
-
+			}  
 			
 		  }
 		
