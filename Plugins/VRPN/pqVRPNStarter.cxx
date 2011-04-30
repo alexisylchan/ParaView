@@ -340,6 +340,34 @@ void pqVRPNStarter::initializeDevices()
     trackerStyleCamera1->SetTracker(tracker1);
     trackerStyleCamera1->SetRenderer(renderer1);
 
+	/////////////////////////CREATE  TRACKER////////////////////////////
+
+	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
+	vtkVRPNTracker* snTracker = vtkVRPNTracker::New();
+	snTracker->SetDeviceName("Tracker0@localhost");   
+	/*double snT2WP[3][3] = { 0, -1,  0,
+                          0,  0, 1, 
+                         -1, 0,  0 };  */
+	snTracker->SetTracker2WorldTranslation( 0.0,0.0,1.0);
+    double snT2WR[3][3] = { -1, 0,  0,
+                            0,  0, -1, 
+                            0, 1,  0 }; 
+    double snT2wQuat1[4];
+    vtkMath::Matrix3x3ToQuaternion(snT2WR, snT2wQuat1);
+	//snTracker->SetTracker2WorldRotation(snT2wQuat1);
+
+    snTracker->Initialize();
+	qWarning("SN Initialized");
+
+	/////////////////////////CREATE  TRACKER STYLE////////////////////////////
+
+	//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
+    vtkVRPNTrackerStyleCamera* snTrackerStyleCamera1 = vtkVRPNTrackerStyleCamera::New();
+    snTrackerStyleCamera1->SetTracker(snTracker);
+	qWarning("SN Camera Initialized");
+    snTrackerStyleCamera1->SetRenderer(renderer1);
+	qWarning("SN Camera Renderer added");
+
 	/////////////////////////CREATE  PHANTOM////////////////////////////
 	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
     phantom1->SetDeviceName("Phantom0@localhost");
@@ -352,6 +380,7 @@ void pqVRPNStarter::initializeDevices()
     phantom1->SetPhantom2WorldRotation(t2wQuat);*/
     phantom1->Initialize();
 
+
 	/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
 	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
 	phantomStyleCamera1->SetPhantom(phantom1);
@@ -363,6 +392,9 @@ void pqVRPNStarter::initializeDevices()
 	//Register Tracker to Device Interactor
     inputInteractor->AddInteractionDevice(tracker1);
     inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
+	//Register SpaceNavigator to Device Interactor
+    inputInteractor->AddInteractionDevice(snTracker);
+    inputInteractor->AddDeviceInteractorStyle(snTrackerStyleCamera1);
 	//Register Phantom to Device Interactor 
 	inputInteractor->AddInteractionDevice(phantom1);
     inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
@@ -370,20 +402,20 @@ void pqVRPNStarter::initializeDevices()
 	//Get vtkRenderWindowInteractors
 	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
 
-	//Set the vtkRenderWindowInteractor's style (trackballcamera) and window 
-	vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
-    interactor1->SetRenderWindow(window1);
-    interactor1->SetInteractorStyle(interactorStyle1);
-	//Set the View Proxy's vtkRenderWindowInteractor
-	proxy1->GetRenderWindow()->SetInteractor(interactor1);
+	////Set the vtkRenderWindowInteractor's style (trackballcamera) and window 
+	//vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
+ //   interactor1->SetRenderWindow(window1);
+ //   interactor1->SetInteractorStyle(interactorStyle1);
+	////Set the View Proxy's vtkRenderWindowInteractor
+	//proxy1->GetRenderWindow()->SetInteractor(interactor1);
 
 	//Cory Quammen's Code
-	const char * spaceNavigatorAddress = "device0@localhost";
+	/*const char * spaceNavigatorAddress = "device0@localhost";
 	spaceNavigator1 = new vrpn_Analog_Remote(spaceNavigatorAddress);
 	AC1 = new sn_user_callback;
 	strncpy(AC1->sn_name,spaceNavigatorAddress,sizeof(AC1->sn_name));
 	AC1->sensorIndex = this->sensorIndex;
-	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
+	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);*/
 
 	//TNG 
 	const char * TngAddress = "tng3name@localhost";
@@ -415,8 +447,8 @@ void pqVRPNStarter::uninitializeDevices()
 {
 	this->VRPNTimer->stop();
 	delete this->VRPNTimer;
-	delete this->spaceNavigator1;
-	delete this->AC1;
+	/*delete this->spaceNavigator1;
+	delete this->AC1;*/
 	this->inputInteractor->Delete();
 	delete this->TNGC1;
 	delete this->tng1;
@@ -443,7 +475,7 @@ void pqVRPNStarter::timerCallback()
 	}
 	else
 	{
-		this->spaceNavigator1->mainloop();
+		//this->spaceNavigator1->mainloop();
 		this->tng1->mainloop();
 		this->inputInteractor->Update(); 
 	}
