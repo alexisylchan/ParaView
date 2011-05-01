@@ -164,6 +164,8 @@ void pqVRPNStarter::onStartup()
   this->initializeDevices();
   
 
+   
+
   //For Debugging: remove everything and reload state
   //this->uninitializeDevices();
   //pqCommandLineOptionsBehavior::resetApplication();
@@ -343,6 +345,7 @@ void pqVRPNStarter::initializeDevices()
 	/////////////////////////CREATE  PHANTOM////////////////////////////
 	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
     phantom1->SetDeviceName("Phantom0@localhost");
+	phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);
 
 	/*double t2w[3][3] = { 0, 0, 1,
                           0, 1, 0,
@@ -393,7 +396,7 @@ void pqVRPNStarter::initializeDevices()
 	strncpy(AC1->sn_name,spaceNavigatorAddress,sizeof(AC1->sn_name));
 	AC1->sensorIndex = this->sensorIndex;
 	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
-	qWarning("hi");
+	
 	}
 	//TNG 
 	const char * TngAddress = "tng3name@localhost";
@@ -464,9 +467,16 @@ void pqVRPNStarter::timerCallback()
 		this->inputInteractor->Update(); 
 	}
 	
+
 	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
 	//Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	/*for (int k = 0; k < serverManager->getNumberOfItems<pqRepresentation*>();k++)
+	{
+		pqRepresentation* rep = serverManager->getItemAtIndex<pqRepresentation*>(k);
+		vtkSMPVRepresentationProxy * repProxy = vtkSMPVRepresentationProxy::SafeDownCast(rep->getProxy());
+		repProxy->UpdateVTKObjects();
+	}*/
 	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
 	{
 		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
@@ -523,9 +533,9 @@ const vrpn_ANALOGCB t)
 	
 	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
 	{
-		for (int j = 1; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)// Ignore first representation which will always be the phantom cursor
-		{
-			pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
+		//for (int j = 1; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)// Ignore first representation which will always be the phantom cursor
+		//{
+		//	pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
 
 			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
 			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
@@ -592,7 +602,7 @@ const vrpn_ANALOGCB t)
 			
 		  }
 		
-      }
+    /*  }*/
     }
   else
     {

@@ -60,10 +60,11 @@ protected:
   virtual void OnPhantom(vtkVRPNPhantom*);/*
   virtual void PrintCollision(vtkCollisionDetectionFilter* CollisionFilter);*/
 
-private:
-  double* ScalePosition(vtkVRPNPhantom* Phantom);
+private: 
   vtkVRPNPhantomStyleCamera(const vtkVRPNPhantomStyleCamera&);  // Not implemented.
   void operator=(const vtkVRPNPhantomStyleCamera&);  // Not implemented.
+  double* ScalePosition(double* position,vtkRenderer* renderer);
+  double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer);
 };
 
 #endif

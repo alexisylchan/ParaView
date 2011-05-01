@@ -36,7 +36,7 @@
 #include "vtkVRPNTrackerCustomSensor.h"
 #include "vtkVRPNTrackerCustomSensorStyleCamera.h"
 #include "vtkVRPNAnalogOutput.h"
-#include "vtkSMRepresentationProxy.h"
+#include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMPropertyHelper.h"
 #include "vtkCamera.h"
 #include "vtkMatrix4x4.h"
@@ -45,6 +45,7 @@
 
 #include "vtkConeSource.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkCoordinate.h"
 
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
@@ -118,175 +119,301 @@ void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor)
 void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 {
 
-
+	double* position = Phantom->GetPosition(); 
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 
+
+	for (int i = 0; i<serverManager->getNumberOfItems<pqView*>(); i++)
+	{
+		/*qWarning("Orig %f %f %f",position[0],position[1],position[2]);*/
+		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
+		vtkCamera* camera = proxy->GetActiveCamera();  
+		double* newPosition;
+		newPosition = ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
+
+			//Set position to view position
+		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0); 
 	
-	//Update Phantom Cursor position
-	pqDataRepresentation *cursorData = serverManager->getItemAtIndex<pqDataRepresentation*>(0); 
-	pqView* view = serverManager->getItemAtIndex<pqView*>(0);
-	vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-
-	vtkSMRepresentationProxy *repProxy = 0;
-	repProxy = vtkSMRepresentationProxy::SafeDownCast(cursorData->getProxy());
-
-	double* newPosition;
-	newPosition = Phantom->GetPosition();
-	if ( repProxy && viewProxy)
-	  { 
-		newPosition = this->ScalePosition(Phantom);
+		vtkSMPVRepresentationProxy *repProxy = 0;
+		repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
 		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
-		repProxy->UpdateVTKObjects(); 
-	 }  
-	viewProxy->GetRenderer()->SetDisplayPoint(newPosition);
-	viewProxy->GetRenderer()->DisplayToWorld();
-	double* worldPosition;
-	worldPosition= viewProxy->GetRenderer()->GetWorldPoint();
-	//Debug
-	for (int x = 0; x<3; x++)
-	{
-		worldPosition[x] = newPosition[x];
-	}
-	// End debug
-	for (int j = 1; j < serverManager->getNumberOfItems<pqDataRepresentation*>(); j++) // Check all  items except for first one (which is the cursor)
-	{
-		pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
-		double bounds[6];
-
-		data->getDataBounds(bounds); //vtkPVDataInformation defines bounds
-		if (vtkMath::AreBoundsInitialized(bounds))
+		repProxy->UpdateVTKObjects();
+	
+		/*qWarning("New %f %f %f",newPosition[0],newPosition[1],newPosition[2]); */ 
+		// Check all  items except for first one (which is the cursor)
+		for (int j = 1; j < serverManager->getNumberOfItems<pqDataRepresentation*>(); j++) 
 		{
-			if ((worldPosition[0] < bounds[1]  && worldPosition[0] > bounds[0]) 
-				&& (worldPosition[1] < bounds[3]  && worldPosition[1] > bounds[2])
-				&& (worldPosition[2] < bounds[5]  && worldPosition[2] > bounds[4]))
+			pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
+			double bounds[6];
+
+			data->getDataBounds(bounds); //vtkPVDataInformation defines bounds
+			if (vtkMath::AreBoundsInitialized(bounds))
 			{
-				vtkSMRepresentationProxy *repProxy2 = 0;
-				repProxy2 = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());	
-				/*double red[3];
-				vtkSMPropertyHelper(repProxy2,"Color").Set(red,3);*/
-				//qWarning("YES");
-				repProxy2->UpdateVTKObjects(); 
+				if ((newPosition[0] < bounds[1]  && newPosition[0] > bounds[0]) 
+					&& (newPosition[1] < bounds[3]  && newPosition[1] > bounds[2])
+					&& (newPosition[2] < bounds[5]  && newPosition[2] > bounds[4]))
+				{
+					vtkSMPVRepresentationProxy *repProxy2 = 0;
+					repProxy2 = vtkSMPVRepresentationProxy::SafeDownCast(data->getProxy());	 
+					qWarning("Within bounds");
+					
+				}
+					qWarning("Actor %f %f %f %f %f %f ",bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
+					qWarning("Phantom %f %f %f",newPosition[0],newPosition[1],newPosition[2]); 
 			}
-				/*qWarning("%f %f %f %f %f %f ",bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
-				qWarning("%f %f %f",worldPosition[0],worldPosition[1],worldPosition[2]);
-				qWarning("%f %f %f",newPosition[0],newPosition[1],newPosition[2]);*/
 		}
+		//proxy->GetRenderWindow()->Render();
 		
-	} 
-
-		 /* }*/
-		
-
-	//if (myActor)
-	//{
-	//	double* position = Phantom->GetPosition();
-	//	double newPosition[3];
-	//	//Scale up position. TODO: Determine how much to scale between phantom position and world position
-	//	for (int s = 0; s<3;s++)
-	//	{
-	//		newPosition[s]=position[s]*10;
-	//	}
-	//	//myActor->SetPosition(newPosition);	
-	//	// Update Object Orientation
- //       double  matrix[3][3];
-	//	double orientNew[3] ;
-	//	//Change transform quaternion to matrix
-	//	vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
-	//	vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
-	//	for (int i =0; i<4;i++)
-	//	{
-	//		for (int j = 0; j<4; j++)
-	//		{
-	//			if ((i == 3) || (j==3))
-	//			{
-	//				vtkMatrixToOrient->SetElement(i,j, 0);
-	//			}
-	//			else
-	//				vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
-	//		}
-	//	}
-	//	vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
-	//	myActor->SetPosition(newPosition);
-	//	myActor->SetOrientation(orientNew);
-	//	
-
-	//}
-	//else
-	//{	
-	//// CODE FOR ADDING ARROW TO PARAVIEW - DO NOT REMOVE
- //   pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	///*for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
-	//{*/
-	//	pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(0);
-	//	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
-	//	{
-	//		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-	//		vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-
-	//		vtkSMRepresentationProxy *repProxy = 0;
-	//		repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
-
-	//		if ( repProxy && viewProxy)
-	//		  {
-	//			// Update Object Orientation
- //               double  matrix[3][3];
-	//			double orientNew[3] ;
-	//			//Change transform quaternion to matrix
-	//			vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
-	//			vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
-	//			for (int i =0; i<4;i++)
-	//			{
-	//				for (int j = 0; j<4; j++)
-	//				{
-	//					if ((i == 3) || (j==3))
-	//					{
-	//						vtkMatrixToOrient->SetElement(i,j, 0);
-	//					}
-	//					else
-	//						vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
-	//				}
-	//			}
-	//			// Change matrix to orientation values
-	//			vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
-	//			double* position = Phantom->GetPosition();
-	//			double newPosition[3];
-	//			//Scale up position. TODO: Determine how much to scale between phantom position and world position
-	//			for (int s = 0; s<3;s++)
-	//			{
-	//				newPosition[s]= position[s]*10;
-	//			}
-
-	//			vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3);
-	//			vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
-	//			repProxy->UpdateVTKObjects(); 
-	//		  }
-	//	  }
-	//	
- //     }
+	}  
  
 }
-
-double* vtkVRPNPhantomStyleCamera::ScalePosition(vtkVRPNPhantom* Phantom)
+double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* renderer)
 {
-	double* position = Phantom->GetPosition();
+		double* newPosition =  new double[3];
+		double* bounds = renderer->ComputeVisiblePropBounds();
 
-	 
-
-	pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(0);
-	vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-	vtkCamera* camera = viewProxy->GetActiveCamera();
-	/*double planes[24];
-	camera->GetFrustumPlanes(viewProxy->GetRenderer()->GetTiledAspectRatio(),planes); 
-	for (int i =0; i<*/
-	
-	//Scale up position. TODO: Determine how much to scale between phantom position and world position
-	for (int s = 0; s<3;s++)
-	{
-		position[s] *= 1;//; (camera->GetScaleFactor());
-
-	}
-	return position;
+		if (vtkMath::AreBoundsInitialized(bounds))
+		{ 
+			newPosition[0] = (position[0]/0.5)* (bounds[1]/2.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+			newPosition[1] = (position[1]/0.5)* (bounds[3]/2.0);
+			newPosition[2] = (position[2]/0.5)* (bounds[5]/2.0);
+			
+		}
+		else
+		{
+			double distance = renderer->GetActiveCamera()->GetDistance();
+			for (int i =0; i<3;i++)
+			{
+				newPosition[i] = (position[i]/0.5)* (distance/2.0);
+			}
+		}
+		return newPosition;
+		
+		//qWarning("newPosition %f %f %f",newPosition[0],newPosition[1],newPosition[2]);
+		
 }
 
+double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer)
+{
+		double* newPosition =  new double[3];
+		double planes[24];
+		vtkCamera* camera = renderer->GetActiveCamera(); 
+		camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
+		double matrix0Data[3][3];
+		double *matrix0[3]; 
+		double value[8][3];
+		for (int v = 0; v<8; v++)
+		{
+			for (int t = 0; t<3; t++)
+			{
+				value[v][t] = 0.0;
+			}
+		}
+		for(int n=0;n<4;n++)
+		{
+			matrix0[n] = matrix0Data[n];
+			matrix0[n][0]=0.0F; // fill N with zeros
+			matrix0[n][1]=0.0F;
+			matrix0[n][2]=0.0F;  
+		 } 
+
+		// (-x)| 3 
+		matrix0[0][0] = planes[0];
+		matrix0[0][1] = planes[1];
+		matrix0[0][2] = planes[2]; 
+		value[0][0] = planes[3]; 
+		// (-z) | 1
+		matrix0[1][0] = planes[16];
+		matrix0[1][1] = planes[17];
+		matrix0[1][2] = planes[18]; 
+		value[0][1] = planes[19]; 
+		// (+y) | 4
+		matrix0[2][0] = planes[12];
+		matrix0[2][1] = planes[13];
+		matrix0[2][2] = planes[14]; 
+		value[0][2] = planes[15]; 
+		int* index = new int[3];
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[0],3);
+		//qWarning("value[0] %f %f %f",value[0][0],value[0][1],value[0][2]);
+
+		/////////////////////////////////////////////////////////////////
+		
+		// (-x)| 3 
+		matrix0[0][0] = planes[0];
+		matrix0[0][1] = planes[1];
+		matrix0[0][2] = planes[2]; 
+		value[1][0] = planes[3]; 
+		// (-z) | 1
+		matrix0[1][0] = planes[16];
+		matrix0[1][1] = planes[17];
+		matrix0[1][2] = planes[18]; 
+		value[1][1] = planes[19]; 
+		// (-y) | 6
+		matrix0[2][0] = planes[8];
+		matrix0[2][1] = planes[9];
+		matrix0[2][2] = planes[10]; 
+		value[1][2] = planes[11]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[1],3); 
+		//qWarning("value[1] %f %f %f",value[1][0],value[1][1],value[1][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (-x)| 3 
+		matrix0[0][0] = planes[0];
+		matrix0[0][1] = planes[1];
+		matrix0[0][2] = planes[2]; 
+		value[2][0] = planes[3]; 
+		// (-y) | 6
+		matrix0[1][0] = planes[8];
+		matrix0[1][1] = planes[9];
+		matrix0[1][2] = planes[10]; 
+		value[2][1] = planes[11]; 
+		// (+z) | 5
+		matrix0[2][0] = planes[20];
+		matrix0[2][1] = planes[21];
+		matrix0[2][2] = planes[22]; 
+		value[2][2] = planes[23]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[2],3); 
+		//qWarning("value[2] %f %f %f",value[2][0],value[2][1],value[2][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (-x)| 3 
+		matrix0[0][0] = planes[0];
+		matrix0[0][1] = planes[1];
+		matrix0[0][2] = planes[2]; 
+		value[3][0] = planes[3]; 
+		// (+y) | 4
+		matrix0[1][0] = planes[12];
+		matrix0[1][1] = planes[13];
+		matrix0[1][2] = planes[14]; 
+		value[3][1] = planes[15]; 
+		// (+z) | 5
+		matrix0[2][0] = planes[20];
+		matrix0[2][1] = planes[21];
+		matrix0[2][2] = planes[22]; 
+		value[3][2] = planes[23];
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[3],3); 
+		//qWarning("value[3] %f %f %f",value[3][0],value[3][1],value[3][2]);
+		/////////////////////////////////////////////////////////////
+		// (x)| 2 
+		matrix0[0][0] = planes[4];
+		matrix0[0][1] = planes[5];
+		matrix0[0][2] = planes[6]; 
+		value[4][0] = planes[7]; 
+		// (-z) | 1
+		matrix0[1][0] = planes[16];
+		matrix0[1][1] = planes[17];
+		matrix0[1][2] = planes[18]; 
+		value[4][1] = planes[19]; 
+		// (+y) | 4
+		matrix0[2][0] = planes[12];
+		matrix0[2][1] = planes[13];
+		matrix0[2][2] = planes[14]; 
+		value[4][2] = planes[15]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[4],3);
+		//qWarning("value[4] %f %f %f",value[4][0],value[4][1],value[4][2]);
+
+		/////////////////////////////////////////////////////////////////
+		
+		// (x)| 2 
+		matrix0[0][0] = planes[4];
+		matrix0[0][1] = planes[5];
+		matrix0[0][2] = planes[6]; 
+		value[5][0] = planes[7]; 
+		// (-z) | 1
+		matrix0[1][0] = planes[16];
+		matrix0[1][1] = planes[17];
+		matrix0[1][2] = planes[18]; 
+		value[5][1] = planes[19]; 
+		// (-y) | 6
+		matrix0[2][0] = planes[8];
+		matrix0[2][1] = planes[9];
+		matrix0[2][2] = planes[10]; 
+		value[5][2] = planes[11]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[5],3); 
+		//qWarning("value[5] %f %f %f",value[5][0],value[5][1],value[5][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (x)| 2 
+		matrix0[0][0] = planes[4];
+		matrix0[0][1] = planes[5];
+		matrix0[0][2] = planes[6]; 
+		value[6][0] = planes[7]; 
+		// (-y) | 6
+		matrix0[1][0] = planes[8];
+		matrix0[1][1] = planes[9];
+		matrix0[1][2] = planes[10]; 
+		value[6][1] = planes[11]; 
+		// (+z) | 5
+		matrix0[2][0] = planes[20];
+		matrix0[2][1] = planes[21];
+		matrix0[2][2] = planes[22]; 
+		value[6][2] = planes[23]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[6],3); 
+		//qWarning("value[6] %f %f %f",value[6][0],value[6][1],value[6][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (x)| 2 
+		matrix0[0][0] = planes[4];
+		matrix0[0][1] = planes[5];
+		matrix0[0][2] = planes[6]; 
+		value[7][0] = planes[7]; 
+		// (+y) | 4
+		matrix0[1][0] = planes[12];
+		matrix0[1][1] = planes[13];
+		matrix0[1][2] = planes[14]; 
+		value[7][1] = planes[15]; 
+		// (+z) | 5
+		matrix0[2][0] = planes[20];
+		matrix0[2][1] = planes[21];
+		matrix0[2][2] = planes[22]; 
+		value[7][2] = planes[23];
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0,index,value[7],3); 
+		//qWarning("value[7] %f %f %f",value[7][0],value[7][1],value[7][2]);
+
+		//////////////////////////////////////////////////////////
+		double xmax,ymax,zmax;// only scale by largest value for now.
+		xmax = ymax = zmax = 0;
+		for (int p = 0; p < 8; p++)
+		{
+			if (abs(value[p][0])>xmax)
+				xmax = abs(value[p][0]);
+			if (abs(value[p][1])>ymax)
+				ymax = abs(value[p][1]);
+			if (abs(value[p][2])>zmax)
+				zmax = abs(value[p][2]);
+			//qWarning("value in loop %f %f %f",value[p][0],value[p][1],value[p][2]);
+		}
+		//qWarning("max %f %f %f",xmax,ymax,zmax);
+		qWarning("position %f %f %f",position[0],position[1],position[2]);
+		newPosition[0] = (position[0]/0.5)* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		newPosition[1] = (position[1]/0.5)* (ymax/1000.0);
+		newPosition[2] = (position[2]/0.5)* (zmax/1000.0);
+		delete index;
+		return newPosition;
+}
+ 
 //----------------------------------------------------------------------------
 void vtkVRPNPhantomStyleCamera::PrintSelf(ostream& os, vtkIndent indent)
 {
