@@ -55,6 +55,13 @@
 #include "pqOutputPort.h"
 #include "pqChangeInputDialog.h"
 #include "pqCoreUtilities.h"
+//Streamtracer property includes
+#include "vtkSMProxyProperty.h"
+#include "pqSMProxy.h"
+#include "pqSMAdaptor.h"
+#include <QList>
+#include "vtkSMDoubleVectorProperty.h"
+
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 
@@ -62,6 +69,7 @@ vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 vtkVRPNPhantomStyleCamera::vtkVRPNPhantomStyleCamera() 
 { 
 	first = 1;
+	createTube = 1;
 }
 
 
@@ -160,17 +168,39 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		// FOR REMOTE DEBUGGING if (first)
 		if (Phantom->GetButton(0))
 		{	
-			this->CreateStreamTracerTube(view,Phantom,newPosition);			
+			//this->CreateStreamTracerTube(view,Phantom,newPosition);	
+			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("StreamTracer1");
+			if (createdSource)
+			{
+				this->ModifySeedPosition(createdSource,newPosition);
+				this->DisplayCreatedObject(view,createdSource);
+				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");
+				this->DisplayCreatedObject(view,tubeSource);
+			
+			}
+			else 
+				CreateStreamTracerTube(view,Phantom,newPosition);
+
 		}
 		
 	}  
  
 }
+void vtkVRPNPhantomStyleCamera::SetCreateTube(bool createTube)
+{
+	this->createTube = createTube;
+}
+bool vtkVRPNPhantomStyleCamera::GetCreateTube()
+{
+	return this->createTube;
+}
 void vtkVRPNPhantomStyleCamera::CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
 {
 	//core->getServerManagerModel()->findChild<pq
+	
 	int streamtracerIndex = CreateParaViewObject(1,-1,view,Phantom,newPosition,"StreamTracer");
-	this->CreateParaViewObject(streamtracerIndex,-1,view,Phantom,newPosition,"TubeFilter");
+	if (createTube)
+		this->CreateParaViewObject(streamtracerIndex,-1,view,Phantom,newPosition,"TubeFilter");
 		
 		
 }
@@ -237,8 +267,17 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 
 		pqPipelineSource* createdSource = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", name,
 		namedInputs, pqActiveObjects::instance().activeServer());
-
-		//Display createdSource in view
+		
+		this->ModifySeedPosition(createdSource,newPosition);
+		this->DisplayCreatedObject(view,createdSource);
+ 
+		int newSourceIndex = pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqPipelineSource*>();
+		qWarning("Source index %d", --newSourceIndex);
+	return newSourceIndex;
+}
+void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource)
+{
+	//Display createdSource in view
 		//Modified code from pqObjectInspectorWizard::accept()
 		for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
 		{
@@ -267,12 +306,36 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 
 				repr->setVisible(true);
 
+			}
 		}
-	} 
-		qWarning("Source index %d",++sourceIndex);
-	return sourceIndex;
 }
+void vtkVRPNPhantomStyleCamera::ModifySeedPosition(pqPipelineSource* createdSource,double* newPosition)
+{
+	if(vtkSMProxyProperty* const source_property = vtkSMProxyProperty::SafeDownCast(
+		createdSource->getProxy()->GetProperty("Source")))
+    {
+    const QList<pqSMProxy> sources = pqSMAdaptor::getProxyPropertyDomain(source_property);
+    for(int i = 0; i != sources.size(); ++i)
+      {
+      pqSMProxy source = sources[i];
+      if(source->GetVTKClassName() == QString("vtkPointSource"))
+        {  
+      if(vtkSMDoubleVectorProperty* const center =
+        vtkSMDoubleVectorProperty::SafeDownCast(
+          source->GetProperty("Center")))
+        {
+        center->SetNumberOfElements(3);
+        center->SetElement(0, newPosition[0]);
+        center->SetElement(1, newPosition[1]);
+        center->SetElement(2, newPosition[2]);
+        }
+	  }
+	  
+      source->UpdateVTKObjects();
+      }
+    }
 
+}
 void vtkVRPNPhantomStyleCamera::CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
 {
 	// Check all  items except for first one (which is the cursor)
@@ -561,9 +624,25 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		}
 		//qWarning("max %f %f %f",xmax,ymax,zmax);
 		//qWarning("position %f %f %f",position[0],position[1],position[2]);
-		newScaledPosition[0] = (newPosition[0]/0.5)* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-		newScaledPosition[1] = (newPosition[1]/0.5)* (ymax/1000.0);
-		newScaledPosition[2] = (newPosition[2]/0.5)* (zmax/1000.0);
+		/*double distance =camera->GetDistance();
+		if (xmax > (distance*1000))
+		{
+			xmax = distance;
+			qWarning("xmax too big");
+		}
+		if (ymax > (distance*1000))
+		{
+			ymax = distance;
+			qWarning("ymax too big");
+		}
+		if (zmax > (distance*1000))
+		{
+			zmax = distance;
+			qWarning("zmax too big");
+		}*/
+		newScaledPosition[0] = (newPosition[0])* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		newScaledPosition[1] = (newPosition[1])* (ymax/1000.0);
+		newScaledPosition[2] = (newPosition[2])* (zmax/1000.0);
 		delete index;
 		delete newPosition;
 		return newScaledPosition;

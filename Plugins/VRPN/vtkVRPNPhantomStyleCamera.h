@@ -51,6 +51,11 @@ public:
   // Set the tracker receiving events from
   void SetPhantom(vtkVRPNPhantom*);
 
+  // Description: 
+  // Set and Get Create Tube
+  void SetCreateTube(bool createTube);
+  bool GetCreateTube();
+
   void SetActor(vtkActor* myActor);
   /*void SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter);*/
   vtkActor* myActor;
@@ -59,7 +64,8 @@ protected:
   vtkVRPNPhantomStyleCamera();
   ~vtkVRPNPhantomStyleCamera();
 
-  virtual void OnPhantom(vtkVRPNPhantom*);/*
+  virtual void OnPhantom(vtkVRPNPhantom*);
+  /*
   virtual void PrintCollision(vtkCollisionDetectionFilter* CollisionFilter);*/
 
 private: 
@@ -70,9 +76,12 @@ private:
   double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer);
   void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
   void CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
+  void ModifySeedPosition(pqPipelineSource* createdSource,double* newPosition);
+  void DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource);
   //if inputIndex is -1, that means that we do not specify custom input source
   int CreateParaViewObject(int sourceIndex,int inputIndex, pqView* view, vtkVRPNPhantom* Phantom,double* newPosition,const char* name);
   int first;
+  bool createTube;
 };
 
 #endif

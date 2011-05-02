@@ -600,7 +600,7 @@ const vrpn_ANALOGCB t)
 				camera->Roll(       -1.0*at.channel[4]);	
 				camera->Elevation(  -1.0*at.channel[3]);
 			} 
-
+			viewProxy->GetRenderer()->ResetCameraClippingRange();
 			
 		  }
 
