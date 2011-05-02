@@ -137,9 +137,16 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
 		vtkCamera* camera = proxy->GetActiveCamera();  
+		
 		double* newPosition;
-		//newPosition = this->ScalePosition(position,proxy->GetRenderer());
-		newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
+		if (Phantom->GetButton(1))
+		{ 
+			newPosition = camera->GetFocalPoint();
+		}
+		else
+		{
+			newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
+		}
 
 			//Set position to view position
 		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0); 
@@ -152,186 +159,145 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		//Operate on object
 		// FOR REMOTE DEBUGGING if (first)
 		if (Phantom->GetButton(0))
-			this->CheckWithinPipelineBounds(view,Phantom,newPosition);
+		{	
+			this->CreateStreamTracerTube(view,Phantom,newPosition);			
+		}
 		
 	}  
  
 }
-void vtkVRPNPhantomStyleCamera::CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
+void vtkVRPNPhantomStyleCamera::CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
+{
+	//core->getServerManagerModel()->findChild<pq
+	int streamtracerIndex = CreateParaViewObject(1,-1,view,Phantom,newPosition,"StreamTracer");
+	this->CreateParaViewObject(streamtracerIndex,-1,view,Phantom,newPosition,"TubeFilter");
+		
+		
+}
+int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputIndex,pqView* view, vtkVRPNPhantom* Phantom, double* newPosition,const char* name)
 {
 	
+	
 		vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-		vtkSMProxy* prototype = pxm->GetPrototypeProxy("filters","StreamTracer");
+		vtkSMProxy* prototype = pxm->GetPrototypeProxy("filters",name);
 		QList<pqOutputPort*> outputPorts;
-		pqPipelineSource* source ;
-	//for (int j =1; j<2;j++)//j< pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqPipelineSource*>();j++)
-	//{
-		source= pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(1);
 		
-		outputPorts.push_back(source->getOutputPort(0));
-	/*}*/	
-			
+		//pqCoreUtilities::mainWidget()->findChild("
+		//NOTE: Cannot use AutoAccept because this creates 3 streamtracers everytime a button is clicked (PhantomButton probably is called 3 times due to frequency of Phantom updates)
+		// pqObjectInspectorWidget::setAutoAccept(true);
 	 
-	QMap<QString, QList<pqOutputPort*> > namedInputs;
-	QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
-	namedInputs[inputPortNames[0]] = outputPorts;
+		//Modified code from pqFiltersMenuReaction::createFilter()
+		pqPipelineSource* item = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(sourceIndex);//TODO:Set object index to constant
+		
+		pqOutputPort* opPort = qobject_cast<pqOutputPort*>(item);
+		pqPipelineSource* source = qobject_cast<pqPipelineSource*>(item);
+		
+		if (source)
+		  {
+		  outputPorts.push_back(source->getOutputPort(0));
+		  qWarning("source %d",source->getNumberOfOutputPorts());
+		  }
+		else if (opPort)
+		  {
+			outputPorts.push_back(opPort);
+			qWarning("opPort %s",opPort->getPortName().toStdString()); 
+		  } 
+		QMap<QString, QList<pqOutputPort*> > namedInputs;
+		QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
+		namedInputs[inputPortNames[0]] = outputPorts;
 
-	// If the filter has more than 1 input ports, we are simply going to ask the
-  // user to make selection for the inputs for each port. We may change that in
-  // future to be smarter.
-  if (pqPipelineFilter::getRequiredInputPorts(prototype).size() > 1)
-    {
-		qWarning("need more inputs!!!");
-    vtkSMProxy* filterProxy = pxm->GetPrototypeProxy("filters",
-      "StreamTracer");
-    vtkSMPropertyHelper helper(filterProxy, inputPortNames[0]);
-    helper.RemoveAllValues();
-
-    foreach (pqOutputPort *outputPort, outputPorts)
-      {
-      helper.Add(outputPort->getSource()->getProxy(),
-        outputPort->getPortNumber());
-      }
-
-    pqChangeInputDialog dialog(filterProxy, pqCoreUtilities::mainWidget());
-    dialog.setObjectName("SelectInputDialog");
-    if (QDialog::Accepted != dialog.exec())
-      {
-      helper.RemoveAllValues();
-      // User aborted creation.
-      return;
-      }
-    helper.RemoveAllValues();
-    namedInputs = dialog.selectedInputs();
-    }
-
-
-
-	pqPipelineSource* streamtracer = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", "StreamTracer",
-		namedInputs, pqActiveObjects::instance().activeServer());
-  
-	//Display streamtracer in view
-	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
-	{
-		pqView* displayView = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
-		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( displayView->getViewProxy() );
-
-		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
-		qWarning("output %d",streamtracer->getNumberOfOutputPorts());
-
-		for (int cc=0; cc < streamtracer->getNumberOfOutputPorts(); cc++)
+		// If the filter has more than 1 input ports, we are simply going to ask the
+		// user to make selection for the inputs for each port. We may change that in
+		// future to be smarter.
+		if (pqPipelineFilter::getRequiredInputPorts(prototype).size() > 1)
 		{
-			
-			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-			streamtracer->getOutputPort(cc), displayView, false);
-			if (!repr || !repr->getView())
+			qWarning("need more inputs!!!");
+			vtkSMProxy* filterProxy = pxm->GetPrototypeProxy("filters",
+			name);
+			vtkSMPropertyHelper helper(filterProxy, inputPortNames[0]);
+			helper.RemoveAllValues();
+
+			foreach (pqOutputPort *outputPort, outputPorts)
 			{
-				qWarning("!repr");
-				continue;
-			}
-			pqView* cur_view = repr->getView();
-			pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(streamtracer);
-			if (filter)
-			{
-				filter->hideInputIfRequired(cur_view);
+				helper.Add(outputPort->getSource()->getProxy(),
+				outputPort->getPortNumber());
 			}
 
-			repr->setVisible(true);
+			pqChangeInputDialog dialog(filterProxy, pqCoreUtilities::mainWidget());
+			dialog.setObjectName("SelectInputDialog");
+			if (QDialog::Accepted != dialog.exec())
+			{
+				helper.RemoveAllValues();
+				// User aborted creation.
+				return -1;
+			}
+			helper.RemoveAllValues();
+			namedInputs = dialog.selectedInputs();
+		}
+
+		pqPipelineSource* createdSource = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", name,
+		namedInputs, pqActiveObjects::instance().activeServer());
+
+		//Display createdSource in view
+		//Modified code from pqObjectInspectorWizard::accept()
+		for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+		{
+			pqView* displayView = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( displayView->getViewProxy() );
+
+			pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+			
+
+			for (int cc=0; cc < createdSource->getNumberOfOutputPorts(); cc++)
+			{
+
+				pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+				createdSource->getOutputPort(cc), displayView, false);
+				if (!repr || !repr->getView())
+				{
+					qWarning("!repr");
+					continue;
+				}
+				pqView* cur_view = repr->getView();
+				pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(createdSource);
+				if (filter)
+				{
+					filter->hideInputIfRequired(cur_view);
+				}
+
+				repr->setVisible(true);
 
 		}
-	}
-	//pqActiveObjects::setActiveSource(source)
-	// FOR REMOTE DEBUGGING first = 0;
-   
+	} 
+		qWarning("Source index %d",++sourceIndex);
+	return sourceIndex;
+}
 
-  //// Get the list of selected sources.
-  //pqServerManagerSelection selected =
-  //    *core->getSelectionModel()->selectedItems();
-
-  //QMap<QString, QList<pqOutputPort*> > namedInputs;
-  //QList<pqOutputPort*> selectedOutputPorts;
-
-  //// Determine the list of selected output ports.
-  //foreach (pqServerManagerModelItem* item, selected)
-  //  {
-  //  pqOutputPort* opPort = qobject_cast<pqOutputPort*>(item);
-  //  pqPipelineSource* source = qobject_cast<pqPipelineSource*>(item);
-  //  if (opPort)
-  //    {
-  //    selectedOutputPorts.push_back(opPort);
-  //    }
-  //  else if (source)
-  //    {
-  //    selectedOutputPorts.push_back(source->getOutputPort(0));
-  //    }
-  //  }
-
-  //QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
-  //namedInputs[inputPortNames[0]] = selectedOutputPorts;
-
-  //// If the filter has more than 1 input ports, we are simply going to ask the
-  //// user to make selection for the inputs for each port. We may change that in
-  //// future to be smarter.
-  //if (pqPipelineFilter::getRequiredInputPorts(prototype).size() > 1)
-  //  {
-  //  vtkSMProxy* filterProxy = pxm->GetPrototypeProxy("filters",
-  //    xmlname.toAscii().data());
-  //  vtkSMPropertyHelper helper(filterProxy, inputPortNames[0]);
-  //  helper.RemoveAllValues();
-
-  //  foreach (pqOutputPort *outputPort, selectedOutputPorts)
-  //    {
-  //    helper.Add(outputPort->getSource()->getProxy(),
-  //      outputPort->getPortNumber());
-  //    }
-
-  //  pqChangeInputDialog dialog(filterProxy, pqCoreUtilities::mainWidget());
-  //  dialog.setObjectName("SelectInputDialog");
-  //  if (QDialog::Accepted != dialog.exec())
-  //    {
-  //    helper.RemoveAllValues();
-  //    // User aborted creation.
-  //    return 0;
-  //    }
-  //  helper.RemoveAllValues();
-  //  namedInputs = dialog.selectedInputs();
-  //  }
-
-  //BEGIN_UNDO_SET(QString("Create '%1'").arg(xmlname));
-  //pqPipelineSource* filter = builder->createFilter("filters", xmlname,
-  //  namedInputs, server);
-  //END_UNDO_SET();
-  //return filter;
-
-
+void vtkVRPNPhantomStyleCamera::CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
+{
 	// Check all  items except for first one (which is the cursor)
-		//for (int j = 1; j < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqDataRepresentation*>(); j++) 
-		//{
-		//	pqDataRepresentation *data = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(j);
-		//	double bounds[6];
+		for (int j = 1; j < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqDataRepresentation*>(); j++) 
+		{
+			pqDataRepresentation *data = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(j);
+			double bounds[6];
 
-		//	data->getDataBounds(bounds); //vtkPVDataInformation defines bounds
-		//	if (vtkMath::AreBoundsInitialized(bounds))
-		//	{
-		//		if ((newPosition[0] < bounds[1]  && newPosition[0] > bounds[0]) 
-		//			&& (newPosition[1] < bounds[3]  && newPosition[1] > bounds[2])
-		//			&& (newPosition[2] < bounds[5]  && newPosition[2] > bounds[4]))
-		//		{
-		//			vtkSMPVRepresentationProxy *repProxy2 = 0;
-		//			repProxy2 = vtkSMPVRepresentationProxy::SafeDownCast(data->getProxy());	 
-		//			qWarning("Within bounds");
-		//			vtkPVDataRepresentation* rep =   repProxy2->GetClientSideObject();
-		//			vtkDataObject* dobj = rep->GetRenderedDataObject(0);
-		//			
-		//		}
-		//		/*	qWarning("Actor %f %f %f %f %f %f ",bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
-		//			qWarning("Phantom %f %f %f",newPosition[0],newPosition[1],newPosition[2]); */
+			data->getDataBounds(bounds); //vtkPVDataInformation defines bounds
+			if (vtkMath::AreBoundsInitialized(bounds))
+			{
+				if ((newPosition[0] < bounds[1]  && newPosition[0] > bounds[0]) 
+					&& (newPosition[1] < bounds[3]  && newPosition[1] > bounds[2])
+					&& (newPosition[2] < bounds[5]  && newPosition[2] > bounds[4]))
+				{
+					vtkSMPVRepresentationProxy *repProxy2 = 0;
+					repProxy2 = vtkSMPVRepresentationProxy::SafeDownCast(data->getProxy());	 
+					qWarning("Within bounds");
+					
+				}
+				/*	qWarning("Actor %f %f %f %f %f %f ",bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
+					qWarning("Phantom %f %f %f",newPosition[0],newPosition[1],newPosition[2]); */
 	
-		//	}
-		//	 
-		//	
-		//}
-		//proxy->GetRenderWindow()->Render();
+			}
+		}
 }
 double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* renderer)
 {
@@ -365,31 +331,8 @@ double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* r
 		qWarning("camCoordPosition %f %f %f %f",camCoordPosition[0],camCoordPosition[1],camCoordPosition[2],camCoordPosition[3]);
 		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition);
 		qWarning("newPosition %f %f %f %f",newPosition[0],newPosition[1],newPosition[2],newPosition[3]);
-
-		//Attempt to rotate by camera orientation.
-		/*double* orient = camera->GetOrientation();
-
-		qWarning("orientation %f %f %f",orient[0],orient[1],orient[2]);
-		double rot[3][3];
-		rot[0][1] = rot[0][2]= rot[1][0]  = rot[1][2]= rot[2][0] = rot[2][1] =0.0;
-		rot[0][0] =  rot[1][1] = rot[2][2]= 1.0;
-		rot[0][0] = orient[0];
-		rot[1][1] = orient[1];
-		rot[2][2] = orient[2];  
-		
-		qWarning("position %f %f %f",position[0],position[1],position[2]);
-		double* camCoordPosition = new double[3];
-		vtkMath::Multiply3x3(rot,position,camCoordPosition); 
-		qWarning("camCoord %f %f %f",camCoordPosition[0],camCoordPosition[1],camCoordPosition[2]); */
-			//double distance = renderer->GetActiveCamera()->GetDistance();
-			//for (int i =0; i<3;i++)
-			//{
-			//	newPosition[i] = (camCoordPosition[i]/0.5)* (distance/2.0);//(camCoordPosition[i]/0.5)* (distance/2.0);
-			//}
 		 
 		return newPosition;
-		
-		//qWarning("newPosition %f %f %f",newPosition[0],newPosition[1],newPosition[2]);
 		
 }
 

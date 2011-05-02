@@ -34,6 +34,7 @@
 //
 //class vtkCollisionDetectionFilter;
 class pqView;
+class pqPipelineSource;
 
 class vtkVRPNPhantomStyleCamera : public vtkDeviceInteractorStyle
 {
@@ -68,6 +69,9 @@ private:
   double* ScalePosition(double* position,vtkRenderer* renderer);
   double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer);
   void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
+  void CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
+  //if inputIndex is -1, that means that we do not specify custom input source
+  int CreateParaViewObject(int sourceIndex,int inputIndex, pqView* view, vtkVRPNPhantom* Phantom,double* newPosition,const char* name);
   int first;
 };
 
