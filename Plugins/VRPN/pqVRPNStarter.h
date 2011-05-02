@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QObject>
 #include <vtkInteractionDeviceManager.h>
-#include <vrpn_Analog.h>
+#include <vrpn_Analog.h> 
 
 
 class QTimer;
@@ -42,6 +42,7 @@ class ParaViewVRPN;
 class sn_user_callback;
 class tng_user_callback;
 class vtkPVXMLElement;
+class vtkVRPNPhantom;
 
 class pqVRPNStarter : public QObject
 {
@@ -64,6 +65,7 @@ public slots:
 protected:
     QTimer *VRPNTimer;
 	vtkDeviceInteractor* inputInteractor;
+	vtkVRPNPhantom* phantom1;
 	vrpn_Analog_Remote* spaceNavigator1;
 	vrpn_Analog_Remote* tng1;
 	sn_user_callback *AC1;

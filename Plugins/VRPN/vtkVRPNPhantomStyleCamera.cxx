@@ -406,7 +406,7 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 			//qWarning("value in loop %f %f %f",value[p][0],value[p][1],value[p][2]);
 		}
 		//qWarning("max %f %f %f",xmax,ymax,zmax);
-		qWarning("position %f %f %f",position[0],position[1],position[2]);
+		//qWarning("position %f %f %f",position[0],position[1],position[2]);
 		newPosition[0] = (position[0]/0.5)* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
 		newPosition[1] = (position[1]/0.5)* (ymax/1000.0);
 		newPosition[2] = (position[2]/0.5)* (zmax/1000.0);

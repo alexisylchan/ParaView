@@ -64,7 +64,9 @@ SET (MOC_HEADERS
   pqPersistentMainWindowStateBehavior.h
   pqPipelineContextMenuBehavior.h
   pqPluginActionGroupBehavior.h
-  pqPluginDockWidgetsBehavior.h
+  pqPluginDockWidgetsBehavior.h  
+  pqPushToSharedStateToolbar.h 
+  pqPushToSharedStateReaction.h
   pqProxyGroupMenuManager.h
   pqPVAnimationWidget.h
   pqPVApplicationCore.h
@@ -109,7 +111,7 @@ SET (UI_FILES
   Resources/UI/pqDefaultMainWindow.ui
   Resources/UI/pqEditMenuBuilder.ui
   Resources/UI/pqFileMenuBuilder.ui
-  Resources/UI/pqMainControlsToolbar.ui
+  Resources/UI/pqMainControlsToolbar.ui      Resources/UI/pqPushToSharedStateToolbar.ui
   Resources/UI/pqPipelineBrowserContextMenu.ui
   Resources/UI/pqSelectionToolbar.ui
   Resources/UI/pqVCRToolbar.ui
@@ -213,7 +215,11 @@ SET (SOURCE_FILES
   pqPluginActionGroupBehavior.cxx
   pqPluginActionGroupBehavior.h
   pqPluginDockWidgetsBehavior.cxx
-  pqPluginDockWidgetsBehavior.h
+  pqPluginDockWidgetsBehavior.h  
+  pqPushToSharedStateReaction.cxx
+  pqPushToSharedStateReaction.h
+  pqPushToSharedStateToolbar.cxx
+  pqPushToSharedStateToolbar.h
   pqProxyGroupMenuManager.cxx
   pqProxyGroupMenuManager.h
   pqPVAnimationWidget.cxx

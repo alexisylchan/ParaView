@@ -39,6 +39,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqMultiViewFrame.h"
 
+
+#include <QToolBar>
+#include <QList>
+#include <QAction>
+#include <QLayout>
+
+#include "pqMainControlsToolbar.h"
+#include "pqPushToSharedStateToolbar.h"
+#include "pqSetName.h"
+
+
 class myMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -88,6 +99,15 @@ myMainWindow::myMainWindow()
     *this->Internals->pipelineBrowser);
 
   pqParaViewMenuBuilders::buildToolbars(*this);
+
+  QToolBar* pushToSharedStateToolbar = new pqPushToSharedStateToolbar(this)
+  << pqSetName("PushToSharedStateToolbar");
+  pushToSharedStateToolbar->layout()->setSpacing(0);
+  this->addToolBar(Qt::RightToolBarArea, pushToSharedStateToolbar);
+  
+ 
+
+
 
   // Setup the View menu. This must be setup after all toolbars and dockwidgets
   // have been created.

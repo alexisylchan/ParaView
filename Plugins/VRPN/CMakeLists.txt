@@ -106,7 +106,7 @@ ADD_PARAVIEW_PLUGIN(
           #${RCS_SRCS} ${IFACE_SRCS})
 
  
-TARGET_LINK_LIBRARIES (VRPNPlugin  ${VRPN_LIBRARY} 
+TARGET_LINK_LIBRARIES (VRPNPlugin  ${VRPN_LIBRARY} pqApplicationComponents
 debug ${VTK_INTERACTION_BINARY_DIR}/lib/Debug/vtkInteractionDevice.lib  
 optimized ${VTK_INTERACTION_BINARY_DIR}/lib/Release/vtkInteractionDevice.lib)
  

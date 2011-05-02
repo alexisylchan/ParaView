@@ -63,6 +63,11 @@
      <string>&amp;Macros</string>
     </property>
    </widget>
+    <widget class="QMenu" name="menu_Collaboration">
+      <property name="title">
+        <string>&amp;Collaboration</string>
+      </property>
+    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
@@ -71,6 +76,7 @@
    <addaction name="menuTools"/>
    <addaction name="menu_Macros"/>
    <addaction name="menu_Help"/>
+    <addaction name="menu_Collaboration"/>
   </widget>
   <widget class="pqStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="pipelineBrowserDock">

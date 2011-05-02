@@ -102,6 +102,7 @@ public:
   char sn_name[vrpn_MAX_TEXT_LEN];
   vtkstd::vector<unsigned> sn_counts;
   int sensorIndex;
+  vtkVRPNPhantom* sn_phantom_ptr;
 };
 class tng_user_callback
 {
@@ -343,7 +344,7 @@ void pqVRPNStarter::initializeDevices()
 	qWarning("SN Camera Renderer added");
 	}
 	/////////////////////////CREATE  PHANTOM////////////////////////////
-	vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
+	phantom1 = vtkVRPNPhantom::New();
     phantom1->SetDeviceName("Phantom0@localhost");
 	phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);
 
@@ -395,6 +396,7 @@ void pqVRPNStarter::initializeDevices()
 	AC1 = new sn_user_callback;
 	strncpy(AC1->sn_name,spaceNavigatorAddress,sizeof(AC1->sn_name));
 	AC1->sensorIndex = this->sensorIndex;
+	AC1->sn_phantom_ptr = phantom1;
 	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
 	
 	}
@@ -532,10 +534,7 @@ const vrpn_ANALOGCB t)
     pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
 	
 	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
-	{
-		//for (int j = 1; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)// Ignore first representation which will always be the phantom cursor
-		//{
-		//	pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(j);
+	{ 
 
 			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
 			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
@@ -574,7 +573,7 @@ const vrpn_ANALOGCB t)
 
             camera->SetPosition(pos);
             camera->SetFocalPoint(fp);
-			camera->Dolly(pow(1.01,at.channel[1]));
+			camera->Dolly(pow(1.01,-at.channel[1]));
 			camera->ViewingRaysModified(); 
 			if (tData->sensorIndex == 1)
 			{	
@@ -598,11 +597,14 @@ const vrpn_ANALOGCB t)
 				camera->Azimuth(    1.0*at.channel[5]);
 				camera->Roll(       -1.0*at.channel[4]);	
 				camera->Elevation(  -1.0*at.channel[3]);
-			}  
+			} 
+
 			
 		  }
-		
-    /*  }*/
+	//double rot[3][3];
+	//rot[0][0] = rot[0][1] = rot[0][2]= rot[1][0] = rot[1][1] = rot[1][2]= rot[2][0] = rot[2][1] = rot[2][2]= 0.0;
+	//rot[0][0] = 
+	//tData->sn_phantom_ptr->SetPhantom2WorldRotation(
     }
   else
     {
