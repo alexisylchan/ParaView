@@ -93,6 +93,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineSource.h"
 #include "pqDisplayPolicy.h"
 #include "pqPipelineFilter.h" 
+#include "vtkMatrix3x3.h"
  
 
 // From Cory Quammen's code
@@ -601,10 +602,7 @@ const vrpn_ANALOGCB t)
 
 			
 		  }
-	//double rot[3][3];
-	//rot[0][0] = rot[0][1] = rot[0][2]= rot[1][0] = rot[1][1] = rot[1][2]= rot[2][0] = rot[2][1] = rot[2][2]= 0.0;
-	//rot[0][0] = 
-	//tData->sn_phantom_ptr->SetPhantom2WorldRotation(
+
     }
   else
     {

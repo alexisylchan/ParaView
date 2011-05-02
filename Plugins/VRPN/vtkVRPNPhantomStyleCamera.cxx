@@ -129,7 +129,8 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
 		vtkCamera* camera = proxy->GetActiveCamera();  
 		double* newPosition;
-		newPosition = ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
+		//newPosition = this->ScalePosition(position,proxy->GetRenderer());
+		newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
 
 			//Set position to view position
 		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0); 
@@ -169,24 +170,58 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 }
 double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* renderer)
 {
-		double* newPosition =  new double[3];
-		double* bounds = renderer->ComputeVisiblePropBounds();
+		double* newPosition =  new double[4];
+		vtkCamera* camera = renderer->GetActiveCamera();  
 
-		if (vtkMath::AreBoundsInitialized(bounds))
-		{ 
-			newPosition[0] = (position[0]/0.5)* (bounds[1]/2.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-			newPosition[1] = (position[1]/0.5)* (bounds[3]/2.0);
-			newPosition[2] = (position[2]/0.5)* (bounds[5]/2.0);
-			
-		}
-		else
+		vtkMatrix4x4* cameraMatrix = camera->GetCameraLightTransformMatrix();
+		qWarning("cameramatrix\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n",
+			cameraMatrix->GetElement(0,0),
+			cameraMatrix->GetElement(0,1),
+			cameraMatrix->GetElement(0,2),
+			cameraMatrix->GetElement(0,3),
+			cameraMatrix->GetElement(1,0),
+			cameraMatrix->GetElement(1,1),
+			cameraMatrix->GetElement(1,2),
+			cameraMatrix->GetElement(1,3),
+			cameraMatrix->GetElement(2,0),
+			cameraMatrix->GetElement(2,1),
+			cameraMatrix->GetElement(2,2),
+			cameraMatrix->GetElement(2,3),
+			cameraMatrix->GetElement(3,0),
+			cameraMatrix->GetElement(3,1),
+			cameraMatrix->GetElement(3,2),
+			cameraMatrix->GetElement(3,3)); 
+		double* camCoordPosition = new double[4];
+		for (int i = 0; i<3;i++)
 		{
-			double distance = renderer->GetActiveCamera()->GetDistance();
-			for (int i =0; i<3;i++)
-			{
-				newPosition[i] = (position[i]/0.5)* (distance/2.0);
-			}
+			camCoordPosition[i] = position[i];
 		}
+		camCoordPosition[3] = 1.0;//renderer->GetActiveCamera()->GetDistance();
+		qWarning("camCoordPosition %f %f %f %f",camCoordPosition[0],camCoordPosition[1],camCoordPosition[2],camCoordPosition[3]);
+		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition);
+		qWarning("newPosition %f %f %f %f",newPosition[0],newPosition[1],newPosition[2],newPosition[3]);
+
+		//Attempt to rotate by camera orientation.
+		/*double* orient = camera->GetOrientation();
+
+		qWarning("orientation %f %f %f",orient[0],orient[1],orient[2]);
+		double rot[3][3];
+		rot[0][1] = rot[0][2]= rot[1][0]  = rot[1][2]= rot[2][0] = rot[2][1] =0.0;
+		rot[0][0] =  rot[1][1] = rot[2][2]= 1.0;
+		rot[0][0] = orient[0];
+		rot[1][1] = orient[1];
+		rot[2][2] = orient[2];  
+		
+		qWarning("position %f %f %f",position[0],position[1],position[2]);
+		double* camCoordPosition = new double[3];
+		vtkMath::Multiply3x3(rot,position,camCoordPosition); 
+		qWarning("camCoord %f %f %f",camCoordPosition[0],camCoordPosition[1],camCoordPosition[2]); */
+			//double distance = renderer->GetActiveCamera()->GetDistance();
+			//for (int i =0; i<3;i++)
+			//{
+			//	newPosition[i] = (camCoordPosition[i]/0.5)* (distance/2.0);//(camCoordPosition[i]/0.5)* (distance/2.0);
+			//}
+		 
 		return newPosition;
 		
 		//qWarning("newPosition %f %f %f",newPosition[0],newPosition[1],newPosition[2]);
@@ -195,9 +230,20 @@ double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* r
 
 double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer)
 {
-		double* newPosition =  new double[3];
+		double* newPosition =  new double[4];
+		double* newScaledPosition =  new double[4];
 		double planes[24];
-		vtkCamera* camera = renderer->GetActiveCamera(); 
+		vtkCamera* camera = renderer->GetActiveCamera();  
+		 
+		//Attempt to rotate by camera orientation.
+		vtkMatrix4x4* cameraMatrix = camera->GetCameraLightTransformMatrix();
+		double camCoordPosition[4];
+		for (int i = 0; i<3;i++)
+		{
+			camCoordPosition[i] = position[i];
+		}
+		camCoordPosition[3] = 1.0;//renderer->GetActiveCamera()->GetDistance();
+		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition);
 		camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
 		double matrix0Data[3][3];
 		double *matrix0[3]; 
@@ -407,11 +453,12 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		}
 		//qWarning("max %f %f %f",xmax,ymax,zmax);
 		//qWarning("position %f %f %f",position[0],position[1],position[2]);
-		newPosition[0] = (position[0]/0.5)* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-		newPosition[1] = (position[1]/0.5)* (ymax/1000.0);
-		newPosition[2] = (position[2]/0.5)* (zmax/1000.0);
+		newScaledPosition[0] = (newPosition[0]/0.5)* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		newScaledPosition[1] = (newPosition[1]/0.5)* (ymax/1000.0);
+		newScaledPosition[2] = (newPosition[2]/0.5)* (zmax/1000.0);
 		delete index;
-		return newPosition;
+		delete newPosition;
+		return newScaledPosition;
 }
  
 //----------------------------------------------------------------------------
