@@ -348,6 +348,7 @@ void pqVRPNStarter::initializeDevices()
 	phantom1 = vtkVRPNPhantom::New();
     phantom1->SetDeviceName("Phantom0@localhost");
 	phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);
+	phantom1->SetNumberOfButtons(2);
 
 	/*double t2w[3][3] = { 0, 0, 1,
                           0, 1, 0,

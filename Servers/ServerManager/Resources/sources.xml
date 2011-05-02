@@ -176,7 +176,7 @@ The Arrow source appends a cylinder to a cone to form a 3D arrow. The length of 
          command="SetRadius"
          number_of_elements="1"
          animateable="1"
-         default_values="0.1" >
+         default_values="0.01" >
         <DoubleRangeDomain name="range" min="0"/>
         <Documentation>
           This property specifies the radius of the sphere.

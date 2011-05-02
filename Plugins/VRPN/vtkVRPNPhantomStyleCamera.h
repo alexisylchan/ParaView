@@ -33,6 +33,7 @@
 #include "vtkActor.h"
 //
 //class vtkCollisionDetectionFilter;
+class pqView;
 
 class vtkVRPNPhantomStyleCamera : public vtkDeviceInteractorStyle
 {
@@ -61,10 +62,13 @@ protected:
   virtual void PrintCollision(vtkCollisionDetectionFilter* CollisionFilter);*/
 
 private: 
+
   vtkVRPNPhantomStyleCamera(const vtkVRPNPhantomStyleCamera&);  // Not implemented.
   void operator=(const vtkVRPNPhantomStyleCamera&);  // Not implemented.
   double* ScalePosition(double* position,vtkRenderer* renderer);
   double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer);
+  void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
+  int first;
 };
 
 #endif
