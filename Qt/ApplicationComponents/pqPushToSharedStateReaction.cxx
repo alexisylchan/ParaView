@@ -45,11 +45,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPythonManager.h"
 #endif
 
+//#include "pqVRPNStarter.h" //TODO: fix this
+#include "pqView.h"
+#include "pqServerManagerModel.h"
+#include "pqPipelineSource.h"
+#include "vtkSMProxyManager.h"
+#include "pqPipelineFilter.h"
+#include "pqDisplayPolicy.h"
+#include "pqObjectInspectorWidget.h"
+#include "pqOutputPort.h"
+#include "vtkSMRenderViewProxy.h"
+#include "pqDataRepresentation.h"
+#include "vtkRenderWindow.h"
+
+//pqPushToSharedStateReaction* pqPushToSharedStateReaction::Instance = 0;
+//pqPushToSharedStateReaction* pqPushToSharedStateReaction::instance()
+//{
+//	return pqPushToSharedStateReaction::Instance;
+//}
 //-----------------------------------------------------------------------------
 pqPushToSharedStateReaction::pqPushToSharedStateReaction(QAction* parentObject,
   pqPushToSharedStateReaction::Mode mode)
   : Superclass(parentObject)
 {
+	/*pqPushToSharedStateReaction::Instance = this;*/
   this->ReactionMode = mode;
   // save state enable state depends on whether we are connected to an active
   // server or not and whether
@@ -57,6 +76,8 @@ pqPushToSharedStateReaction::pqPushToSharedStateReaction(QAction* parentObject,
   QObject::connect(activeObjects, SIGNAL(serverChanged(pqServer*)),
     this, SLOT(updateEnableState()));
   this->updateEnableState();
+  this->showContextualFlow = false;
+  this->showVortexCore = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -88,13 +109,45 @@ void pqPushToSharedStateReaction::onTriggered()
 
 //-----------------------------------------------------------------------------
 void pqPushToSharedStateReaction::contextualFlow()
-{  
-	qWarning("contextual flow!");
+{   
+	
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(pqPushToSharedStateReaction::BLADE_STREAMTRACER );
+	if (this->showContextualFlow)
+	{
+		HideObject(pqActiveObjects::instance().activeView(),flowSource);
+		this->showContextualFlow = false;
+	}
+	else
+	{
+		DisplayObject(pqActiveObjects::instance().activeView(),flowSource);
+		this->showContextualFlow = true;
+	}				
+	//emit toggleContextualFlow();
 } 
 //-----------------------------------------------------------------------------
 void pqPushToSharedStateReaction::vortexIdentification()
-{  
-	qWarning("vortex identification!");
+{   
+	
+	
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(pqPushToSharedStateReaction::CORE_STREAMTRACER );
+	if (this->showVortexCore)
+	{
+		HideObject(pqActiveObjects::instance().activeView(),flowSource);
+		this->showVortexCore = false;
+	}
+	else
+	{
+		DisplayObject(pqActiveObjects::instance().activeView(),flowSource);
+		this->showVortexCore = true;
+	}
+
+	/*
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(pqPushToSharedStateReaction::BLADE_STREAMTRACER );
+	HideObject(pqActiveObjects::instance().activeView(),flowSource);
+				
+	pqPipelineSource* coreSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(pqPushToSharedStateReaction::CORE_STREAMTRACER );
+	DisplayObject(pqActiveObjects::instance().activeView(),coreSource);*/
+	
 } 
 
 //-----------------------------------------------------------------------------
@@ -112,3 +165,130 @@ void pqPushToSharedStateReaction::saveState()
   pqApplicationCore::instance()->serverResources().save(
     *pqApplicationCore::instance()->settings());
 } 
+
+void pqPushToSharedStateReaction::HideObject(pqView* view,pqPipelineSource* createdSource)
+{
+	pqDataRepresentation* inputRepr = createdSource->getRepresentation(view);
+	if (inputRepr)
+        {  
+			inputRepr->setVisible(false);
+	}
+	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
+	proxy->GetRenderWindow()->Render();
+     
+	//Display createdSource in view
+		//Modified code from pqObjectInspectorWizard::accept()
+		//for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+		//{
+		//	pqView* displayView = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+		//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( displayView->getViewProxy() );
+
+		//	pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+		//	
+
+		//	for (int cc=0; cc < createdSource->getNumberOfOutputPorts(); cc++)
+		//	{
+		//		
+		//		pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+		//		createdSource->getOutputPort(cc), displayView, false);
+		//		if (!repr || !repr->getView())
+		//		{
+		//			//qWarning("!repr");
+		//			continue;
+		//		}
+		//		pqView* cur_view = repr->getView();
+		//		pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(createdSource);
+		//		if (filter)
+		//		{
+		//			filter->hideInputIfRequired(cur_view);
+		//		}
+
+		//		repr->setVisible(true);
+
+		//	}
+		//	proxy->GetRenderWindow()->Render();
+		//} 
+}
+
+
+void pqPushToSharedStateReaction::DisplayObject(pqView* view,pqPipelineSource* createdSource)
+{
+	pqDataRepresentation* inputRepr = createdSource->getRepresentation(view);
+	if (inputRepr)
+        {  
+			inputRepr->setVisible(true);
+	}
+	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
+	proxy->GetRenderWindow()->Render();
+     
+	//Display createdSource in view
+		//Modified code from pqObjectInspectorWizard::accept()
+		//for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+		//{
+		//	pqView* displayView = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+		//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( displayView->getViewProxy() );
+
+		//	pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+		//	
+
+		//	for (int cc=0; cc < createdSource->getNumberOfOutputPorts(); cc++)
+		//	{
+		//		
+		//		pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+		//		createdSource->getOutputPort(cc), displayView, false);
+		//		if (!repr || !repr->getView())
+		//		{
+		//			//qWarning("!repr");
+		//			continue;
+		//		}
+		//		pqView* cur_view = repr->getView();
+		//		pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(createdSource);
+		//		if (filter)
+		//		{
+		//			filter->hideInputIfRequired(cur_view);
+		//		}
+
+		//		repr->setVisible(true);
+
+		//	}
+		//	proxy->GetRenderWindow()->Render();
+		//} 
+}
+
+
+void pqPushToSharedStateReaction::DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource)
+{
+	//Display createdSource in view
+		//Modified code from pqObjectInspectorWizard::accept()
+		for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+		{
+			pqView* displayView = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( displayView->getViewProxy() );
+
+			pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+			
+
+			for (int cc=0; cc < createdSource->getNumberOfOutputPorts(); cc++)
+			{
+
+				pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+				createdSource->getOutputPort(cc), displayView, false);
+				if (!repr || !repr->getView())
+				{
+					//qWarning("!repr");
+					continue;
+				}
+				pqView* cur_view = repr->getView();
+				pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(createdSource);
+				if (filter)
+				{
+					filter->hideInputIfRequired(cur_view);
+				}
+
+				repr->setVisible(true);
+
+			}
+			proxy->GetRenderWindow()->Render();
+		} 
+}
+

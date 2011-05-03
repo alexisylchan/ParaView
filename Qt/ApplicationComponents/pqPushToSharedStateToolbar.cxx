@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPushToSharedStateToolbar.h"
 #include "ui_pqPushToSharedStateToolbar.h" 
 #include "pqPushToSharedStateReaction.h" 
-#include "pqCameraReaction.h"
 //-----------------------------------------------------------------------------
 void pqPushToSharedStateToolbar::constructor()
 {

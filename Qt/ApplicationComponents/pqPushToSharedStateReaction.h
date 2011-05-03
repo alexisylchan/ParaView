@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqReaction.h"
 
+class pqView;
+class pqPipelineSource;
 /// @ingroup Reactions
 /// Reaction for saving state file.
 class PQAPPLICATIONCOMPONENTS_EXPORT pqPushToSharedStateReaction : public pqReaction
@@ -41,6 +43,16 @@ class PQAPPLICATIONCOMPONENTS_EXPORT pqPushToSharedStateReaction : public pqReac
   Q_OBJECT
   typedef pqReaction Superclass;
 public:
+  enum VortexFilter
+    {
+    PHANTOM_CURSOR,
+    STREAMTRACER_INPUT,
+    GEOMETRY,
+    USER_STREAMTRACER,
+	USER_TUBE,
+	BLADE_STREAMTRACER,
+	CORE_STREAMTRACER
+    };
   enum Mode
     {
     SAVE_STATE,
@@ -48,22 +60,30 @@ public:
     VORTEX_IDENTIFICATION,
     VORTEX_TRACKING 
     };
+  //static pqPushToSharedStateReaction* instance();
   /// Constructor. Parent cannot be NULL.
   pqPushToSharedStateReaction(QAction* parent, Mode mode);
   ~pqPushToSharedStateReaction() {}
 
   /// Open File dialog in order to choose the location and the type of
   /// the state file that should be saved
-  static void saveState(); 
+   void saveState(); 
   //Set mode to contextual flow
-  static void contextualFlow(); 
+   void contextualFlow(); 
   //Set mode to vortex identification
-  static void vortexIdentification(); 
+   void vortexIdentification(); 
+  static void DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource);
+  static void DisplayObject(pqView* view,pqPipelineSource* createdSource);
+  static void HideObject(pqView* view,pqPipelineSource* createdSource);
 
 public slots:
   /// Updates the enabled state. Applications need not explicitly call
   /// this.
   void updateEnableState();
+
+signals:
+  void toggleContextualFlow();
+  void toggleVortexIdentification();
 
 protected:
   /// Called when the action is triggered.
@@ -71,8 +91,11 @@ protected:
 	  //{ pqPushToSharedStateReaction::saveState(); }
 
 private:
+  //static pqPushToSharedStateReaction* Instance;
   Q_DISABLE_COPY(pqPushToSharedStateReaction)
   Mode ReactionMode;
+  bool showContextualFlow;
+  bool showVortexCore;
 };
 
 #endif

@@ -96,8 +96,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkMatrix3x3.h"
 #include "vtkEventQtSlotConnect.h"
  
-
-
+//
+//#include "pqPushToSharedStateReaction.h"
 // From Cory Quammen's code
 class sn_user_callback
 {
@@ -168,7 +168,8 @@ void pqVRPNStarter::onStartup()
   this->initialLoadState();
   this->initializeEyeAngle();
   this->initializeDevices();
-  ////TODO: FIX Always assume 1 view
+  /*QObject::connect(pqPushToSharedStateReaction::instance(),SIGNAL(toggleContextualFlow()),this,SLOT(setToggleContextualFlow()));
+  */////TODO: FIX Always assume 1 view
   //pqView* view = pqActiveObjects::instance().activeView();
   //vtkSMViewProxy* viewProxy = vtkSMViewProxy::SafeDownCast(view->getProxy());
   //this->Connector->Connect( viewProxy, vtkCommand::ResetCameraEvent,
@@ -182,6 +183,11 @@ void pqVRPNStarter::onStartup()
   //pqCommandLineOptionsBehavior::resetApplication();
   //this->loadState();
   //this->initializeDevices();
+}
+
+void pqVRPNStarter::setToggleContextualFlow()
+{
+	qWarning("Ack contextual flow!");
 }
 void pqVRPNStarter::onResetCameraEvent()
 {

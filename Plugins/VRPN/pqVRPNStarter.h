@@ -54,9 +54,9 @@ public:
     {
     PHANTOM_CURSOR,
     STREAMTRACER_INPUT,
+    GEOMETRY,
     USER_STREAMTRACER,
 	USER_TUBE,
-    GEOMETRY,
 	BLADE_STREAMTRACER,
 	CORE_STREAMTRACER
     };
@@ -72,8 +72,8 @@ public:
 public slots:
     void timerCallback();
 	void selfSaveEvent();
-	void onResetCameraEvent();
-
+	void onResetCameraEvent(); 
+	void setToggleContextualFlow();
 protected:
     QTimer *VRPNTimer;
 	vtkDeviceInteractor* inputInteractor;

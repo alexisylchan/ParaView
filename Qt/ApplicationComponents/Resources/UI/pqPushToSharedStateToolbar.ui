@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>94</width>
-    <height>326</height>
+    <width>490</width>
+    <height>342</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,6 +28,42 @@
     <height>45</height>
    </size>
   </property>
+  <action name="actionContextualFlow">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/contextualflow.png</normaloff>:/pqWidgets/Icons/contextualflow.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Contextual Flow</string>
+   </property>
+   <property name="iconText">
+    <string>Toggle Contextual Flow</string>
+   </property>
+   <property name="statusTip">
+    <string>Toggle Contextual Flow</string>
+   </property>
+  </action>
+  <action name="actionVortexIdentification">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/vortexcore.png</normaloff>:/pqWidgets/Icons/vortexcore.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Vortex Cores</string>
+   </property>
+   <property name="iconText">
+    <string>Toggle Vortex Cores</string>
+   </property>
+   <property name="statusTip">
+    <string>Toggle Vortex Cores</string>
+   </property>
+  </action>
   <action name="actionPushToSharedState">
    <property name="icon">
     <iconset resource="../../../Components/Resources/pqComponents.qrc">
@@ -39,67 +75,10 @@
    <property name="statusTip">
     <string>Push to Shared State</string>
    </property>
-  </action> 
-   <action name="actionContextualFlow">
-     <property name="enabled">
-       <bool>true</bool>
-     </property>
-     <property name="icon">
-       <iconset resource="../../../Components/Resources/pqComponents.qrc">
-         <normaloff>:/pqWidgets/Icons/pqResetCamera32.png</normaloff>:/pqWidgets/Icons/pqResetCamera32.png
-       </iconset>
-     </property>
-     <property name="text">
-       <string>View Contextual Flow</string>
-     </property>
-     <property name="iconText">
-       <string>View Contextual Flow</string>
-     </property>
-     <property name="statusTip">
-       <string>View Contextual Flow</string>
-     </property>
-   </action>
-   <action name="actionVortexIdentification">
-     <property name="enabled">
-       <bool>true</bool>
-     </property>
-     <property name="icon">
-       <iconset resource="../../../Components/Resources/pqComponents.qrc">
-         <normaloff>:/pqWidgets/Icons/pqResetCamera32.png</normaloff>:/pqWidgets/Icons/pqResetCamera32.png
-       </iconset>
-     </property>
-     <property name="text">
-       <string>View Vortex Cores</string>
-     </property>
-     <property name="iconText">
-       <string>View Vortex Cores</string>
-     </property>
-     <property name="statusTip">
-       <string>View Vortex Cores</string>
-     </property>
-   </action>
-  <!--<action name="actionResetCamera">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../../../Components/Resources/pqComponents.qrc">
-     <normaloff>:/pqWidgets/Icons/pqResetCamera32.png</normaloff>:/pqWidgets/Icons/pqResetCamera32.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Reset</string>
-   </property>
-   <property name="iconText">
-    <string>Reset Camera</string>
-   </property>
-   <property name="statusTip">
-    <string>Reset Camera</string>
-   </property>
-  </action>-->
+  </action>
   <addaction name="actionPushToSharedState"/>
-   <addaction name="actionContextualFlow"/>
-   <addaction name="actionVortexIdentification"/>
-  <!--<addaction name="actionResetCamera"/>-->
+  <addaction name="actionContextualFlow"/>
+  <addaction name="actionVortexIdentification"/>
  </widget>
  <resources>
   <include location="../../../Components/Resources/pqComponents.qrc"/>
