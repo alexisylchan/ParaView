@@ -107,6 +107,15 @@
    </attribute>
    <widget class="pqProxyTabWidget" name="proxyTabWidget"/>
   </widget>
+   <widget class="QDockWidget" name="animationViewDock">
+     <property name="windowTitle">
+       <string>Animation View</string>
+     </property>
+     <attribute name="dockWidgetArea">
+       <number>8</number>
+     </attribute>
+     <widget class="pqPVAnimationWidget" name="animationView"/>
+   </widget>
   <widget class="QDockWidget" name="proxyTabDock1">
    <property name="floating">
     <bool>true</bool>
@@ -142,6 +151,12 @@
    <header>pqViewManager.h</header>
    <container>1</container>
   </customwidget>
+   <customwidget>
+   <class>pqPVAnimationWidget</class>
+   <extends>QWidget</extends>
+   <header>pqPVAnimationWidget.h</header>
+   <container>1</container>
+   </customwidget> 
   <customwidget>
    <class>pqStatusBar</class>
    <extends>QStatusBar</extends>

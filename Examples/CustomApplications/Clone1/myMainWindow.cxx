@@ -73,6 +73,7 @@ myMainWindow::myMainWindow()
   this->Internals->comparativePanelDock->hide();*/
   /*this->tabifyDockWidget(this->Internals->animationViewDock,
     this->Internals->statisticsDock);*/
+  this->Internals->animationViewDock->hide();
 
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);

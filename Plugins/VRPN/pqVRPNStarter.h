@@ -50,6 +50,16 @@ class pqVRPNStarter : public QObject
   Q_OBJECT
   typedef QObject Superclass;
 public:
+  enum VortexFilter
+    {
+    PHANTOM_CURSOR,
+    STREAMTRACER_INPUT,
+    USER_STREAMTRACER,
+	USER_TUBE,
+    GEOMETRY,
+	BLADE_STREAMTRACER,
+	CORE_STREAMTRACER
+    };
   pqVRPNStarter(QObject* p=0);
   ~pqVRPNStarter();
 

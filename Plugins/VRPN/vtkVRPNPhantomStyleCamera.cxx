@@ -62,6 +62,8 @@
 #include <QList>
 #include "vtkSMDoubleVectorProperty.h"
 
+#include "pqVRPNStarter.h"
+
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 
@@ -152,7 +154,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		//newPosition= this->ScalePosition(position,proxy->GetRenderer());
 
 			//Set position to view position
-		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0); 
+		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
 		if (cursorData)
 		{
 		vtkSMPVRepresentationProxy *repProxy = 0;
