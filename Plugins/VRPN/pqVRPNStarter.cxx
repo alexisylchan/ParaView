@@ -167,11 +167,11 @@ void pqVRPNStarter::onStartup()
   this->initialLoadState();
   this->initializeEyeAngle();
   this->initializeDevices();
-  //TODO: FIX Always assume 1 view
-  pqView* view = pqActiveObjects::instance().activeView();
-  vtkSMViewProxy* viewProxy = vtkSMViewProxy::SafeDownCast(view->getProxy());
-  this->Connector->Connect( viewProxy, vtkCommand::ResetCameraEvent,
-    this, SLOT(onResetCameraEvent()));
+  ////TODO: FIX Always assume 1 view
+  //pqView* view = pqActiveObjects::instance().activeView();
+  //vtkSMViewProxy* viewProxy = vtkSMViewProxy::SafeDownCast(view->getProxy());
+  //this->Connector->Connect( viewProxy, vtkCommand::ResetCameraEvent,
+  //  this, SLOT(onResetCameraEvent()));
   
 
    

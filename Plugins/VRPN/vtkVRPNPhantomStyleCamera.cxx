@@ -137,6 +137,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 {
 
 	double* position = Phantom->GetPosition(); 
+	
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 
 
 	for (int i = 0; i<serverManager->getNumberOfItems<pqView*>(); i++)
@@ -148,7 +149,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		
 		double* newPosition;
 		newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
-		 
+		//newPosition= this->ScalePosition(position,proxy->GetRenderer());
 
 			//Set position to view position
 		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0); 
@@ -177,11 +178,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 					pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
 					
 					this->CreateParaViewObject(3,-1,view,Phantom,newPosition,"TubeFilter");
-				} 
-				/*this->ModifySeedPosition(tubeSource,newPosition);
-				tubeSource->getProxy()->UpdateVTKObjects();
-				tubeSource->setModifiedState(pqProxy::MODIFIED);
-				this->DisplayCreatedObject(view,tubeSource);*/
+				}  
 			
 			}
 		}
@@ -230,12 +227,12 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 		if (source)
 		  {
 		  outputPorts.push_back(source->getOutputPort(0));
-		  qWarning("source %d",source->getNumberOfOutputPorts());
+		  //qWarning("source %d",source->getNumberOfOutputPorts());
 		  }
 		else if (opPort)
 		  {
 			outputPorts.push_back(opPort);
-			qWarning("opPort %s",opPort->getPortName().toStdString()); 
+			//qWarning("opPort %s",opPort->getPortName().toStdString()); 
 		  } 
 		QMap<QString, QList<pqOutputPort*> > namedInputs;
 		QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
@@ -246,7 +243,7 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 		// future to be smarter.
 		if (pqPipelineFilter::getRequiredInputPorts(prototype).size() > 1)
 		{
-			qWarning("need more inputs!!!");
+			//qWarning("need more inputs!!!");
 			vtkSMProxy* filterProxy = pxm->GetPrototypeProxy("filters",
 			name);
 			vtkSMPropertyHelper helper(filterProxy, inputPortNames[0]);
@@ -277,7 +274,7 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 		this->DisplayCreatedObject(view,createdSource);
  
 		int newSourceIndex = pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqPipelineSource*>();
-		qWarning("Source index %d", --newSourceIndex);
+		//qWarning("Source index %d", --newSourceIndex);
 	return newSourceIndex;
 }
 void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource)
@@ -371,36 +368,25 @@ void vtkVRPNPhantomStyleCamera::CheckWithinPipelineBounds(pqView* view, vtkVRPNP
 double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* renderer)
 {
 		double* newPosition =  new double[4];
+		double* newScaledPosition =  new double[4];
+		double planes[24];
 		vtkCamera* camera = renderer->GetActiveCamera();  
-
+		 
+		//Attempt to rotate by camera orientation.
 		vtkMatrix4x4* cameraMatrix = camera->GetCameraLightTransformMatrix();
-		qWarning("cameramatrix\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n",
-			cameraMatrix->GetElement(0,0),
-			cameraMatrix->GetElement(0,1),
-			cameraMatrix->GetElement(0,2),
-			cameraMatrix->GetElement(0,3),
-			cameraMatrix->GetElement(1,0),
-			cameraMatrix->GetElement(1,1),
-			cameraMatrix->GetElement(1,2),
-			cameraMatrix->GetElement(1,3),
-			cameraMatrix->GetElement(2,0),
-			cameraMatrix->GetElement(2,1),
-			cameraMatrix->GetElement(2,2),
-			cameraMatrix->GetElement(2,3),
-			cameraMatrix->GetElement(3,0),
-			cameraMatrix->GetElement(3,1),
-			cameraMatrix->GetElement(3,2),
-			cameraMatrix->GetElement(3,3)); 
-		double* camCoordPosition = new double[4];
+		double camCoordPosition[4];
 		for (int i = 0; i<3;i++)
 		{
 			camCoordPosition[i] = position[i];
 		}
 		camCoordPosition[3] = 1.0;//renderer->GetActiveCamera()->GetDistance();
-		qWarning("camCoordPosition %f %f %f %f",camCoordPosition[0],camCoordPosition[1],camCoordPosition[2],camCoordPosition[3]);
-		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition);
-		qWarning("newPosition %f %f %f %f",newPosition[0],newPosition[1],newPosition[2],newPosition[3]);
-		 
+		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition);  
+		double* focalpoint = camera->GetFocalPoint();
+		for (int j = 0; j<3;j++)
+		{
+			newScaledPosition[j] = (newPosition[j]+ focalpoint[j])*camera->GetDistance() ;
+		}
+		
 		return newPosition;
 		
 }
@@ -420,7 +406,8 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 			camCoordPosition[i] = position[i];
 		}
 		camCoordPosition[3] = 1.0;//renderer->GetActiveCamera()->GetDistance();
-		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition);
+		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition); 
+
 		camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
 		double matrix0Data[3][3];
 		double *matrix0[3]; 
@@ -627,28 +614,13 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 			if (abs(value[p][2])>zmax)
 				zmax = abs(value[p][2]);
 			//qWarning("value in loop %f %f %f",value[p][0],value[p][1],value[p][2]);
-		}
-		//qWarning("max %f %f %f",xmax,ymax,zmax);
-		//qWarning("position %f %f %f",position[0],position[1],position[2]);
-		/*double distance =camera->GetDistance();
-		if (xmax > (distance*1000))
-		{
-			xmax = distance;
-			qWarning("xmax too big");
-		}
-		if (ymax > (distance*1000))
-		{
-			ymax = distance;
-			qWarning("ymax too big");
-		}
-		if (zmax > (distance*1000))
-		{
-			zmax = distance;
-			qWarning("zmax too big");
-		}*/
-		newScaledPosition[0] = (newPosition[0])* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-		newScaledPosition[1] = (newPosition[1])* (ymax/1000.0);
-		newScaledPosition[2] = (newPosition[2])* (zmax/1000.0);
+		} 
+		newScaledPosition[0] = (newPosition[0]/0.5)* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		newScaledPosition[1] = (newPosition[1]/0.5 )* (ymax/1000.0);
+		newScaledPosition[2] = (newPosition[2]/0.5)* (zmax/1000.0);
+
+		/*
+		qWarning("newScaledPosition %f %f %f",newScaledPosition[0],newScaledPosition[1],newScaledPosition[2]);*/
 		delete index;
 		delete newPosition;
 		return newScaledPosition;
