@@ -153,7 +153,8 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 
 			//Set position to view position
 		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0); 
-	
+		if (cursorData)
+		{
 		vtkSMPVRepresentationProxy *repProxy = 0;
 		repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
 		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
@@ -184,7 +185,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		}
 		else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
 			CreateStreamTracerTube(view,Phantom,newPosition);
-		
+		}
 	}  
  
 }
