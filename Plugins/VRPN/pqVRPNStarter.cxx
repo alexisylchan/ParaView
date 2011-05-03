@@ -94,6 +94,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqDisplayPolicy.h"
 #include "pqPipelineFilter.h" 
 #include "vtkMatrix3x3.h"
+#include "vtkEventQtSlotConnect.h"
  
 
 // From Cory Quammen's code
@@ -123,6 +124,7 @@ pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
 {
 	useanalog = 1;
 	spaceNavigator1 = 0;
+	resetCamera = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -160,10 +162,16 @@ void pqVRPNStarter::onStartup()
 	  count++;
 	  coordStr = strtok(NULL,",");
   }
+  this->Connector = vtkEventQtSlotConnect::New();
   this->listenToSelfSave();
   this->initialLoadState();
   this->initializeEyeAngle();
   this->initializeDevices();
+  //TODO: FIX Always assume 1 view
+  pqView* view = pqActiveObjects::instance().activeView();
+  vtkSMViewProxy* viewProxy = vtkSMViewProxy::SafeDownCast(view->getProxy());
+  this->Connector->Connect( viewProxy, vtkCommand::ResetCameraEvent,
+    this, SLOT(onResetCameraEvent()));
   
 
    
@@ -173,6 +181,10 @@ void pqVRPNStarter::onStartup()
   //pqCommandLineOptionsBehavior::resetApplication();
   //this->loadState();
   //this->initializeDevices();
+}
+void pqVRPNStarter::onResetCameraEvent()
+{
+	this->resetCamera = true;
 }
 void pqVRPNStarter::initializeEyeAngle()
 {
@@ -460,6 +472,13 @@ void pqVRPNStarter::timerCallback()
 		this->changeTimeStamp();
 		this->initializeEyeAngle();
 		this->initializeDevices();
+	}
+	else if (this->resetCamera)
+	{
+		this->uninitializeDevices();
+		this->initializeEyeAngle();
+		this->initializeDevices();
+		this->resetCamera = false;
 	}
 	else
 	{

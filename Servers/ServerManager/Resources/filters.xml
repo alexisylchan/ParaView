@@ -4317,7 +4317,7 @@ The Tube filter creates tubes around the lines in the input polygonal dataset. T
          command="SetRadius"
          number_of_elements="1"
          default_values="1.0" >
-        <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="0.01">
+        <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="0.0009">
           <RequiredProperties>
              <Property name="Input" function="Input"/>
           </RequiredProperties>
@@ -5883,7 +5883,7 @@ The Stream Tracer filter generates streamlines in a vector field from a collecti
        name="IntegrationDirection"
        command="SetIntegrationDirection"
        number_of_elements="1"
-       default_values="2" >
+       default_values="0" >
        <EnumerationDomain name="enum">
          <Entry value="0" text="FORWARD"/>
          <Entry value="1" text="BACKWARD"/>

@@ -49,7 +49,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPushToSharedStateToolbar.h"
 #include "pqSetName.h"
 #include "pqFixPathsInStateFilesBehavior.h"
-
+#include "pqQtMessageHandlerBehavior.h"
 
 class myMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -126,7 +126,7 @@ myMainWindow::myMainWindow()
    this->Internals->MultiViewManager->toggleFullScreen();
    this->Internals->MultiViewManager->getFrame(this->Internals->MultiViewManager->getActiveView())->setMenuAutoHide(true);
    pqFixPathsInStateFilesBehavior::blockDialog(true);
-   //this->Internals->proxyTabDock1->showMaximized();
+   //this->Internals->proxyTabDock1->showMaximized(); 
 }
 
 //-----------------------------------------------------------------------------

@@ -43,6 +43,7 @@ class sn_user_callback;
 class tng_user_callback;
 class vtkPVXMLElement;
 class vtkVRPNPhantom;
+class vtkEventQtSlotConnect;
 
 class pqVRPNStarter : public QObject
 {
@@ -61,6 +62,7 @@ public:
 public slots:
     void timerCallback();
 	void selfSaveEvent();
+	void onResetCameraEvent();
 
 protected:
     QTimer *VRPNTimer;
@@ -93,6 +95,8 @@ private:
   int useVRPN;
   double trackerOrigin[3];
   int useanalog;
+  vtkEventQtSlotConnect* Connector;
+  bool resetCamera;
 
 
 };

@@ -147,14 +147,8 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		vtkCamera* camera = proxy->GetActiveCamera();  
 		
 		double* newPosition;
-		if (Phantom->GetButton(1))
-		{ 
-			newPosition = camera->GetFocalPoint();
-		}
-		else
-		{
-			newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
-		}
+		newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
+		 
 
 			//Set position to view position
 		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(0); 
@@ -170,18 +164,29 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		{	
 			//this->CreateStreamTracerTube(view,Phantom,newPosition);	
 			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("StreamTracer1");
-			if (createdSource)
+			if (createdSource) // Assume that this is always true
 			{
 				this->ModifySeedPosition(createdSource,newPosition);
-				this->DisplayCreatedObject(view,createdSource);
-				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");
-				this->DisplayCreatedObject(view,tubeSource);
+				this->DisplayCreatedObject(view,createdSource);  
+ 
+				 
+				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");  
+				//pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(4);
+				if (tubeSource)
+				{  
+					pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
+					
+					this->CreateParaViewObject(3,-1,view,Phantom,newPosition,"TubeFilter");
+				} 
+				/*this->ModifySeedPosition(tubeSource,newPosition);
+				tubeSource->getProxy()->UpdateVTKObjects();
+				tubeSource->setModifiedState(pqProxy::MODIFIED);
+				this->DisplayCreatedObject(view,tubeSource);*/
 			
 			}
-			else 
-				CreateStreamTracerTube(view,Phantom,newPosition);
-
 		}
+		else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
+			CreateStreamTracerTube(view,Phantom,newPosition);
 		
 	}  
  
@@ -294,7 +299,7 @@ void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSour
 				createdSource->getOutputPort(cc), displayView, false);
 				if (!repr || !repr->getView())
 				{
-					qWarning("!repr");
+					//qWarning("!repr");
 					continue;
 				}
 				pqView* cur_view = repr->getView();
@@ -307,7 +312,8 @@ void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSour
 				repr->setVisible(true);
 
 			}
-		}
+			proxy->GetRenderWindow()->Render();
+		} 
 }
 void vtkVRPNPhantomStyleCamera::ModifySeedPosition(pqPipelineSource* createdSource,double* newPosition)
 {
