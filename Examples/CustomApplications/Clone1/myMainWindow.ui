@@ -63,11 +63,11 @@
      <string>&amp;Macros</string>
     </property>
    </widget>
-    <widget class="QMenu" name="menu_Collaboration">
-      <property name="title">
-        <string>&amp;Collaboration</string>
-      </property>
-    </widget>
+   <widget class="QMenu" name="menu_Collaboration">
+    <property name="title">
+     <string>&amp;Collaboration</string>
+    </property>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
@@ -76,7 +76,7 @@
    <addaction name="menuTools"/>
    <addaction name="menu_Macros"/>
    <addaction name="menu_Help"/>
-    <addaction name="menu_Collaboration"/>
+   <addaction name="menu_Collaboration"/>
   </widget>
   <widget class="pqStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="pipelineBrowserDock">
@@ -107,15 +107,15 @@
    </attribute>
    <widget class="pqProxyTabWidget" name="proxyTabWidget"/>
   </widget>
-   <widget class="QDockWidget" name="animationViewDock">
-     <property name="windowTitle">
-       <string>Animation View</string>
-     </property>
-     <attribute name="dockWidgetArea">
-       <number>8</number>
-     </attribute>
-     <widget class="pqPVAnimationWidget" name="animationView"/>
-   </widget>
+  <widget class="QDockWidget" name="animationViewDock">
+   <property name="windowTitle">
+    <string>Animation View</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="pqPVAnimationWidget" name="animationView"/>
+  </widget>
   <widget class="QDockWidget" name="proxyTabDock1">
    <property name="floating">
     <bool>true</bool>
@@ -130,6 +130,97 @@
     <number>1</number>
    </attribute>
    <widget class="pqViewManager" name="MultiViewManager"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <widget class="QComboBox" name="VortexDataSet">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>201</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="FlowParameters">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>60</y>
+       <width>201</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QSlider" name="VortexTimeSlider">
+     <property name="geometry">
+      <rect>
+       <x>-80</x>
+       <y>410</y>
+       <width>321</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Time Step</string>
+     </property>
+     <property name="statusTip">
+      <string>Time Step</string>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::TicksAbove</enum>
+     </property>
+     <property name="tickInterval">
+      <number>2</number>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="ToggleVortexCore">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>171</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Toggle Vortex Core</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="ToggleContextualFlow">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>171</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Toggle Contextual Flow</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="PushToSharedState">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>200</y>
+       <width>171</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Push to Shared State</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
  </widget>
  <customwidgets>
@@ -151,12 +242,12 @@
    <header>pqViewManager.h</header>
    <container>1</container>
   </customwidget>
-   <customwidget>
+  <customwidget>
    <class>pqPVAnimationWidget</class>
    <extends>QWidget</extends>
    <header>pqPVAnimationWidget.h</header>
    <container>1</container>
-   </customwidget> 
+  </customwidget>
   <customwidget>
    <class>pqStatusBar</class>
    <extends>QStatusBar</extends>

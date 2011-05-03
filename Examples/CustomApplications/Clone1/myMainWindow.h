@@ -34,14 +34,39 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QMainWindow>
 
+class pqView;
+class pqPipelineSource;
 /// MainWindow for the default ParaView application.
 class myMainWindow : public QMainWindow
 {
   Q_OBJECT
   typedef QMainWindow Superclass;
 public:
+	  enum VortexFilter
+    {
+    PHANTOM_CURSOR,
+    STREAMTRACER_INPUT,
+    GEOMETRY,
+    USER_STREAMTRACER,
+	USER_TUBE,
+	BLADE_STREAMTRACER,
+	CORE_STREAMTRACER
+    };
   myMainWindow();
   ~myMainWindow();
+  static void DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource);
+  static void DisplayObject(pqView* view,pqPipelineSource* createdSource);
+  static void HideObject(pqView* view,pqPipelineSource* createdSource);
+public slots:
+
+    /// Open File dialog in order to choose the location and the type of
+  /// the state file that should be saved
+   void saveState(); 
+  //Set mode to contextual flow
+   void contextualFlow(); 
+  //Set mode to vortex identification
+   void vortexIdentification(); 
+
 
 protected slots:
   void showHelpForProxy(const QString& proxyname);
@@ -52,6 +77,8 @@ private:
 
   class pqInternals;
   pqInternals* Internals;
+  bool showContextualFlow;
+  bool showVortexCore;
 };
 
 #endif
