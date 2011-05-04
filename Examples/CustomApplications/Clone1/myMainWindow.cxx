@@ -44,8 +44,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QList>
 #include <QAction>
 #include <QLayout>
-#include <QLineEdit>
+#include <QSpinBox>
 #include <QSlider>
+#include <QLineEdit>
 #include "pqMainControlsToolbar.h"
 #include "pqPushToSharedStateToolbar.h"
 #include "pqSetName.h"
@@ -115,19 +116,23 @@ myMainWindow::myMainWindow()
 
   QObject::connect(this->Internals->TimeSlider, SIGNAL(valueEdited(double)),
                    this, SLOT(timeSliderChanged(double)));
-  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
-  QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
-  Slider0->setMaximum(10000);
+  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider"); 
+  Slider0->setMaximum(100);
   Slider0->setFocusPolicy(Qt::StrongFocus);
   Slider0->setTickPosition(QSlider::TicksBothSides);
   Slider0->setTickInterval(10);
   Slider0->setSingleStep(1);
+  QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
+  LineEdit0->hide();
+  QSpinBox* SpinBox0 = this->Internals->TimeSpinBox;
+  SpinBox0->setMaximum(100);
+  
  //now setup the correct order
-  QWidget::setTabOrder(Slider0, LineEdit0);  
+  QWidget::setTabOrder(Slider0, SpinBox0);  
 
   QObject::connect(
-     LineEdit0, SIGNAL(editingFinished()),
-    this, SLOT(currentTimeEdited()));
+     SpinBox0, SIGNAL(editingFinished()),
+    this, SLOT(currentTimeIndexChanged()));
   
   QObject::connect(
      Slider0, SIGNAL(valueChanged(int)),
@@ -216,10 +221,14 @@ void myMainWindow::sliderTimeIndexChanged(int value)
 
 //-----------------------------------------------------------------------------
 // When user edits the line-edit.
-void myMainWindow::currentTimeEdited()
+void myMainWindow::currentTimeIndexChanged()
 {
-	QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
-	emit this->changeSceneTime(LineEdit0->text().toDouble());
+	 if (pqPVApplicationCore::instance()->animationManager()->getActiveScene())
+    {
+    pqTimeKeeper* timekeeper = pqPVApplicationCore::instance()->animationManager()->getActiveScene()->getServer()->getTimeKeeper();
+    emit this->changeSceneTime(
+      timekeeper->getTimeStepValue(this->Internals->TimeSpinBox->value()));
+    }
 }
 
 
@@ -240,22 +249,22 @@ void myMainWindow::timeSliderChanged(double val)
 { QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
  
   QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
-  //QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit");
-//  bool prev = LineEdit0->blockSignals(true);
+  QSpinBox *SpinBox0 = this->Internals->TimeSpinBox;
+  bool prev = SpinBox0->blockSignals(true);
   bool prevSlider = Slider0->blockSignals(true);
   pqTimeKeeper* timekeeper = Scene->getServer()->getTimeKeeper();
   int time_steps = timekeeper->getNumberOfTimeStepValues();
   if (time_steps > 0)
     {
-    //LineEdit0->setMaximum(time_steps -1);
+    SpinBox0->setMaximum(time_steps -1);
 	Slider0->setMaximum(time_steps -1);
     }
   else
     {
-    //LineEdit0->setMaximum(0);
+    SpinBox0->setMaximum(0);
 	Slider0->setMaximum(0);
     }
-  //this->TimeSpinBox->blockSignals(prev);
+  SpinBox0->blockSignals(prev);
   Slider0->blockSignals(prevSlider); 
 
 }

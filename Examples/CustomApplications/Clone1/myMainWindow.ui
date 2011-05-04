@@ -227,7 +227,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QSpinBox" name="spinBox">
+    <widget class="QSpinBox" name="TimeSpinBox">
      <property name="geometry">
       <rect>
        <x>330</x>

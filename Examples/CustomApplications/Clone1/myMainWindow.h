@@ -77,7 +77,7 @@ protected slots:
   //void sceneTimeChanged(double);
 
   /// When user edits the line-edit.
-  void currentTimeEdited();
+  void currentTimeIndexChanged();
   /// When user edits the slider.
   void sliderTimeIndexChanged(int value);
  
