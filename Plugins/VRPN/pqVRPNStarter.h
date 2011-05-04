@@ -74,6 +74,7 @@ public slots:
 	void selfSaveEvent();
 	void onResetCameraEvent(); 
 	void setToggleContextualFlow();
+	void onChangeDataSet(int index);
 protected:
     QTimer *VRPNTimer;
 	vtkDeviceInteractor* inputInteractor;
@@ -93,6 +94,9 @@ private:
   void listenToSelfSave();
   void loadState();
   void initialLoadState();
+  void loadTestState();
+  void loadSSTState();
+  void loadSASState();
   void removeRepresentations();
   void initializeDevices();
   void uninitializeDevices();

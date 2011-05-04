@@ -95,7 +95,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineFilter.h" 
 #include "vtkMatrix3x3.h"
 #include "vtkEventQtSlotConnect.h"
- 
+#include "pqCoreUtilities.h"
 //
 //#include "pqPushToSharedStateReaction.h"
 // From Cory Quammen's code
@@ -168,6 +168,9 @@ void pqVRPNStarter::onStartup()
   this->initialLoadState();
   this->initializeEyeAngle();
   this->initializeDevices();
+
+  QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
+  QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
   /*QObject::connect(pqPushToSharedStateReaction::instance(),SIGNAL(toggleContextualFlow()),this,SLOT(setToggleContextualFlow()));
   */////TODO: FIX Always assume 1 view
   //pqView* view = pqActiveObjects::instance().activeView();
@@ -183,6 +186,23 @@ void pqVRPNStarter::onStartup()
   //pqCommandLineOptionsBehavior::resetApplication();
   //this->loadState();
   //this->initializeDevices();
+}
+
+void pqVRPNStarter::onChangeDataSet(int index)
+{
+	switch (index)
+	{
+	case 0:
+		loadSSTState();
+		break;
+	case 1:
+		loadSASState();
+		break;
+	case 2:
+		loadTestState();
+		break;
+	}
+
 }
 
 void pqVRPNStarter::setToggleContextualFlow()
@@ -690,8 +710,42 @@ void  pqVRPNStarter::loadState()
 void  pqVRPNStarter::initialLoadState()
 {
 		//createConeInParaView(); 
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
+		this->changeTimeStamp(); 
+}
+//Load Test State
+void  pqVRPNStarter::loadTestState()
+{
+	qWarning ("Test State!");
+
+	 /*   this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTestCase.pvsm"));
 		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices(); */ 
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSSTState()
+{
+
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
+		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices();  
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSASState()
+{
+
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSAS.pvsm"));
+		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices();  
 }
 void pqVRPNStarter::changeTimeStamp()
 {

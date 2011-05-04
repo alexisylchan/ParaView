@@ -63,6 +63,7 @@
 #include "vtkSMDoubleVectorProperty.h"
 
 #include "pqVRPNStarter.h"
+#include "pqPipelineRepresentation.h"
 
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
@@ -167,7 +168,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		if (Phantom->GetButton(0))
 		{	
 			//this->CreateStreamTracerTube(view,Phantom,newPosition);	
-			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("SSTUserSeededStreamTracer");
+			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
 			if (createdSource) // Assume that this is always true
 			{
 				this->ModifySeedPosition(createdSource,newPosition);
@@ -273,7 +274,7 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 		pqPipelineSource* createdSource = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", name,
 		namedInputs, pqActiveObjects::instance().activeServer());
 		if (!strcmp(name,"StreamTracer") )
-			createdSource->setObjectName("SSTUserSeededStreamTracer");
+			createdSource->setObjectName("UserSeededStreamTracer");
 		else if (!strcmp(name,"TubeFilter"))
 			createdSource->setObjectName("Tube1");
 		
@@ -307,6 +308,10 @@ void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSour
 					continue;
 				}
 				pqView* cur_view = repr->getView();
+				
+				//Change color
+				pqPipelineRepresentation* displayRepresentation =qobject_cast<pqPipelineRepresentation*>(repr);
+				displayRepresentation->colorByArray("Velocity",vtkDataObject::FIELD_ASSOCIATION_POINTS);
 				pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(createdSource);
 				if (filter)
 				{

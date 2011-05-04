@@ -157,7 +157,7 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <widget class="QComboBox" name="VortexDataSet">
+    <widget class="QComboBox" name="VortexDataSetComboBox">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -166,8 +166,11 @@
        <height>22</height>
       </rect>
      </property>
+     <property name="currentIndex">
+      <number>-1</number>
+     </property>
     </widget>
-    <widget class="QComboBox" name="FlowParameters">
+    <widget class="QComboBox" name="FlowParametersComboBox">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -257,7 +260,6 @@
     </widget>
    </widget>
   </widget>
-  <zorder>dockWidget_2</zorder>
  </widget>
  <customwidgets>
   <customwidget>

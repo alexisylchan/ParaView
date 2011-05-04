@@ -71,9 +71,13 @@ public slots:
 
    //Toggle Enable time Slider
    void enableTimeSlider();
+
+   //Change dataset
+   void onChangeDataSet(int index );
 signals: 
   /// emitted to request the scene to change it's animation time.
   void changeSceneTime(double);
+  void changeDataSet(int index);
 
 protected slots:
 	 /// Called when animation scene reports that it's time has changed.

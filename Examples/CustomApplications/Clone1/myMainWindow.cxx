@@ -47,6 +47,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QSpinBox>
 #include <QSlider>
 #include <QLineEdit>
+#include <QComboBox>
 #include "pqMainControlsToolbar.h"
 #include "pqPushToSharedStateToolbar.h"
 #include "pqSetName.h"
@@ -130,21 +131,19 @@ myMainWindow::myMainWindow()
   QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
   LineEdit0->hide(); 
   Slider0->setEnabled(false);
- /* QSpinBox* SpinBox0 = this->Internals->TimeSpinBox;
-  SpinBox0->setMaximum(100);*/
-  
- //now setup the correct order
- /* QWidget::setTabOrder(Slider0, SpinBox0);  */
-
-  /*QObject::connect(
-     SpinBox0, SIGNAL(editingFinished()),
-    this, SLOT(currentTimeIndexChanged()));*/
   
   QObject::connect(
      Slider0, SIGNAL(valueChanged(int)),
     this, SLOT(sliderTimeIndexChanged(int))); 
   
 
+    this->Internals->VortexDataSetComboBox->setMaxVisibleItems(3); 
+	this->Internals->VortexDataSetComboBox->insertItem(0,QString("SST DataSet"));
+	this->Internals->VortexDataSetComboBox->insertItem(1,"SAS DataSet");
+	this->Internals->VortexDataSetComboBox->insertItem(2,"Test DataSet");
+	QObject::connect(this->Internals->VortexDataSetComboBox,SIGNAL(currentIndexChanged(int)),this,
+		SLOT(onChangeDataSet(int )));
+  
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);
 
@@ -211,7 +210,10 @@ myMainWindow::myMainWindow()
     
 }
 
-
+void myMainWindow::onChangeDataSet(int index)
+{
+	emit this->changeDataSet(index);
+}
 void myMainWindow::enableTimeSlider()
 {
   QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider"); 
@@ -221,7 +223,7 @@ void myMainWindow::enableTimeSlider()
   }
   else
   {
-	  pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("SSTUserSeededStreamTracer");
+	  pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
 	  if (flowSource)
 		  HideObject(pqActiveObjects::instance().activeView(),flowSource);
 	  pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");
@@ -313,7 +315,7 @@ void myMainWindow::showHelpForProxy(const QString& proxyname)
 void myMainWindow::contextualFlow()
 {   
 	
-	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("SSTVTPStreamTracers.pvd");
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPStreamTracers.pvd");
 	if (this->showContextualFlow)
 	{
 		HideObject(pqActiveObjects::instance().activeView(),flowSource);
@@ -331,7 +333,7 @@ void myMainWindow::vortexIdentification()
 {   
 	
 	
-	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("SSTVTPStreamTracersWindingAngle");
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPStreamTracersWindingAngle");
 	if (this->showVortexCore)
 	{
 		HideObject(pqActiveObjects::instance().activeView(),flowSource);
