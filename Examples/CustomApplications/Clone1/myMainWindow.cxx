@@ -44,7 +44,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QList>
 #include <QAction>
 #include <QLayout>
-
+#include <QLineEdit>
+#include <QSlider>
 #include "pqMainControlsToolbar.h"
 #include "pqPushToSharedStateToolbar.h"
 #include "pqSetName.h"
@@ -73,6 +74,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMRenderViewProxy.h"
 #include "pqDataRepresentation.h"
 #include "vtkRenderWindow.h"
+#include "pqAnimationManager.h"
+
+#include "pqAnimationScene.h"
+#include "pqTimeKeeper.h"
 
 class myMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -108,13 +113,27 @@ myMainWindow::myMainWindow()
   this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
 
+  QObject::connect(this->Internals->TimeSlider, SIGNAL(valueEdited(double)),
+                   this, SLOT(timeSliderChanged(double)));
+  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
+  QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
+  Slider0->setMaximum(10000);
+  Slider0->setFocusPolicy(Qt::StrongFocus);
+  Slider0->setTickPosition(QSlider::TicksBothSides);
+  Slider0->setTickInterval(10);
+  Slider0->setSingleStep(1);
+ //now setup the correct order
+  QWidget::setTabOrder(Slider0, LineEdit0);  
 
-    //QComboBox *VortexDataSet;
-    //QComboBox *FlowParameters;
-    //QSlider *VortexTimeSlider;
-    //QPushButton *ToggleVortexCore;
-    //QPushButton *ToggleContextualFlow;
-    //QPushButton *PushToSharedState;
+  QObject::connect(
+     LineEdit0, SIGNAL(editingFinished()),
+    this, SLOT(currentTimeEdited()));
+  
+  QObject::connect(
+     Slider0, SIGNAL(valueChanged(int)),
+    this, SLOT(sliderTimeIndexChanged(int))); 
+  
+
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);
 
@@ -155,6 +174,9 @@ myMainWindow::myMainWindow()
   // have been created.
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
+ // QToolBar* myTimeToolbar = this->findChild<QToolBar*>(QString("currentTimeToolbar"));
+ 
+
   // Setup the menu to show macros.
   pqParaViewMenuBuilders::buildMacrosMenu(*this->Internals->menu_Macros);
 
@@ -168,13 +190,81 @@ myMainWindow::myMainWindow()
    this->Internals->MultiViewManager->getFrame(this->Internals->MultiViewManager->getActiveView())->setMenuAutoHide(true);
    pqFixPathsInStateFilesBehavior::blockDialog(true);
    //this->Internals->proxyTabDock1->showMaximized(); 
+  QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
+ QObject::connect(this, SIGNAL(changeSceneTime(double)),
+		Scene, SLOT(setAnimationTime(double)));
+ QObject::connect(Scene, SIGNAL(timeStepsChanged()),
+      this, SLOT(onTimeStepsChanged()));
+ this->onTimeStepsChanged();
+
+    
 }
 
+ 
+//-----------------------------------------------------------------------------
+// When user edits the slider
+void myMainWindow::sliderTimeIndexChanged(int value)
+{
+  if (pqPVApplicationCore::instance()->animationManager()->getActiveScene())
+    {
+    pqTimeKeeper* timekeeper = pqPVApplicationCore::instance()->animationManager()->getActiveScene()->getServer()->getTimeKeeper();
+    emit this->changeSceneTime(
+      timekeeper->getTimeStepValue(value));
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+// When user edits the line-edit.
+void myMainWindow::currentTimeEdited()
+{
+	QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
+	emit this->changeSceneTime(LineEdit0->text().toDouble());
+}
+
+
+//-----------------------------------------------------------------------------
+
+void myMainWindow::timeSliderChanged(double val)
+{
+	
+  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
+  Slider0->setValue(val);
+  
+}
+
+//-----------------------------------------------------------------------------
+
+  /// Update range for the slider
+ void myMainWindow::onTimeStepsChanged()
+{ QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
+ 
+  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
+  //QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit");
+//  bool prev = LineEdit0->blockSignals(true);
+  bool prevSlider = Slider0->blockSignals(true);
+  pqTimeKeeper* timekeeper = Scene->getServer()->getTimeKeeper();
+  int time_steps = timekeeper->getNumberOfTimeStepValues();
+  if (time_steps > 0)
+    {
+    //LineEdit0->setMaximum(time_steps -1);
+	Slider0->setMaximum(time_steps -1);
+    }
+  else
+    {
+    //LineEdit0->setMaximum(0);
+	Slider0->setMaximum(0);
+    }
+  //this->TimeSpinBox->blockSignals(prev);
+  Slider0->blockSignals(prevSlider); 
+
+}
 //-----------------------------------------------------------------------------
 myMainWindow::~myMainWindow()
 {
   delete this->Internals;
 }
+  
 
 
 //-----------------------------------------------------------------------------

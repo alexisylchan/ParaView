@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>412</width>
+    <width>695</width>
     <height>607</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>412</width>
+     <width>695</width>
      <height>21</height>
     </rect>
    </property>
@@ -132,6 +132,12 @@
    <widget class="pqViewManager" name="MultiViewManager"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+     <horstretch>200</horstretch>
+     <verstretch>60</verstretch>
+    </sizepolicy>
+   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
@@ -141,7 +147,7 @@
       <rect>
        <x>0</x>
        <y>20</y>
-       <width>201</width>
+       <width>281</width>
        <height>22</height>
       </rect>
      </property>
@@ -151,34 +157,9 @@
       <rect>
        <x>0</x>
        <y>60</y>
-       <width>201</width>
+       <width>281</width>
        <height>22</height>
       </rect>
-     </property>
-    </widget>
-    <widget class="QSlider" name="VortexTimeSlider">
-     <property name="geometry">
-      <rect>
-       <x>-80</x>
-       <y>410</y>
-       <width>321</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>Time Step</string>
-     </property>
-     <property name="statusTip">
-      <string>Time Step</string>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="tickPosition">
-      <enum>QSlider::TicksAbove</enum>
-     </property>
-     <property name="tickInterval">
-      <number>2</number>
      </property>
     </widget>
     <widget class="QPushButton" name="ToggleVortexCore">
@@ -186,7 +167,7 @@
       <rect>
        <x>10</x>
        <y>100</y>
-       <width>171</width>
+       <width>271</width>
        <height>41</height>
       </rect>
      </property>
@@ -199,7 +180,7 @@
       <rect>
        <x>10</x>
        <y>150</y>
-       <width>171</width>
+       <width>271</width>
        <height>41</height>
       </rect>
      </property>
@@ -212,7 +193,7 @@
       <rect>
        <x>10</x>
        <y>200</y>
-       <width>171</width>
+       <width>261</width>
        <height>41</height>
       </rect>
      </property>
@@ -220,10 +201,51 @@
       <string>Push to Shared State</string>
      </property>
     </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>260</y>
+       <width>110</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Time Step</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="pqDoubleRangeWidget" name="TimeSlider" native="true">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>291</y>
+       <width>600</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="spinBox">
+     <property name="geometry">
+      <rect>
+       <x>330</x>
+       <y>290</y>
+       <width>42</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>pqDoubleRangeWidget</class>
+   <extends>QWidget</extends>
+   <header>pqDoubleRangeWidget.h</header>
+  </customwidget>
   <customwidget>
    <class>pqPipelineBrowserWidget</class>
    <extends>QWidget</extends>

@@ -66,15 +66,28 @@ public slots:
    void contextualFlow(); 
   //Set mode to vortex identification
    void vortexIdentification(); 
-
+   //void onCurrentTimeIndexChanged(int time); 
+   void timeSliderChanged(double val);
+signals: 
+  /// emitted to request the scene to change it's animation time.
+  void changeSceneTime(double);
 
 protected slots:
+	 /// Called when animation scene reports that it's time has changed.
+  //void sceneTimeChanged(double);
+
+  /// When user edits the line-edit.
+  void currentTimeEdited();
+  /// When user edits the slider.
+  void sliderTimeIndexChanged(int value);
+ 
+void  onTimeStepsChanged() ;
   void showHelpForProxy(const QString& proxyname);
 
 private:
+  
   myMainWindow(const myMainWindow&); // Not implemented.
-  void operator=(const myMainWindow&); // Not implemented.
-
+  void operator=(const myMainWindow&); // Not implemented. 
   class pqInternals;
   pqInternals* Internals;
   bool showContextualFlow;
