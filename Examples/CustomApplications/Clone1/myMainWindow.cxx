@@ -114,8 +114,13 @@ myMainWindow::myMainWindow()
   this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
 
-  QObject::connect(this->Internals->TimeSlider, SIGNAL(valueEdited(double)),
-                   this, SLOT(timeSliderChanged(double)));
+  this->Internals->TimeSeriesView->setIconSize(QSize(24,24));
+  this->Internals->TimeSeriesView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/timeline_marker.png"));
+  QObject::connect(this->Internals->TimeSeriesView,SIGNAL(clicked()),this,SLOT(enableTimeSlider()));
+
+
+  //QObject::connect(this->Internals->TimeSlider, SIGNAL(valueEdited(double)),
+  //                 this, SLOT(timeSliderChanged(double)));
   QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider"); 
   Slider0->setMaximum(100);
   Slider0->setFocusPolicy(Qt::StrongFocus);
@@ -123,16 +128,17 @@ myMainWindow::myMainWindow()
   Slider0->setTickInterval(10);
   Slider0->setSingleStep(1);
   QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
-  LineEdit0->hide();
-  QSpinBox* SpinBox0 = this->Internals->TimeSpinBox;
-  SpinBox0->setMaximum(100);
+  LineEdit0->hide(); 
+  Slider0->setEnabled(false);
+ /* QSpinBox* SpinBox0 = this->Internals->TimeSpinBox;
+  SpinBox0->setMaximum(100);*/
   
  //now setup the correct order
-  QWidget::setTabOrder(Slider0, SpinBox0);  
+ /* QWidget::setTabOrder(Slider0, SpinBox0);  */
 
-  QObject::connect(
+  /*QObject::connect(
      SpinBox0, SIGNAL(editingFinished()),
-    this, SLOT(currentTimeIndexChanged()));
+    this, SLOT(currentTimeIndexChanged()));*/
   
   QObject::connect(
      Slider0, SIGNAL(valueChanged(int)),
@@ -205,6 +211,26 @@ myMainWindow::myMainWindow()
     
 }
 
+
+void myMainWindow::enableTimeSlider()
+{
+  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider"); 
+  if (Slider0->isEnabled())
+  {
+	  Slider0->setEnabled(false);
+  }
+  else
+  {
+	  pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("SSTUserSeededStreamTracer");
+	  if (flowSource)
+		  HideObject(pqActiveObjects::instance().activeView(),flowSource);
+	  pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");
+	  if (tubeSource)
+		  HideObject(pqActiveObjects::instance().activeView(),tubeSource);
+	  Slider0->setEnabled(true);
+  }
+
+}
  
 //-----------------------------------------------------------------------------
 // When user edits the slider
@@ -221,15 +247,15 @@ void myMainWindow::sliderTimeIndexChanged(int value)
 
 //-----------------------------------------------------------------------------
 // When user edits the line-edit.
-void myMainWindow::currentTimeIndexChanged()
-{
-	 if (pqPVApplicationCore::instance()->animationManager()->getActiveScene())
-    {
-    pqTimeKeeper* timekeeper = pqPVApplicationCore::instance()->animationManager()->getActiveScene()->getServer()->getTimeKeeper();
-    emit this->changeSceneTime(
-      timekeeper->getTimeStepValue(this->Internals->TimeSpinBox->value()));
-    }
-}
+//void myMainWindow::currentTimeIndexChanged()
+//{
+//	 if (pqPVApplicationCore::instance()->animationManager()->getActiveScene())
+//    {
+//    pqTimeKeeper* timekeeper = pqPVApplicationCore::instance()->animationManager()->getActiveScene()->getServer()->getTimeKeeper();
+//    emit this->changeSceneTime(
+//      timekeeper->getTimeStepValue(this->Internals->TimeSpinBox->value()));
+//    }
+//}
 
 
 //-----------------------------------------------------------------------------
@@ -249,22 +275,22 @@ void myMainWindow::timeSliderChanged(double val)
 { QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
  
   QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
-  QSpinBox *SpinBox0 = this->Internals->TimeSpinBox;
-  bool prev = SpinBox0->blockSignals(true);
+  //QSpinBox *SpinBox0 = this->Internals->TimeSpinBox;
+  //bool prev = SpinBox0->blockSignals(true);
   bool prevSlider = Slider0->blockSignals(true);
   pqTimeKeeper* timekeeper = Scene->getServer()->getTimeKeeper();
   int time_steps = timekeeper->getNumberOfTimeStepValues();
   if (time_steps > 0)
     {
-    SpinBox0->setMaximum(time_steps -1);
+    //SpinBox0->setMaximum(time_steps -1);
 	Slider0->setMaximum(time_steps -1);
     }
   else
     {
-    SpinBox0->setMaximum(0);
+    //SpinBox0->setMaximum(0);
 	Slider0->setMaximum(0);
     }
-  SpinBox0->blockSignals(prev);
+  //SpinBox0->blockSignals(prev);
   Slider0->blockSignals(prevSlider); 
 
 }
@@ -305,7 +331,7 @@ void myMainWindow::vortexIdentification()
 {   
 	
 	
-	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Threshold1");
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("SSTVTPStreamTracersWindingAngle");
 	if (this->showVortexCore)
 	{
 		HideObject(pqActiveObjects::instance().activeView(),flowSource);

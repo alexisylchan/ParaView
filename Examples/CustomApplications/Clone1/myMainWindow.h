@@ -68,6 +68,9 @@ public slots:
    void vortexIdentification(); 
    //void onCurrentTimeIndexChanged(int time); 
    void timeSliderChanged(double val);
+
+   //Toggle Enable time Slider
+   void enableTimeSlider();
 signals: 
   /// emitted to request the scene to change it's animation time.
   void changeSceneTime(double);
@@ -77,7 +80,7 @@ protected slots:
   //void sceneTimeChanged(double);
 
   /// When user edits the line-edit.
-  void currentTimeIndexChanged();
+  //void currentTimeIndexChanged();
   /// When user edits the slider.
   void sliderTimeIndexChanged(int value);
  

@@ -107,15 +107,6 @@
    </attribute>
    <widget class="pqProxyTabWidget" name="proxyTabWidget"/>
   </widget>
-  <widget class="QDockWidget" name="animationViewDock">
-   <property name="windowTitle">
-    <string>Animation View</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>8</number>
-   </attribute>
-   <widget class="pqPVAnimationWidget" name="animationView"/>
-  </widget>
   <widget class="QDockWidget" name="proxyTabDock1">
    <property name="floating">
     <bool>true</bool>
@@ -129,7 +120,28 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="pqViewManager" name="MultiViewManager"/>
+   <widget class="pqViewManager" name="MultiViewManager">
+    <widget class="QDockWidget" name="animationViewDock">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>-280</x>
+       <y>110</y>
+       <width>651</width>
+       <height>38</height>
+      </rect>
+     </property>
+     <property name="allowedAreas">
+      <set>Qt::NoDockWidgetArea</set>
+     </property>
+     <property name="windowTitle">
+      <string>Animation View</string>
+     </property>
+     <widget class="pqPVAnimationWidget" name="animationView"/>
+    </widget>
+   </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
@@ -137,6 +149,9 @@
      <horstretch>200</horstretch>
      <verstretch>60</verstretch>
     </sizepolicy>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetMovable</set>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -192,7 +207,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>200</y>
+       <y>440</y>
        <width>261</width>
        <height>41</height>
       </rect>
@@ -205,7 +220,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>260</y>
+       <y>250</y>
        <width>110</width>
        <height>13</height>
       </rect>
@@ -221,24 +236,28 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>291</y>
-       <width>600</width>
+       <y>280</y>
+       <width>481</width>
        <height>20</height>
       </rect>
      </property>
     </widget>
-    <widget class="QSpinBox" name="TimeSpinBox">
+    <widget class="QPushButton" name="TimeSeriesView">
      <property name="geometry">
       <rect>
-       <x>330</x>
-       <y>290</y>
-       <width>42</width>
-       <height>22</height>
+       <x>10</x>
+       <y>200</y>
+       <width>271</width>
+       <height>41</height>
       </rect>
+     </property>
+     <property name="text">
+      <string>Toggle Fast Time Series View</string>
      </property>
     </widget>
    </widget>
   </widget>
+  <zorder>dockWidget_2</zorder>
  </widget>
  <customwidgets>
   <customwidget>

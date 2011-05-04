@@ -167,7 +167,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		if (Phantom->GetButton(0))
 		{	
 			//this->CreateStreamTracerTube(view,Phantom,newPosition);	
-			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("StreamTracer1");
+			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("SSTUserSeededStreamTracer");
 			if (createdSource) // Assume that this is always true
 			{
 				this->ModifySeedPosition(createdSource,newPosition);
@@ -272,6 +272,10 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 
 		pqPipelineSource* createdSource = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", name,
 		namedInputs, pqActiveObjects::instance().activeServer());
+		if (!strcmp(name,"StreamTracer") )
+			createdSource->setObjectName("SSTUserSeededStreamTracer");
+		else if (!strcmp(name,"TubeFilter"))
+			createdSource->setObjectName("Tube1");
 		
 		this->ModifySeedPosition(createdSource,newPosition);
 		this->DisplayCreatedObject(view,createdSource);
@@ -618,9 +622,9 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 				zmax = abs(value[p][2]);
 			//qWarning("value in loop %f %f %f",value[p][0],value[p][1],value[p][2]);
 		} 
-		newScaledPosition[0] = (newPosition[0]/0.5)* (xmax/1000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-		newScaledPosition[1] = (newPosition[1]/0.5 )* (ymax/1000.0);
-		newScaledPosition[2] = (newPosition[2]/0.5)* (zmax/1000.0);
+		newScaledPosition[0] = (newPosition[0]/0.5)* (xmax/2000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		newScaledPosition[1] = (newPosition[1]/0.5 )* (ymax/2000.0);
+		newScaledPosition[2] = (newPosition[2]/0.5)* (zmax/2000.0);
 
 		/*
 		qWarning("newScaledPosition %f %f %f",newScaledPosition[0],newScaledPosition[1],newScaledPosition[2]);*/
