@@ -175,19 +175,21 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 				this->DisplayCreatedObject(view,createdSource);  
  
 				 
-				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");  
+				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1"); 
+			 
 				//pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(4);
 				if (tubeSource)
 				{  
 					pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
 					
-					this->CreateParaViewObject(3,-1,view,Phantom,newPosition,"TubeFilter");
+					//TODO FIX BUG: REPLACE7 WITH ACTUAL COUNT
+					this->CreateParaViewObject(7,-1,view,Phantom,newPosition,"TubeFilter");
 				}  
 			
 			}
 		}
-		else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
-			CreateStreamTracerTube(view,Phantom,newPosition);
+		//else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
+		//	CreateStreamTracerTube(view,Phantom,newPosition);
 		}
 	}  
  

@@ -5862,7 +5862,7 @@ The Stream Tracer filter generates streamlines in a vector field from a collecti
      <IntVectorProperty
        name="NumberOfPoints"
        number_of_elements="1"
-       default_values="100"
+       default_values="10"
        information_only="1"/>
 
      <IntVectorProperty
@@ -7346,7 +7346,7 @@ This filter operates on any type of data set, provided it has point-centered vec
      <DoubleVectorProperty
         name="Radius"
         number_of_elements="1"
-        default_values="0.1"
+        default_values="0.005"
         information_only="1">
         <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="0.1">
           <RequiredProperties>

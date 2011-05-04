@@ -69,6 +69,10 @@ public slots:
    //void onCurrentTimeIndexChanged(int time); 
    void timeSliderChanged(double val);
 
+   // Set mode to vortex core line
+   void vortexCoreLine();
+   // Turn on turbine geometry
+   void turbineGeometry();
    //Toggle Enable time Slider
    void enableTimeSlider();
 
@@ -99,6 +103,8 @@ private:
   pqInternals* Internals;
   bool showContextualFlow;
   bool showVortexCore;
+  bool showVortexCoreLine;
+  bool showTurbineGeometry;
 };
 
 #endif

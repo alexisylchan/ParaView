@@ -107,6 +107,11 @@ myMainWindow::myMainWindow()
   this->Internals->ToggleVortexCore->setIconSize(QSize(24,24));
   this->Internals->ToggleVortexCore->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/vortexcore.png"));
   QObject::connect(this->Internals->ToggleVortexCore,SIGNAL(clicked()),this,SLOT(vortexIdentification()));
+  
+  this->Internals->ToggleVortexCoreDirection->setIconSize(QSize(24,24));
+  this->Internals->ToggleVortexCoreDirection->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/vortexcore.png"));
+  QObject::connect(this->Internals->ToggleVortexCoreDirection,SIGNAL(clicked()),this,SLOT(vortexCoreLine()));
+
   this->Internals->ToggleContextualFlow->setIconSize(QSize(24,24));
   this->Internals->ToggleContextualFlow->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/contextualflow.png"));
   QObject::connect(this->Internals->ToggleContextualFlow,SIGNAL(clicked()),this,SLOT(contextualFlow()));
@@ -114,6 +119,10 @@ myMainWindow::myMainWindow()
   this->Internals->PushToSharedState->setIconSize(QSize(24,24));
   this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
+
+  this->Internals->ToggleTurbineGeometry->setIconSize(QSize(24,24));
+  this->Internals->ToggleTurbineGeometry->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/contextualflow.png"));
+  QObject::connect(this->Internals->ToggleTurbineGeometry,SIGNAL(clicked()),this,SLOT(turbineGeometry()));
 
   this->Internals->TimeSeriesView->setIconSize(QSize(24,24));
   this->Internals->TimeSeriesView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/timeline_marker.png"));
@@ -206,7 +215,10 @@ myMainWindow::myMainWindow()
  QObject::connect(Scene, SIGNAL(timeStepsChanged()),
       this, SLOT(onTimeStepsChanged()));
  this->onTimeStepsChanged();
-
+ this->showContextualFlow = false;
+ this->showVortexCore = true;
+ this->showVortexCoreLine = true;
+ this->showTurbineGeometry = true;
     
 }
 
@@ -329,11 +341,29 @@ void myMainWindow::contextualFlow()
 	//emit toggleContextualFlow();
 } 
 //-----------------------------------------------------------------------------
+void myMainWindow::turbineGeometry()
+{   
+	
+	pqPipelineSource* geometry = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("geometry.vtu");
+	if (this->showTurbineGeometry)
+	{
+		HideObject(pqActiveObjects::instance().activeView(),geometry);
+		this->showTurbineGeometry = false;
+	}
+	else
+	{
+		DisplayObject(pqActiveObjects::instance().activeView(),geometry);
+		this->showTurbineGeometry = true;
+	}				
+	//emit toggleContextualFlow();
+} 
+
+//-----------------------------------------------------------------------------
 void myMainWindow::vortexIdentification()
 {   
 	
 	
-	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPStreamTracersWindingAngle");
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPVortices");
 	if (this->showVortexCore)
 	{
 		HideObject(pqActiveObjects::instance().activeView(),flowSource);
@@ -354,6 +384,31 @@ void myMainWindow::vortexIdentification()
 	
 } 
 
+//-----------------------------------------------------------------------------
+void myMainWindow::vortexCoreLine()
+{   
+	
+	
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPVortexCoreDirection");
+	if (this->showVortexCoreLine)
+	{
+		HideObject(pqActiveObjects::instance().activeView(),flowSource);
+		this->showVortexCoreLine = false;
+	}
+	else
+	{
+		DisplayObject(pqActiveObjects::instance().activeView(),flowSource);
+		this->showVortexCoreLine = true;
+	}
+
+	/*
+	pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(myMainWindow::BLADE_STREAMTRACER );
+	HideObject(pqActiveObjects::instance().activeView(),flowSource);
+				
+	pqPipelineSource* coreSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(myMainWindow::CORE_STREAMTRACER );
+	DisplayObject(pqActiveObjects::instance().activeView(),coreSource);*/
+	
+} 
 //-----------------------------------------------------------------------------
 void myMainWindow::saveState()
 { 
