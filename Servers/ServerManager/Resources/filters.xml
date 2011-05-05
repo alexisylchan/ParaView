@@ -4316,8 +4316,8 @@ The Tube filter creates tubes around the lines in the input polygonal dataset. T
          name="Radius"
          command="SetRadius"
          number_of_elements="1"
-         default_values="0.0002875059440732" >
-        <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="1">
+         default_values="1.0" >
+        <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="0.0009">
           <RequiredProperties>
              <Property name="Input" function="Input"/>
           </RequiredProperties>
