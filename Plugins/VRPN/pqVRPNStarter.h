@@ -50,6 +50,12 @@ class pqVRPNStarter : public QObject
   Q_OBJECT
   typedef QObject Superclass;
 public:
+	enum DataType
+    { 
+		SST,
+		SAS,
+		TEST
+    };
   enum VortexFilter
     {
     PHANTOM_CURSOR,
@@ -75,6 +81,7 @@ public slots:
 	void onResetCameraEvent(); 
 	void setToggleContextualFlow();
 	void onChangeDataSet(int index);
+	void onResetPhantom();
 protected:
     QTimer *VRPNTimer;
 	vtkDeviceInteractor* inputInteractor;
@@ -111,7 +118,7 @@ private:
   int useanalog;
   vtkEventQtSlotConnect* Connector;
   bool resetCamera;
-
+  int mode;
 
 };
 

@@ -109,7 +109,7 @@ myMainWindow::myMainWindow()
   QObject::connect(this->Internals->ToggleVortexCore,SIGNAL(clicked()),this,SLOT(vortexIdentification()));
   
   this->Internals->ToggleVortexCoreDirection->setIconSize(QSize(24,24));
-  this->Internals->ToggleVortexCoreDirection->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/vortexcore.png"));
+  this->Internals->ToggleVortexCoreDirection->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/arrow.png"));
   QObject::connect(this->Internals->ToggleVortexCoreDirection,SIGNAL(clicked()),this,SLOT(vortexCoreLine()));
 
   this->Internals->ToggleContextualFlow->setIconSize(QSize(24,24));
@@ -121,13 +121,18 @@ myMainWindow::myMainWindow()
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
 
   this->Internals->ToggleTurbineGeometry->setIconSize(QSize(24,24));
-  this->Internals->ToggleTurbineGeometry->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/contextualflow.png"));
+  this->Internals->ToggleTurbineGeometry->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/pqGroup24.png"));
   QObject::connect(this->Internals->ToggleTurbineGeometry,SIGNAL(clicked()),this,SLOT(turbineGeometry()));
 
   this->Internals->TimeSeriesView->setIconSize(QSize(24,24));
   this->Internals->TimeSeriesView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/timeline_marker.png"));
   QObject::connect(this->Internals->TimeSeriesView,SIGNAL(clicked()),this,SLOT(enableTimeSlider()));
 
+
+  
+  this->Internals->ResetPhantomButton->setIconSize(QSize(24,24));
+  this->Internals->ResetPhantomButton->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/pqResetCenter24.png"));
+  QObject::connect(this->Internals->ResetPhantomButton,SIGNAL(clicked()),this,SLOT(onResetPhantom())); 
 
   //QObject::connect(this->Internals->TimeSlider, SIGNAL(valueEdited(double)),
   //                 this, SLOT(timeSliderChanged(double)));
@@ -356,6 +361,12 @@ void myMainWindow::turbineGeometry()
 		this->showTurbineGeometry = true;
 	}				
 	//emit toggleContextualFlow();
+} 
+
+//-----------------------------------------------------------------------------
+void myMainWindow::onResetPhantom()
+{ 
+	emit this->resetPhantom();
 } 
 
 //-----------------------------------------------------------------------------

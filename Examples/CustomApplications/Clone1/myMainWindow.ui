@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>695</width>
+    <width>694</width>
     <height>607</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>695</width>
+     <width>694</width>
      <height>21</height>
     </rect>
    </property>
@@ -160,8 +160,8 @@
     <widget class="QComboBox" name="VortexDataSetComboBox">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>20</y>
+       <x>10</x>
+       <y>0</y>
        <width>281</width>
        <height>22</height>
       </rect>
@@ -170,21 +170,11 @@
       <number>-1</number>
      </property>
     </widget>
-    <widget class="QComboBox" name="FlowParametersComboBox">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>60</y>
-       <width>281</width>
-       <height>22</height>
-      </rect>
-     </property>
-    </widget>
     <widget class="QPushButton" name="ToggleVortexCore">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>100</y>
+       <y>80</y>
        <width>271</width>
        <height>41</height>
       </rect>
@@ -197,9 +187,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>210</y>
+       <y>190</y>
        <width>271</width>
-       <height>41</height>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
@@ -210,59 +200,20 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>440</y>
+       <y>520</y>
        <width>261</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
       <string>Push to Shared State</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_3">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>380</y>
-       <width>110</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Time Step</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="pqDoubleRangeWidget" name="TimeSlider" native="true">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>410</y>
-       <width>481</width>
-       <height>20</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="TimeSeriesView">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>330</y>
-       <width>271</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle Fast Time Series View</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="ToggleVortexCoreDirection">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>150</y>
+       <y>130</y>
        <width>271</width>
        <height>51</height>
       </rect>
@@ -275,14 +226,79 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>260</y>
+       <y>250</y>
        <width>271</width>
-       <height>41</height>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
       <string>Toggle Turbine Geometry</string>
      </property>
+    </widget>
+    <widget class="QPushButton" name="ResetPhantomButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>271</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reset Phantom</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>310</y>
+       <width>391</width>
+       <height>201</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>GroupBox</string>
+     </property>
+     <widget class="QPushButton" name="TimeSeriesView">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>261</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Toggle Fast Time Series View</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>70</y>
+        <width>110</width>
+        <height>13</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Time Step</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="pqDoubleRangeWidget" name="TimeSlider" native="true">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>100</y>
+        <width>331</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

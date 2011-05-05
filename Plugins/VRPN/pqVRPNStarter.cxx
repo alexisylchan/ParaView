@@ -171,40 +171,75 @@ void pqVRPNStarter::onStartup()
 
   QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
   QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
-  /*QObject::connect(pqPushToSharedStateReaction::instance(),SIGNAL(toggleContextualFlow()),this,SLOT(setToggleContextualFlow()));
-  */////TODO: FIX Always assume 1 view
-  //pqView* view = pqActiveObjects::instance().activeView();
-  //vtkSMViewProxy* viewProxy = vtkSMViewProxy::SafeDownCast(view->getProxy());
-  //this->Connector->Connect( viewProxy, vtkCommand::ResetCameraEvent,
-  //  this, SLOT(onResetCameraEvent()));
-  
-
-   
-
-  //For Debugging: remove everything and reload state
-  //this->uninitializeDevices();
-  //pqCommandLineOptionsBehavior::resetApplication();
-  //this->loadState();
-  //this->initializeDevices();
+  QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 }
 
 void pqVRPNStarter::onChangeDataSet(int index)
 {
 	switch (index)
 	{
-	case 0:
+	case SST:
 		loadSSTState();
 		break;
-	case 1:
+	case SAS:
 		loadSASState();
 		break;
-	case 2:
+	case TEST:
 		loadTestState();
 		break;
 	}
 
 }
 
+void pqVRPNStarter::onResetPhantom()
+{
+	pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
+		if (cursorData)
+		{
+			pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::BLADE_STREAMTRACER); 
+			if (nextData)
+			{	
+				
+				vtkSMPVRepresentationProxy *nextDataProxy = 0;
+				nextDataProxy = vtkSMPVRepresentationProxy::SafeDownCast(nextData->getProxy());
+				double* newPosition =  new double[3];
+				vtkSMPropertyHelper(nextDataProxy,"Position").Get(newPosition,3); 
+				vtkSMPVRepresentationProxy *repProxy = 0;
+				repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
+				vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
+				repProxy->UpdateVTKObjects(); 
+				pqView* view = pqActiveObjects::instance().activeView();
+				vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
+				viewProxy->GetRenderer()->Render();
+			} 
+		}
+	//TODO: change pqPushToSharedStateReaction::saveState to static
+  QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
+  pqApplicationCore::instance()->saveState(filename);
+  pqServer *server = pqActiveObjects::instance().activeServer();
+  // Add this to the list of recent server resources ...
+  pqServerResource resource;
+  resource.setScheme("session");
+  resource.setPath(filename);
+  resource.setSessionServer(server->getResource());
+  pqApplicationCore::instance()->serverResources().add(resource);
+  pqApplicationCore::instance()->serverResources().save(
+    *pqApplicationCore::instance()->settings());
+
+
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
+
+		
+	//TODO: remove this for general use case.
+		
+		//qWarning("initialize eye angle!!!!");
+		this->initializeEyeAngle();
+		//qWarning("initialize devices");
+		this->initializeDevices();   
+//qWarning("reset!!!!");
+}
 void pqVRPNStarter::setToggleContextualFlow()
 {
 	qWarning("Ack contextual flow!");
@@ -716,14 +751,12 @@ void  pqVRPNStarter::initialLoadState()
 //Load Test State
 void  pqVRPNStarter::loadTestState()
 {
-	qWarning ("Test State!");
-
-	 /*   this->uninitializeDevices();
+	    this->uninitializeDevices();
 		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTestCase.pvsm"));
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTest.pvsm"));
 		this->changeTimeStamp();
 		this->initializeEyeAngle();
-		this->initializeDevices(); */ 
+		this->initializeDevices(); 
 }
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadSSTState()

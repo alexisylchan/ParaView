@@ -137,8 +137,8 @@ void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor)
 //} 
 //----------------------------------------------------------------------------
 void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
-{
-
+{ 
+		
 	double* position = Phantom->GetPosition(); 
 	
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 

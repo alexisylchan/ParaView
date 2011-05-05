@@ -75,6 +75,8 @@ public slots:
    void turbineGeometry();
    //Toggle Enable time Slider
    void enableTimeSlider();
+   //ResetPhantom
+   void onResetPhantom();
 
    //Change dataset
    void onChangeDataSet(int index );
@@ -82,6 +84,7 @@ signals:
   /// emitted to request the scene to change it's animation time.
   void changeSceneTime(double);
   void changeDataSet(int index);
+  void resetPhantom(); 
 
 protected slots:
 	 /// Called when animation scene reports that it's time has changed.
@@ -91,6 +94,7 @@ protected slots:
   //void currentTimeIndexChanged();
   /// When user edits the slider.
   void sliderTimeIndexChanged(int value);
+  
  
 void  onTimeStepsChanged() ;
   void showHelpForProxy(const QString& proxyname);
