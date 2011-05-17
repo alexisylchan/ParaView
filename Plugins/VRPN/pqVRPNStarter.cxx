@@ -96,6 +96,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkMatrix3x3.h"
 #include "vtkEventQtSlotConnect.h"
 #include "pqCoreUtilities.h"
+
+//Evaluation includes
+#include <iostream>
+#include <fstream>
+#include <time.h>
+#include <sstream>
+#include <string>
+#include <vtkstd/vector>
 //
 //#include "pqPushToSharedStateReaction.h"
 // From Cory Quammen's code
@@ -146,6 +154,7 @@ void pqVRPNStarter::onStartup()
 {
   //qWarning() << "Message from pqVRPNStarter: Application Started";
 
+	evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
@@ -172,6 +181,7 @@ void pqVRPNStarter::onStartup()
   QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
   QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
   QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
+
 }
 
 void pqVRPNStarter::onChangeDataSet(int index)
@@ -196,7 +206,7 @@ void pqVRPNStarter::onResetPhantom()
 	pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
 		if (cursorData)
 		{
-			pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::BLADE_STREAMTRACER); 
+			pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::STREAMTRACER_INPUT); 
 			if (nextData)
 			{	
 				
@@ -437,6 +447,7 @@ void pqVRPNStarter::initializeDevices()
 	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
 	phantomStyleCamera1->SetPhantom(phantom1);
 	phantomStyleCamera1->SetRenderer(renderer1);
+	phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
 
 	
 	/////////////////////////INTERACTOR////////////////////////////

@@ -65,6 +65,17 @@
 #include "pqVRPNStarter.h"
 #include "pqPipelineRepresentation.h"
 
+#include <iostream>
+#include <fstream>
+#include <time.h>
+#include <sstream>
+#include <string>
+#include <vtkstd/vector> 
+#include "pqAnimationScene.h"
+#include "pqTimeKeeper.h" 
+#include "pqPVApplicationCore.h"
+#include "pqAnimationManager.h"
+
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 
@@ -73,6 +84,7 @@ vtkVRPNPhantomStyleCamera::vtkVRPNPhantomStyleCamera()
 { 
 	first = 1;
 	createTube = 1;
+			
 }
 
 
@@ -136,10 +148,16 @@ void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor)
 //
 //} 
 //----------------------------------------------------------------------------
+
+void vtkVRPNPhantomStyleCamera::SetEvaluationLog(ofstream* evaluationlog)
+{ 
+	this->evaluationlog = evaluationlog;
+}
 void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 { 
 		
 	double* position = Phantom->GetPosition(); 
+
 	
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 
 
@@ -188,11 +206,31 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			
 			}
 		}
+		if (Phantom->GetButton(1))
+		{
+			
+			 QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
+			 pqTimeKeeper* timekeeper =  Scene->getServer()->getTimeKeeper();
+			 int index = timekeeper->getTimeStepValueIndex(Scene->getServer()->getTimeKeeper()->getTime());
+			 *evaluationlog <<"TimeIndex :"<<index<<endl;
+			*evaluationlog << "phantom: " << newPosition[0] << "," << newPosition[1] << "," << newPosition[2] << endl;
+			pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::STREAMTRACER_INPUT); 
+				if (nextData)
+				{	
+					
+					vtkSMPVRepresentationProxy *nextDataProxy = 0;
+					nextDataProxy = vtkSMPVRepresentationProxy::SafeDownCast(nextData->getProxy());
+					double* nextDataPosition =  new double[3];
+					vtkSMPropertyHelper(nextDataProxy,"Position").Get(nextDataPosition,3);  
+					*evaluationlog << "data: " << nextDataPosition[0] << "," << nextDataPosition[1] << "," << nextDataPosition[2] << endl;
+				} 
+			evaluationlog->flush();
+		}
 		//else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
 		//	CreateStreamTracerTube(view,Phantom,newPosition);
 		}
 	}  
- 
+		
 }
 void vtkVRPNPhantomStyleCamera::SetCreateTube(bool createTube)
 {

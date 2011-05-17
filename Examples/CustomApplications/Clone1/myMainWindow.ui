@@ -13,7 +13,10 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <zorder>TimeSlider</zorder>
+   <zorder>TimeSlider</zorder>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -248,57 +251,44 @@
       <string>Reset Phantom</string>
      </property>
     </widget>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="pqDoubleRangeWidget" name="TimeSlider" native="true">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>310</y>
-       <width>391</width>
-       <height>201</height>
+       <x>10</x>
+       <y>380</y>
+       <width>431</width>
+       <height>20</height>
       </rect>
      </property>
-     <property name="title">
-      <string>GroupBox</string>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>360</y>
+       <width>110</width>
+       <height>16</height>
+      </rect>
      </property>
-     <widget class="QPushButton" name="TimeSeriesView">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>20</y>
-        <width>261</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Toggle Fast Time Series View</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_3">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>70</y>
-        <width>110</width>
-        <height>13</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Time Step</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="pqDoubleRangeWidget" name="TimeSlider" native="true">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>100</y>
-        <width>331</width>
-        <height>20</height>
-       </rect>
-      </property>
-     </widget>
+     <property name="text">
+      <string>Time Step</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="TimeSeriesView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>310</y>
+       <width>261</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Toggle Fast Time Series View</string>
+     </property>
     </widget>
    </widget>
   </widget>

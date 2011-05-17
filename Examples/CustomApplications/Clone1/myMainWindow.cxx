@@ -350,7 +350,7 @@ void myMainWindow::turbineGeometry()
 {   
 	
 	pqPipelineSource* geometry = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("geometry.vtu");
-	if (this->showTurbineGeometry)
+	if (this->showTurbineGeometry && geometry)
 	{
 		HideObject(pqActiveObjects::instance().activeView(),geometry);
 		this->showTurbineGeometry = false;

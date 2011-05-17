@@ -119,6 +119,7 @@ private:
   vtkEventQtSlotConnect* Connector;
   bool resetCamera;
   int mode;
+  ofstream evaluationlog;
 
 };
 

@@ -60,6 +60,8 @@ public:
   /*void SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter);*/
   vtkActor* myActor;
 
+  void SetEvaluationLog(ofstream* evaluationlog);
+
 protected:
   vtkVRPNPhantomStyleCamera();
   ~vtkVRPNPhantomStyleCamera();
@@ -82,6 +84,7 @@ private:
   int CreateParaViewObject(int sourceIndex,int inputIndex, pqView* view, vtkVRPNPhantom* Phantom,double* newPosition,const char* name);
   int first;
   bool createTube;
+  ofstream* evaluationlog;
 };
 
 #endif
