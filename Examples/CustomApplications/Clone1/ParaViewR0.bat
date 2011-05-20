@@ -22,7 +22,7 @@ with the directory of the compiled ParaView.
 E.g. C:\Users\alexisc\Documents\EVE\CompiledParaView\
 
 <TRACKER_SERVER>
-with the address of the VRPN server that is running the Hiball trackers. 
+with the address of the VRPN server that is running the Hiball trackers. For more information, refer to chapter 4, "Application Interface(VRPN)" of the "HiBall-3000 Wide-Area Tracker User Manual" from 3rdTech
 E.g. Tracker0@tracker1-cs.cs.unc.edu
 
 This is an example:
