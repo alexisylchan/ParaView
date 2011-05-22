@@ -1,7 +1,7 @@
 : README
 GOTO EndREADME
 
-To test that the SpaceNavigator, Phantom Omni Desktop and TNG-3B Serial Interface are working, modify
+To test that the SpaceNavigator, Phantom Omni Device and TNG-3B Serial Interface are working, modify
 
 <COMPILEDVRPN_DIRECTORY>\client_src\Release\vrpn_print_devices.exe <DEVICE>@<MACHINE_ADDRESS>
 
@@ -14,7 +14,7 @@ E.g. C:\Users\alexisc\Documents\EVE\CompiledVRPN\client_src\Release\vrpn_print_d
 <DEVICE>
 with the device that is being tested.
 To test the SpaceNavigator, use:             device0
-To test the Phantom Omni Desktop, use:       Phantom0
+To test the Phantom Omni Device, use:       Phantom0
 To test the TNG-3B Serial Interface, use:    tng3name
 
 <MACHINE_ADDRESS>
@@ -46,10 +46,10 @@ Analog device0@localhost:
 
 
 
-Phantom Omni Desktop Test:
+Phantom Omni Device Test:
 C:\Users\alexisc\Documents\EVE\CompiledVRPN\client_src\Release\vrpn_print_devices.exe Phantom0@localhost
 
-Phantom Omni Desktop Test Result:
+Phantom Omni Device Test Result:
 Tracker Phantom0@localhost, sensor 0:
         pos  ( 0.00, -0.07, -0.09); quat (-0.13, 0.16, 0.74, 0.64)
 Tracker Phantom0@localhost, sensor 0:
