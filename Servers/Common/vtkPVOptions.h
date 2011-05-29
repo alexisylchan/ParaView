@@ -14,6 +14,9 @@
 =========================================================================*/
 // .NAME vtkPVOptions - ParaView options storage
 // .SECTION Description
+// Alexis YL Chan: This class is adapted from the vtkPVOptions class in ParaView 3.11.2 to include
+// options for the Collaborative Scientific Visualization Workbench hosted at https://github.com/alexisylchan/ParaView
+
 // An object of this class represents a storage for ParaView options
 //
 // These options can be retrieved during run-time, set using configuration file
@@ -56,8 +59,19 @@ public:
   vtkGetStringMacro(StereoType);
   vtkGetMacro(UseVRPN, int);
   vtkGetStringMacro(VRPNAddress);
-  vtkGetStringMacro(VRPNTrackerOrigin);
-  vtkGetMacro(VRPNTrackerSensor, int);
+  
+  // Get options for Collaborative Scientific Visualization Workbench
+  vtkGetMacro(UseTracker, int);
+  vtkGetStringMacro(TrackerAddress);
+  vtkGetStringMacro(TrackerOrigin);
+  vtkGetMacro(TrackerSensor, int);
+  vtkGetMacro(UseSpaceNavigator, int);
+  vtkGetStringMacro(SpaceNavigatorAddress);
+  vtkGetMacro(UsePhantom, int);
+  vtkGetStringMacro(PhantomAddress);
+  vtkGetMacro(UseTNG, int);
+  vtkGetStringMacro(TNGAddress);
+
   vtkGetMacro(UseVRUI, int);
   vtkGetStringMacro(VRUIAddress);
 
@@ -214,7 +228,14 @@ private:
   int UseOffscreenRendering;
   int UseStereoRendering;
   int UseVRPN;
-  int VRPNTrackerSensor;
+
+  int UseTracker;  
+  int TrackerSensor;
+  
+  int UseSpaceNavigator;
+  int UsePhantom;
+  int UseTNG;
+ 
   int UseVRUI;
   int DisableComposite;
   int UseSoftwareRendering;
@@ -246,8 +267,17 @@ private:
   vtkSetStringMacro(VRPNAddress);
   char* VRPNAddress;
   
-  vtkSetStringMacro(VRPNTrackerOrigin);
-  char* VRPNTrackerOrigin;
+ // Set options for Collaborative Scientific Visualization Workbench
+  vtkSetStringMacro(TrackerAddress);
+  char* TrackerAddress; 
+  vtkSetStringMacro(TrackerOrigin);
+  char* TrackerOrigin;    
+  vtkSetStringMacro(SpaceNavigatorAddress);
+  char* SpaceNavigatorAddress;   
+  vtkSetStringMacro(PhantomAddress);
+  char* PhantomAddress;        
+  vtkSetStringMacro(TNGAddress);
+  char* TNGAddress;       
 
   vtkSetStringMacro(VRUIAddress);
   char* VRUIAddress;

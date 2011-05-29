@@ -113,7 +113,6 @@ public:
   char sn_name[vrpn_MAX_TEXT_LEN];
   vtkstd::vector<unsigned> sn_counts;
   int sensorIndex;
-  vtkVRPNPhantom* sn_phantom_ptr;
 };
 class tng_user_callback
 {
@@ -131,9 +130,7 @@ void VRPN_CALLBACK handleTNG(void *userdata,const vrpn_ANALOGCB t);
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
   : QObject(p)
 {
-	useanalog = 1;
-	spaceNavigator1 = 0;
-	resetCamera = false;
+	spaceNavigator1 = 0; 
 }
 
 //-----------------------------------------------------------------------------
@@ -152,35 +149,47 @@ pqVRPNStarter::~pqVRPNStarter()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onStartup()
 {
-  //qWarning() << "Message from pqVRPNStarter: Application Started";
 
 	evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
-  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-  vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
+    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
-  this->useVRPN = options->GetUseVRPN();
-  this->vrpnAddress = options->GetVRPNAddress();
-  this->sensorIndex = options->GetVRPNTrackerSensor(); 
-  
-  //Parse tracker origin
-  char* trackerOriginStr = options->GetVRPNTrackerOrigin();
-  char* coordStr = strtok(trackerOriginStr,",");
-  int count = 0;
-  while (coordStr != NULL)
-  {
-	  this->trackerOrigin[count] = -1*atof(coordStr);
-	  count++;
-	  coordStr = strtok(NULL,",");
-  }
-  this->Connector = vtkEventQtSlotConnect::New();
-  this->listenToSelfSave();
-  this->initialLoadState();
-  this->initializeEyeAngle();
-  this->initializeDevices();
+	//Tracker Options
+	this->useTracker = options->GetUseTracker();
+	this->trackerAddress = options->GetTrackerAddress();
+	//Parse tracker origin
+	char* trackerOriginStr = options->GetTrackerOrigin();
+	char* coordStr = strtok(trackerOriginStr,",");
+	int count = 0;
+	while (coordStr != NULL)
+	{
+	this->trackerOrigin[count] = -1*atof(coordStr);
+	count++;
+	coordStr = strtok(NULL,",");
+	}
+	this->sensorIndex = options->GetTrackerSensor(); 
 
-  QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
-  QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
-  QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
+	//SpaceNavigator Options
+	this->useSpaceNavigator = options->GetUseSpaceNavigator();
+	this->spacenavigatorAddress = options->GetSpaceNavigatorAddress();
+
+	//Phantom Options
+	this->usePhantom = options->GetUsePhantom();
+	this->phantomAddress = options->GetPhantomAddress();
+
+	//TNG Options
+	this->useTNG = options->GetUseTNG();
+	this->tngAddress = options->GetTNGAddress();
+ 
+	this->listenToSelfSave();
+	this->initialLoadState();
+	this->initializeEyeAngle();
+	this->initializeDevices();
+
+	//Listen to Custom Application's GUI Qt signals for Vortex Visualization
+	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
+	QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
+	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
 }
 
@@ -200,7 +209,7 @@ void pqVRPNStarter::onChangeDataSet(int index)
 	}
 
 }
-
+// Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 void pqVRPNStarter::onResetPhantom()
 {
 	pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
@@ -222,42 +231,31 @@ void pqVRPNStarter::onResetPhantom()
 				vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
 				viewProxy->GetRenderer()->Render();
 			} 
-		}
-	//TODO: change pqPushToSharedStateReaction::saveState to static
-  QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
-  pqApplicationCore::instance()->saveState(filename);
-  pqServer *server = pqActiveObjects::instance().activeServer();
-  // Add this to the list of recent server resources ...
-  pqServerResource resource;
-  resource.setScheme("session");
-  resource.setPath(filename);
-  resource.setSessionServer(server->getResource());
-  pqApplicationCore::instance()->serverResources().add(resource);
-  pqApplicationCore::instance()->serverResources().save(
-    *pqApplicationCore::instance()->settings());
+		} 
+	QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
+	pqApplicationCore::instance()->saveState(filename);
+	pqServer *server = pqActiveObjects::instance().activeServer();
+	// Add this to the list of recent server resources ...
+	pqServerResource resource;
+	resource.setScheme("session");
+	resource.setPath(filename);
+	resource.setSessionServer(server->getResource());
+	pqApplicationCore::instance()->serverResources().add(resource);
+	pqApplicationCore::instance()->serverResources().save(
+	*pqApplicationCore::instance()->settings());
 
 
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
+	this->uninitializeDevices();
+	pqCommandLineOptionsBehavior::resetApplication();	
+	pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
 
 		
-	//TODO: remove this for general use case.
-		
-		//qWarning("initialize eye angle!!!!");
-		this->initializeEyeAngle();
-		//qWarning("initialize devices");
-		this->initializeDevices();   
-//qWarning("reset!!!!");
-}
-void pqVRPNStarter::setToggleContextualFlow()
-{
-	qWarning("Ack contextual flow!");
-}
-void pqVRPNStarter::onResetCameraEvent()
-{
-	this->resetCamera = true;
-}
+	//TODO: remove this for general use case. 
+	this->initializeEyeAngle();
+	//qWarning("initialize devices");
+	this->initializeDevices();   
+	//qWarning("reset!!!!");
+}  
 void pqVRPNStarter::initializeEyeAngle()
 {
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
@@ -265,34 +263,35 @@ void pqVRPNStarter::initializeEyeAngle()
 		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 		camera->SetEyeAngle(0);
-		camera->SetHeadTracked(true);
+		camera->SetHeadTracked(this->useTracker);
+
 		//Code from vtkCaveSynchronizedRenderers::SetDisplayConfig
 		double DisplayX[3], DisplayY[3],DisplayOrigin[3];
 		double value = 1.0;
 		if (this->sensorIndex == 1)
 		{
 		DisplayOrigin[0]= -value;
-		DisplayOrigin[1]= -value;//trackerOrigin[1]-0.15;
-		DisplayOrigin[2]= value;//trackerOrigin[2];
-		DisplayX[0]= -value;//trackerOrigin[0]+0.2;
-		DisplayX[1]= -value;//trackerOrigin[1]-0.15;
-		DisplayX[2]= -value;//trackerOrigin[2];
-		DisplayY[0]= -value;//trackerOrigin[0]+0.2;
-		DisplayY[1]= value;//trackerOrigin[1]+0.15;
-		DisplayY[2]= -value;//trackerOrigin[2]; 
+		DisplayOrigin[1]= -value; 
+		DisplayOrigin[2]= value; 
+		DisplayX[0]= -value; 
+		DisplayX[1]= -value; 
+		DisplayX[2]= -value; 
+		DisplayY[0]= -value;
+		DisplayY[1]= value; 
+		DisplayY[2]= -value; 
 
 		}
 		else
 		{
 			DisplayOrigin[0]= -value;
-			DisplayOrigin[1]= -value;//trackerOrigin[1]-0.15;
-			DisplayOrigin[2]= -value;//trackerOrigin[2];
-			DisplayX[0]= value;//trackerOrigin[0]+0.2;
-			DisplayX[1]= -value;//trackerOrigin[1]-0.15;
-			DisplayX[2]= -value;//trackerOrigin[2];
-			DisplayY[0]= value;//trackerOrigin[0]+0.2;
-			DisplayY[1]= value;//trackerOrigin[1]+0.15;
-			DisplayY[2]= -value;//trackerOrigin[2];
+			DisplayOrigin[1]= -value; 
+			DisplayOrigin[2]= -value; 
+			DisplayX[0]= value; 
+			DisplayX[1]= -value; 
+			DisplayX[2]= -value; 
+			DisplayY[0]= value; 
+			DisplayY[1]= value; 
+			DisplayY[2]= -value; 
 		}
 
 		double xBase[3],yBase[3],zBase[3];
@@ -354,151 +353,111 @@ void pqVRPNStarter::initializeDevices()
 {
 	pqApplicationCore* core = pqApplicationCore::instance();
 
-  if(this->useVRPN)
-    {
-    // VRPN input events.
-    this->VRPNTimer=new QTimer(this);
-    this->VRPNTimer->setInterval(4); // in ms
+    
+	// VRPN input events.
+	this->VRPNTimer=new QTimer(this);
+	this->VRPNTimer->setInterval(4); // in ms
    
 	/////////////////////////GET VIEW////////////////////////////
 
 	// Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = core->getServerManagerModel();
-		//Get Views
-		pqView* view1 = serverManager->getItemAtIndex<pqView*>(0); 
-	
-		//Get View Proxy
-		vtkSMRenderViewProxy *proxy1 = 0;
-		proxy1 = vtkSMRenderViewProxy::SafeDownCast( view1->getViewProxy() ); 
-      
-		//Get Renderer and Render Window
-		vtkRenderer* renderer1 = proxy1->GetRenderer();
-		vtkRenderWindow* window1 = proxy1->GetRenderWindow();
+	//Get Views
+	pqView* view1 = serverManager->getItemAtIndex<pqView*>(0); 
 
-	/////////////////////////CREATE  TRACKER////////////////////////////
+	//Get View Proxy
+	vtkSMRenderViewProxy *proxy1 = 0;
+	proxy1 = vtkSMRenderViewProxy::SafeDownCast( view1->getViewProxy() ); 
+  
+	//Get Renderer and Render Window
+	vtkRenderer* renderer1 = proxy1->GetRenderer();
+	vtkRenderWindow* window1 = proxy1->GetRenderWindow();
 
-	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
-	vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
-	tracker1->SetDeviceName(this->vrpnAddress); 
-	tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
-	tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
-    double t2w1[3][3] = { 0, -1,  0,
-                          0,  0, 1, 
-                         -1, 0,  0 }; 
-    double t2wQuat1[4];
-    vtkMath::Matrix3x3ToQuaternion(t2w1, t2wQuat1);
-	tracker1->SetTracker2WorldRotation(t2wQuat1);
-	
-
-    tracker1->Initialize();
-
-	/////////////////////////CREATE  TRACKER STYLE////////////////////////////
-
-	//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
-    vtkVRPNTrackerCustomSensorStyleCamera* trackerStyleCamera1 = vtkVRPNTrackerCustomSensorStyleCamera::New();
-    trackerStyleCamera1->SetTracker(tracker1);
-    trackerStyleCamera1->SetRenderer(renderer1);
-	if (!useanalog)
-	{
-	/////////////////////////CREATE  TRACKER////////////////////////////
-
-	//Create connection to VRPN Tracker using vtkInteractionDevice.lib
-	vtkVRPNTracker* snTracker = vtkVRPNTracker::New();
-	snTracker->SetDeviceName("Tracker0@localhost");   
-	/*double snT2WP[3][3] = { 0, -1,  0,
-                          0,  0, 1, 
-                         -1, 0,  0 };  */
-	snTracker->SetTracker2WorldTranslation( 0.0,0.0,1.0);
-    double snT2WR[3][3] = { -1, 0,  0,
-                            0,  0, -1, 
-                            0, 1,  0 }; 
-    double snT2wQuat1[4];
-    vtkMath::Matrix3x3ToQuaternion(snT2WR, snT2wQuat1);
-	//snTracker->SetTracker2WorldRotation(snT2wQuat1);
-
-    snTracker->Initialize();
-	qWarning("SN Initialized");
-
-	/////////////////////////CREATE  TRACKER STYLE////////////////////////////
-
-	//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
-    vtkVRPNTrackerStyleCamera* snTrackerStyleCamera1 = vtkVRPNTrackerStyleCamera::New();
-    snTrackerStyleCamera1->SetTracker(snTracker);
-	qWarning("SN Camera Initialized");
-    snTrackerStyleCamera1->SetRenderer(renderer1);
-	qWarning("SN Camera Renderer added");
-	}
-	/////////////////////////CREATE  PHANTOM////////////////////////////
-	phantom1 = vtkVRPNPhantom::New();
-    phantom1->SetDeviceName("Phantom0@localhost");
-	phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);
-	phantom1->SetNumberOfButtons(2);
-
-	/*double t2w[3][3] = { 0, 0, 1,
-                          0, 1, 0,
-                          -1, 0, 0 };
-    double t2wQuat[4];
-    vtkMath::Matrix3x3ToQuaternion(t2w, t2wQuat);
-    phantom1->SetPhantom2WorldRotation(t2wQuat);*/
-    phantom1->Initialize();
-
-
-	/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
-	vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
-	phantomStyleCamera1->SetPhantom(phantom1);
-	phantomStyleCamera1->SetRenderer(renderer1);
-	phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
-
-	
 	/////////////////////////INTERACTOR////////////////////////////
 	// Initialize Device Interactor to manage all trackers
     inputInteractor = vtkDeviceInteractor::New();
-	//Register Tracker to Device Interactor
-    inputInteractor->AddInteractionDevice(tracker1);
-    inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
-	//if (!useanalog)
-	//{
-	//	//Register SpaceNavigator to Device Interactor
- //   inputInteractor->AddInteractionDevice(snTracker);
- //   inputInteractor->AddDeviceInteractorStyle(snTrackerStyleCamera1);
-	//}
-	//Register Phantom to Device Interactor 
-	inputInteractor->AddInteractionDevice(phantom1);
-    inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
+
+	if(this->useTracker)
+    {
+
+		/////////////////////////CREATE  TRACKER////////////////////////////
+
+		//Create connection to VRPN Tracker using vtkInteractionDevice.lib
+		vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
+		tracker1->SetDeviceName(this->trackerAddress); 
+		tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
+		tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
+		double t2w1[3][3] = { 0, -1,  0,
+							  0,  0, 1, 
+							 -1, 0,  0 }; 
+		double t2wQuat1[4];
+		vtkMath::Matrix3x3ToQuaternion(t2w1, t2wQuat1);
+		tracker1->SetTracker2WorldRotation(t2wQuat1);
+		
+
+		tracker1->Initialize();
+
+		/////////////////////////CREATE  TRACKER STYLE////////////////////////////
+
+		//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
+		vtkVRPNTrackerCustomSensorStyleCamera* trackerStyleCamera1 = vtkVRPNTrackerCustomSensorStyleCamera::New();
+		trackerStyleCamera1->SetTracker(tracker1);
+		trackerStyleCamera1->SetRenderer(renderer1);
+	
+		/////////////////////////INTERACTOR////////////////////////////
+		//Register Tracker to Device Interactor
+		inputInteractor->AddInteractionDevice(tracker1);
+		inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
+   }  
+	if (this->usePhantom)
+	{
+		/////////////////////////CREATE  PHANTOM////////////////////////////
+		
+		vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
+		phantom1->SetDeviceName(this->phantomAddress);
+		phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
+		phantom1->SetNumberOfButtons(2); 
+		phantom1->Initialize();
+
+
+		/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
+		vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
+		phantomStyleCamera1->SetPhantom(phantom1);
+		phantomStyleCamera1->SetRenderer(renderer1);
+		phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
+
+		
+	    /////////////////////////INTERACTOR////////////////////////////
+		//Register Phantom to Device Interactor 
+		inputInteractor->AddInteractionDevice(phantom1);
+		inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
+	} 
 
 	//Get vtkRenderWindowInteractors
 	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
 
-	////Set the vtkRenderWindowInteractor's style (trackballcamera) and window 
-	//vtkInteractorStyleTrackballCamera* interactorStyle1 = vtkInteractorStyleTrackballCamera::New();
- //   interactor1->SetRenderWindow(window1);
- //   interactor1->SetInteractorStyle(interactorStyle1);
-	////Set the View Proxy's vtkRenderWindowInteractor
-	//proxy1->GetRenderWindow()->SetInteractor(interactor1);
-	if (useanalog)
+	if (this->useSpaceNavigator)
 	{
 	//Cory Quammen's Code
-	const char * spaceNavigatorAddress = "device0@localhost";
-	spaceNavigator1 = new vrpn_Analog_Remote(spaceNavigatorAddress);
-	AC1 = new sn_user_callback;
-	strncpy(AC1->sn_name,spaceNavigatorAddress,sizeof(AC1->sn_name));
-	AC1->sensorIndex = this->sensorIndex;
-	AC1->sn_phantom_ptr = phantom1;
-	spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
+		//const char * spaceNavigatorAddress = "device0@localhost";
+		spaceNavigator1 = new vrpn_Analog_Remote(this->spacenavigatorAddress);
+		AC1 = new sn_user_callback;
+		strncpy(AC1->sn_name,this->spacenavigatorAddress,sizeof(AC1->sn_name));
+		AC1->sensorIndex = this->sensorIndex; 
+		spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
 	
 	}
-	//TNG 
-	const char * TngAddress = "tng3name@localhost";
-	tng1 = new vrpn_Analog_Remote(TngAddress);
-	TNGC1 = new tng_user_callback;
-	TNGC1->channelIndex = this->sensorIndex;
-	TNGC1->initialValue = 0;
-	strncpy(TNGC1->tng_name,TngAddress,sizeof(TNGC1->tng_name));
-	tng1->register_change_handler(TNGC1,handleTNG);
-	
-
-
-
+	if (this->useTNG)
+	{
+		//TNG 
+		//const char * TngAddress = "tng3name@localhost";
+		tng1 = new vrpn_Analog_Remote(this->tngAddress);
+		TNGC1 = new tng_user_callback;
+		TNGC1->channelIndex = this->sensorIndex;
+		TNGC1->initialValue = 0;
+		strncpy(TNGC1->tng_name,this->tngAddress,sizeof(TNGC1->tng_name));
+		tng1->register_change_handler(TNGC1,handleTNG);
+	}
 	//TODO: Uncomment after debugging
 	//Delete objects .
 	//tracker1->Delete();
@@ -509,7 +468,8 @@ void pqVRPNStarter::initializeDevices()
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(timerCallback()));
     this->VRPNTimer->start();
-    }
+	
+    
 }
 //-----------------------------------------------------------------------------
 
@@ -517,14 +477,19 @@ void pqVRPNStarter::uninitializeDevices()
 {
 	this->VRPNTimer->stop();
 	delete this->VRPNTimer;
-	if (useanalog)
+	
+	if (this->useSpaceNavigator)
 	{
-	delete this->spaceNavigator1;
-	delete this->AC1;
+		delete this->spaceNavigator1;
+		delete this->AC1;
 	}
-	this->inputInteractor->Delete();
-	delete this->TNGC1;
-	delete this->tng1;
+	if (this->useTracker || this->usePhantom)
+		this->inputInteractor->Delete();
+	if (this->useTNG)
+	{
+		delete this->TNGC1;
+		delete this->tng1;
+	}
 }
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
@@ -546,33 +511,28 @@ void pqVRPNStarter::timerCallback()
 		this->initializeEyeAngle();
 		this->initializeDevices();
 	}
-	else if (this->resetCamera)
+	/*else if (this->resetCamera)
 	{
 		this->uninitializeDevices();
 		this->initializeEyeAngle();
 		this->initializeDevices();
 		this->resetCamera = false;
-	}
+	}*/
 	else
 	{
-		if (useanalog)
-		{
-		this->spaceNavigator1->mainloop();
-		}
-		this->tng1->mainloop();
-		this->inputInteractor->Update(); 
+		if (this->useSpaceNavigator)
+			this->spaceNavigator1->mainloop();
+		if (this->useTNG)
+			this->tng1->mainloop();
+		if (this->useTracker || this->usePhantom)
+			this->inputInteractor->Update(); 
 	}
 	
 
-	///////////////////////////////////Render is now done in spaceNavigator's mainloop///////////////////////////
+	///////////////////////////////////Render///////////////////////////
 	//Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	/*for (int k = 0; k < serverManager->getNumberOfItems<pqRepresentation*>();k++)
-	{
-		pqRepresentation* rep = serverManager->getItemAtIndex<pqRepresentation*>(k);
-		vtkSMPVRepresentationProxy * repProxy = vtkSMPVRepresentationProxy::SafeDownCast(rep->getProxy());
-		repProxy->UpdateVTKObjects();
-	}*/
+	 
 	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
 	{
 		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
@@ -581,7 +541,7 @@ void pqVRPNStarter::timerCallback()
 	}
 }
 
-// Analog Code adapted from https://github.com/Kitware/ParaView/blob/master/Plugins/VRPN/ParaViewVRPN.cxx
+// Analog Code adapted from ParaView 3.11.2 https://github.com/Kitware/ParaView/blob/master/Plugins/VRPN/ParaViewVRPN.cxx
 vrpn_ANALOGCB SNAugmentChannelsToRetainLargestMagnitude(const vrpn_ANALOGCB t)
 {
   vrpn_ANALOGCB at;
@@ -707,11 +667,10 @@ const vrpn_ANALOGCB t)
 void VRPN_CALLBACK handleTNG(void *userdata,
 const vrpn_ANALOGCB t)
 {
-  tng_user_callback *tData=static_cast<tng_user_callback *>(userdata);
-  //qWarning("%d %f \n",tData->channelIndex,t.channel[tData->channelIndex]);
+  tng_user_callback *tData=static_cast<tng_user_callback *>(userdata); 
 
   //TODO: Determine what is delta?
-  double value = t.channel[tData->channelIndex]; 
+	double value = t.channel[tData->channelIndex]; 
 	double delta = value - tData->initialValue;
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{

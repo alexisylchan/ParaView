@@ -81,12 +81,25 @@ vtkPVOptions::vtkPVOptions()
   this->ConnectID = 0;
   this->LogFileName = 0;
   this->StereoType = 0;
-  this->SetStereoType("Anaglyph");
-  this->VRPNTrackerOrigin = 0;
-  this->SetVRPNTrackerOrigin("8.68,5.4,1.3");
-  this->VRPNTrackerSensor = 0;
-  this->VRPNAddress = 0;
-  this->SetVRPNAddress("Tracker0@localhost");
+  this->SetStereoType("Anaglyph"); 
+	
+  // Initialize options for Collaborative Scientific Visualization Workbench
+  this->UseTracker = 0;
+  this->TrackerAddress = 0;
+  this->SetTrackerAddress("Tracker0@localhost");
+  this->TrackerOrigin=0;
+  this->SetTrackerOrigin("8.68,5.4,1.3");
+  this->TrackerSensor = 0;
+  this->UseSpaceNavigator = 0;
+  this->SpaceNavigatorAddress = 0;
+  this->SetSpaceNavigatorAddress("device0@localhost");
+  this->UsePhantom = 0;
+  this->PhantomAddress = 0;
+  this->SetPhantomAddress("Phantom0@localhost");
+  this->UseTNG = 0; 
+  this->TNGAddress = 0;
+  this->SetTNGAddress("tng3name@localhost");
+  
   this->VRUIAddress = 0;
   this->SetVRUIAddress("localhost");
 
@@ -117,9 +130,15 @@ vtkPVOptions::~vtkPVOptions()
   this->SetLogFileName(0);
   this->SetStereoType(0);
   this->SetParaViewDataName(0);
-  this->SetVRPNAddress(0);
-  this->SetVRPNTrackerOrigin(0);
+  this->SetVRPNAddress(0); 
   this->SetVRUIAddress(0);
+
+  
+  this->SetTrackerAddress(0); 
+  this->SetTrackerOrigin(0); 
+  this->SetSpaceNavigatorAddress(0); 
+  this->SetPhantomAddress(0); 
+  this->SetTNGAddress(0); 
 }
 
 //----------------------------------------------------------------------------
@@ -184,15 +203,53 @@ void vtkPVOptions::Initialize()
                     "\"Tracker0@localhost\", \"Head0@localhost\""
                     "Please check VRPN configuration file",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
-  this->AddArgument("--vrpn-sensor", 0, &this->VRPNTrackerSensor,
-                   "Specify the VRPN tracker sensor. This valid only when "
-                    "--vrpn and --vrpn-address is specified",
+  
+  // Add arguments for Collaborative Scientific Visualization Workbench options
+  // Refer to ParaViewR0.bat and ParaViewR1.bat for further descriptions
+  this->AddBooleanArgument("--tracker", 0, &this->UseTracker,
+                           "Tell the Collaborative Scientific Visualization Workbench to use the HeadTracker. Use this option instead of --vrpn for the workbench.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--tracker-address", 0, &this->TrackerAddress,
+                    "Specify the VRPN tracker name. This valid only when "
+                    "--tracker is specified. Examples: "
+                    "\"Tracker0@localhost\", \"Head0@localhost\""
+                    "Please check VRPN configuration file",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
-  this->AddArgument("--vrpn-origin", 0, &this->VRPNTrackerOrigin,
+  this->AddArgument("--tracker-origin", 0, &this->TrackerOrigin,
                     "Specify the VRPN tracker world origin \"x-coordinate,y-coordinate,z-coordinate\"."
-					"This valid only when --vrpn and --vrpn-address is specified. Examples: "
+					"This valid only when --tracker and --tracker-address is specified. Examples: "
                     "\"8.68,5.4,1.3\"",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--tracker-sensor", 0, &this->TrackerSensor,
+                   "Specify the VRPN tracker sensor. This valid only when "
+                    "--tracker and --tracker-address is specified",
+                    vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddBooleanArgument("--spacenavigator", 0, &this->UseSpaceNavigator,
+                           "Tell the Collaborative Scientific Visualization Workbench to use the 3Dconnexion SpaceNavigator.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--spacenavigator-address", 0, &this->SpaceNavigatorAddress,
+                    "Specify the SpaceNavigator name. This valid only when "
+                    "--spacenavigator is specified. Examples: "
+                    "\"device0@localhost\"",
+                    vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddBooleanArgument("--phantom", 0, &this->UsePhantom,
+                           "Tell the Collaborative Scientific Visualization Workbench to use the Phantom Omni Device.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--phantom-address", 0, &this->PhantomAddress,
+                    "Specify the Phantom Omni Device name. This valid only when "
+                    "--phantom is specified. Examples: "
+                    "\"Phantom0@localhost\"",
+                    vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddBooleanArgument("--tng", 0, &this->UseTNG,
+                           "Tell the Collaborative Scientific Visualization Workbench to use the TNG-3B Serial Interface.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--tng-address", 0, &this->TNGAddress,
+                    "Specify the TNG-3B Serial Interface name. This valid only when "
+                    "--tng is specified. Examples: "
+                    "\"tng3name@localhost\"",
+                    vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+
+
   this->AddBooleanArgument("--vrui", 0, &this->UseVRUI,
                            "Tell the application to use VRUI for head tracking",
                            vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
