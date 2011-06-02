@@ -677,9 +677,9 @@ const vrpn_ANALOGCB t)
 			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 			if (delta > 0 )
-				camera->SetEyeOffset(camera->GetEyeOffset()+0.001);//camera->SetEyeAngle(camera->GetEyeAngle()+0.5);
+				camera->SetEyeOffset(camera->GetEyeOffset()+0.001*delta);//camera->SetEyeAngle(camera->GetEyeAngle()+0.5);
 			else if (delta < 0)
-				camera->SetEyeOffset(camera->GetEyeOffset()-0.001);
+				camera->SetEyeOffset(camera->GetEyeOffset()-0.001*delta);
 				//camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
 			tData->initialValue = value;
 
