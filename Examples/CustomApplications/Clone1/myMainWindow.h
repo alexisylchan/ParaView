@@ -62,6 +62,8 @@ public slots:
     /// Open File dialog in order to choose the location and the type of
   /// the state file that should be saved
    void saveState(); 
+   // toggle to partner's view 
+   void onToggleView(); 
   //Set mode to contextual flow
    void contextualFlow(); 
   //Set mode to vortex identification
@@ -85,6 +87,8 @@ signals:
   void changeSceneTime(double);
   void changeDataSet(int index);
   void resetPhantom(); 
+  void toggleView();
+  //void toggleView(bool togglePartnersView);
 
 protected slots:
 	 /// Called when animation scene reports that it's time has changed.
@@ -109,6 +113,7 @@ private:
   bool showVortexCore;
   bool showVortexCoreLine;
   bool showTurbineGeometry;
+  //bool showPartnersView;
 };
 
 #endif

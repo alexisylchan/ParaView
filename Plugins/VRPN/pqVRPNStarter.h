@@ -95,6 +95,8 @@ public slots:
 	void selfSaveEvent(); 
 	// Switch between three data sets for Special Use Case: Vortex Visualization
 	void onChangeDataSet(int index);
+	// Switch between partner's (other user) view and self
+	void onToggleView();
 	// Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 	void onResetPhantom();
 protected:
@@ -139,6 +141,8 @@ private:
   const char* trackerAddress;
   double trackerOrigin[3];
   int sensorIndex;
+  int origSensorIndex;
+  bool showPartnersView;
   int useSpaceNavigator;
   const char* spacenavigatorAddress;
   int usePhantom;

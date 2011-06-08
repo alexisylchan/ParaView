@@ -120,6 +120,10 @@ myMainWindow::myMainWindow()
   this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
 
+  this->Internals->ToggleToPartnersView->setIconSize(QSize(24,24));
+  this->Internals->ToggleToPartnersView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
+  QObject::connect(this->Internals->ToggleToPartnersView,SIGNAL(clicked()),this,SLOT(onToggleView()));
+
   this->Internals->ToggleTurbineGeometry->setIconSize(QSize(24,24));
   this->Internals->ToggleTurbineGeometry->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/pqGroup24.png"));
   QObject::connect(this->Internals->ToggleTurbineGeometry,SIGNAL(clicked()),this,SLOT(turbineGeometry()));
@@ -224,7 +228,7 @@ myMainWindow::myMainWindow()
  this->showVortexCore = true;
  this->showVortexCoreLine = true;
  this->showTurbineGeometry = true;
-    
+ //this->showPartnersView = false;
 }
 
 void myMainWindow::onChangeDataSet(int index)
@@ -435,6 +439,18 @@ void myMainWindow::saveState()
   pqApplicationCore::instance()->serverResources().save(
     *pqApplicationCore::instance()->settings());
 } 
+//-----------------------------------------------------------------------------
+void myMainWindow::onToggleView()
+{ 
+	/*if (this->showPartnersView)
+		this->showPartnersView = false;
+	else
+		this->showPartnersView = true;*/
+
+   //switch to partner's view
+	emit this->toggleView();
+} 
+
 
 void myMainWindow::HideObject(pqView* view,pqPipelineSource* createdSource)
 {

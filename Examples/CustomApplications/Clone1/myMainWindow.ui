@@ -287,6 +287,19 @@
       <string>Toggle Fast Time Series View</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="ToggleToPartnersView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>460</y>
+       <width>261</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Toggle to Partner's View</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

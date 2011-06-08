@@ -168,6 +168,7 @@ void pqVRPNStarter::onStartup()
 	coordStr = strtok(NULL,",");
 	}
 	this->sensorIndex = options->GetTrackerSensor(); 
+	this->origSensorIndex = options->GetTrackerSensor();
 
 	//SpaceNavigator Options
 	this->useSpaceNavigator = options->GetUseSpaceNavigator();
@@ -189,6 +190,7 @@ void pqVRPNStarter::onStartup()
 	//Listen to Custom Application's GUI Qt signals for Vortex Visualization
 	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
 	QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
+	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
 }
@@ -208,6 +210,37 @@ void pqVRPNStarter::onChangeDataSet(int index)
 		break;
 	}
 
+}
+void pqVRPNStarter::onToggleView()//bool togglePartnersView)
+{
+	if (showPartnersView)
+	{
+		showPartnersView = false;
+		this->sensorIndex = this->origSensorIndex;
+	}
+	else
+	{
+		showPartnersView = true;
+		this->sensorIndex = (this->sensorIndex +1)%2;
+	}
+	QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
+	pqApplicationCore::instance()->saveState(filename);
+	pqServer *server = pqActiveObjects::instance().activeServer();
+	// Add this to the list of recent server resources ...
+	pqServerResource resource;
+	resource.setScheme("session");
+	resource.setPath(filename);
+	resource.setSessionServer(server->getResource());
+	pqApplicationCore::instance()->serverResources().add(resource);
+	pqApplicationCore::instance()->serverResources().save(
+	*pqApplicationCore::instance()->settings());
+
+	this->uninitializeDevices();
+	pqCommandLineOptionsBehavior::resetApplication();	
+    pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
+	this->changeTimeStamp();
+	this->initializeEyeAngle();
+	this->initializeDevices();  
 }
 // Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 void pqVRPNStarter::onResetPhantom()
