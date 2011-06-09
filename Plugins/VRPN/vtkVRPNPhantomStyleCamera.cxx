@@ -157,7 +157,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 { 
 		
 	double* position = Phantom->GetPosition(); 
-
+	
 	
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 
 
@@ -169,7 +169,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		vtkCamera* camera = proxy->GetActiveCamera();  
 		
 		double* newPosition;
-		newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer());
+		newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer(),Phantom->GetSensorIndex());
 		//newPosition= this->ScalePosition(position,proxy->GetRenderer());
 
 			//Set position to view position
@@ -443,7 +443,7 @@ double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* r
 		
 }
 
-double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer)
+double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer,int sensorIndex)
 {
 		double* newPosition =  new double[4];
 		double* newScaledPosition =  new double[4];
@@ -452,6 +452,8 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		 
 		//Attempt to rotate by camera orientation.
 		vtkMatrix4x4* cameraMatrix = camera->GetCameraLightTransformMatrix();
+		
+		
 		double camCoordPosition[4];
 		for (int i = 0; i<3;i++)
 		{
@@ -459,7 +461,20 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		}
 		camCoordPosition[3] = 1.0;//renderer->GetActiveCamera()->GetDistance();
 		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition); 
-
+		double* newPosition2 =  new double[4];
+		if (sensorIndex)
+		{
+			vtkTransform* transform = vtkTransform::New();
+			transform->RotateWXYZ(90,0,1,0);
+			transform->MultiplyPoint(newPosition,newPosition2);
+		}
+		else
+		{
+			for (int j = 0; j<3; j++)
+			{
+				newPosition[j] = newPosition2[j];
+			}
+		}
 		camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
 		double matrix0Data[3][3];
 		double *matrix0[3]; 
@@ -667,14 +682,15 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 				zmax = abs(value[p][2]);
 			//qWarning("value in loop %f %f %f",value[p][0],value[p][1],value[p][2]);
 		} 
-		newScaledPosition[0] = (newPosition[0]/0.5)* (xmax/2000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-		newScaledPosition[1] = (newPosition[1]/0.5 )* (ymax/2000.0);
-		newScaledPosition[2] = (newPosition[2]/0.5)* (zmax/2000.0);
+		newScaledPosition[0] = (newPosition2[0]/0.5)* (xmax/2000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		newScaledPosition[1] = (newPosition2[1]/0.5 )* (ymax/2000.0);
+		newScaledPosition[2] = (newPosition2[2]/0.5)* (zmax/2000.0);
 
 		/*
 		qWarning("newScaledPosition %f %f %f",newScaledPosition[0],newScaledPosition[1],newScaledPosition[2]);*/
 		delete index;
 		delete newPosition;
+		delete newPosition2;
 		return newScaledPosition;
 }
  

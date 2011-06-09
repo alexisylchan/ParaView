@@ -296,7 +296,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 		camera->SetEyeAngle(0);
-		camera->SetHeadTracked(this->useTracker);
+		camera->SetHeadTracked(true);//this->useTracker);
 
 		//Code from vtkCaveSynchronizedRenderers::SetDisplayConfig
 		double DisplayX[3], DisplayY[3],DisplayOrigin[3];
@@ -449,7 +449,8 @@ void pqVRPNStarter::initializeDevices()
 		vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
 		phantom1->SetDeviceName(this->phantomAddress);
 		phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
-		phantom1->SetNumberOfButtons(2); 
+		phantom1->SetNumberOfButtons(2);
+		phantom1->SetSensorIndex(this->sensorIndex);
 		phantom1->Initialize();
 
 
@@ -704,17 +705,27 @@ const vrpn_ANALOGCB t)
 
   //TODO: Determine what is delta?
 	double value = t.channel[tData->channelIndex]; 
+	qWarning("value %f",value);
 	double delta = value - tData->initialValue;
+	qWarning("initial value %f",tData->initialValue);
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
 			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 			if (delta > 0 )
-				camera->SetEyeOffset(camera->GetEyeOffset()+0.001*delta);//camera->SetEyeAngle(camera->GetEyeAngle()+0.5);
+			{
+				qWarning("before %f",camera->GetEyeOffset());
+				camera->SetEyeOffset(0.001*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
+				qWarning("after %f",camera->GetEyeOffset());
+			}
 			else if (delta < 0)
-				camera->SetEyeOffset(camera->GetEyeOffset()-0.001*delta);
+			{
+				qWarning("before %f",camera->GetEyeOffset());
+				camera->SetEyeOffset(0.001*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
+				qWarning("after %f",camera->GetEyeOffset());
+			}
 				//camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
-			tData->initialValue = value;
+			//tData->initialValue = value;
 
 	} 
 }
