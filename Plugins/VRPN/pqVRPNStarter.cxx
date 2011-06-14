@@ -223,24 +223,8 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 		showPartnersView = true;
 		this->sensorIndex = (this->sensorIndex +1)%2;
 	}
-	QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
-	pqApplicationCore::instance()->saveState(filename);
-	pqServer *server = pqActiveObjects::instance().activeServer();
-	// Add this to the list of recent server resources ...
-	pqServerResource resource;
-	resource.setScheme("session");
-	resource.setPath(filename);
-	resource.setSessionServer(server->getResource());
-	pqApplicationCore::instance()->serverResources().add(resource);
-	pqApplicationCore::instance()->serverResources().save(
-	*pqApplicationCore::instance()->settings());
-
-	this->uninitializeDevices();
-	pqCommandLineOptionsBehavior::resetApplication();	
-    pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
-	this->changeTimeStamp();
 	this->initializeEyeAngle();
-	this->initializeDevices();  
+	
 }
 // Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 void pqVRPNStarter::onResetPhantom()
