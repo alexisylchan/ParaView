@@ -704,28 +704,20 @@ const vrpn_ANALOGCB t)
   tng_user_callback *tData=static_cast<tng_user_callback *>(userdata); 
 
   //TODO: Determine what is delta?
-	double value = t.channel[tData->channelIndex]; 
-	qWarning("value %f",value);
-	double delta = value - tData->initialValue;
-	qWarning("initial value %f",tData->initialValue);
+	double value = t.channel[tData->channelIndex];  
+	double delta = value - tData->initialValue; 
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
 			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 			if (delta > 0 )
-			{
-				qWarning("before %f",camera->GetEyeOffset());
+			{ 
 				camera->SetEyeOffset(0.001*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
-				qWarning("after %f",camera->GetEyeOffset());
 			}
 			else if (delta < 0)
-			{
-				qWarning("before %f",camera->GetEyeOffset());
+			{ 
 				camera->SetEyeOffset(0.001*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
-				qWarning("after %f",camera->GetEyeOffset());
-			}
-				//camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
-			//tData->initialValue = value;
+			} 
 
 	} 
 }
