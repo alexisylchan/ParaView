@@ -105,6 +105,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vtkstd/vector>
 //
+
+//Continuous sync
+#include "pqUndoStack.h"
+#include "vtkUndoSet.h"
+#include "vtkSMProxyManager.h"
+#include "vtkProcessModuleConnectionManager.h"
+#include "vtkSMProperty.h"
+#include "vtkSMStateLoader.h"
+#include "vtkSMProxyLocator.h"
+#include "vtkPVXMLElement.h" 
 //#include "pqPushToSharedStateReaction.h"
 // From Cory Quammen's code
 class sn_user_callback
@@ -193,6 +203,13 @@ void pqVRPNStarter::onStartup()
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
+	//undoStack = pqApplicationCore::instance()->getUndoStack();
+	//QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
+	//		    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
+
+	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
+	//	this, SLOT(serverResourcesChanged()));
+
 }
 
 void pqVRPNStarter::onChangeDataSet(int index)
@@ -229,51 +246,52 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 // Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
-{
-	//pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
-	//	if (cursorData)
-	//	{
-	//		pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::STREAMTRACER_INPUT); 
-	//		if (nextData)
-	//		{	
-	//			
-	//			vtkSMPVRepresentationProxy *nextDataProxy = 0;
-	//			nextDataProxy = vtkSMPVRepresentationProxy::SafeDownCast(nextData->getProxy());
-	//			double* newPosition =  new double[3];
-	//			vtkSMPropertyHelper(nextDataProxy,"Position").Get(newPosition,3); 
-	//			vtkSMPVRepresentationProxy *repProxy = 0;
-	//			repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
-	//			vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
-	//			repProxy->UpdateVTKObjects(); 
-	//			pqView* view = pqActiveObjects::instance().activeView();
-	//			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-	//			viewProxy->GetRenderer()->Render();
-	//		} 
-	//	} 
-	//QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
-	//pqApplicationCore::instance()->saveState(filename);
-	//pqServer *server = pqActiveObjects::instance().activeServer();
-	//// Add this to the list of recent server resources ...
-	//pqServerResource resource;
-	//resource.setScheme("session");
-	//resource.setPath(filename);
-	//resource.setSessionServer(server->getResource());
-	//pqApplicationCore::instance()->serverResources().add(resource);
-	//pqApplicationCore::instance()->serverResources().save(
-	//*pqApplicationCore::instance()->settings());
-
-
-	//this->uninitializeDevices();
-	//pqCommandLineOptionsBehavior::resetApplication();	
-	//pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
-
-	//	
-	////TODO: remove this for general use case. 
-	//this->initializeEyeAngle();
-	////qWarning("initialize devices");
-	//this->initializeDevices();   
-	////qWarning("reset!!!!");
+{ 
+	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/arrowsource.txt"); 
+	xmlParser->Parse();
+	int proxy_id;
+	vtkPVXMLElement * xmlElement=  xmlParser->GetRootElement(); 
+	vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+	vtkSMProxy* proxy = pxm->GetProxy(vtkProcessModuleConnectionManager::GetRootServerConnectionID(),948);//proxy_id);
+	vtkSMStateLoader* loader = vtkSMStateLoader::New();
+	loader->GetProxyLocator()->SetConnectionID(pqActiveObjects::instance().activeServer()->GetConnectionID());
+	proxy->LoadState(xmlElement,loader->GetProxyLocator());
+	proxy->UpdateVTKObjects(); 
+	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	 
+	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
+	{
+		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+		proxy->GetRenderWindow()->Render();
+	}
 }  
+void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel, 
+    bool canRedo, QString redoLabel)
+{
+	//Code from VisTrails ParaView Plugin
+	qWarning (" Stack Changed !!! %s , %s" ,
+		undoLabel.toStdString().c_str(),redoLabel.toStdString().c_str());
+
+		//Code from VisTrails plugin
+		// Get the xml delta for the operation at the top of the undo stack.
+		std::stringstream xmlStream;
+		std::string xmlString;
+ 
+		vtkUndoSet *uset = undoStack->getLastUndoSet();
+		vtkPVXMLElement* xml = uset->SaveState(NULL);
+
+		xml->PrintXML(xmlStream, vtkIndent());
+		QString xmlStr(xmlStream.str().c_str());
+
+		qWarning("%s",xmlStream.str().c_str());		
+
+}
+void pqVRPNStarter::serverResourcesChanged( )
+{
+	qWarning (" Server Resources Changed !!!");
+}
 void pqVRPNStarter::initializeEyeAngle()
 {
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
@@ -529,14 +547,7 @@ void pqVRPNStarter::timerCallback()
 		this->changeTimeStamp();
 		this->initializeEyeAngle();
 		this->initializeDevices();
-	}
-	/*else if (this->resetCamera)
-	{
-		this->uninitializeDevices();
-		this->initializeEyeAngle();
-		this->initializeDevices();
-		this->resetCamera = false;
-	}*/
+	} 
 	else
 	{
 		if (this->useSpaceNavigator)

@@ -52,6 +52,7 @@ class tng_user_callback;
 class vtkPVXMLElement;
 class vtkVRPNPhantom;
 class vtkEventQtSlotConnect;
+class pqUndoStack;
 
 class pqVRPNStarter : public QObject
 {
@@ -99,6 +100,11 @@ public slots:
 	void onToggleView();
 	// Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 	void onResetPhantom();
+
+	// Handle stack change on ParaView
+	void handleStackChanged(bool canUndo, QString undoLabel, bool canRedo, QString redoLabel);
+	// Handle server resources changed
+	void serverResourcesChanged();
 protected:
 	//
     QTimer *VRPNTimer;
@@ -152,6 +158,9 @@ private:
  
   //Log file for recording Phantom positions
   ofstream evaluationlog;
+
+  //Track pqUndoStack to deal with creation?  OR track Apply?
+  pqUndoStack* undoStack;
 
 };
 
