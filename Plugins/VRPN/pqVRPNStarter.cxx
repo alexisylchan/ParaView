@@ -227,51 +227,52 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 	
 }
 // Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
+// Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
 {
-	pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
-		if (cursorData)
-		{
-			pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::STREAMTRACER_INPUT); 
-			if (nextData)
-			{	
-				
-				vtkSMPVRepresentationProxy *nextDataProxy = 0;
-				nextDataProxy = vtkSMPVRepresentationProxy::SafeDownCast(nextData->getProxy());
-				double* newPosition =  new double[3];
-				vtkSMPropertyHelper(nextDataProxy,"Position").Get(newPosition,3); 
-				vtkSMPVRepresentationProxy *repProxy = 0;
-				repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
-				vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
-				repProxy->UpdateVTKObjects(); 
-				pqView* view = pqActiveObjects::instance().activeView();
-				vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-				viewProxy->GetRenderer()->Render();
-			} 
-		} 
-	QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
-	pqApplicationCore::instance()->saveState(filename);
-	pqServer *server = pqActiveObjects::instance().activeServer();
-	// Add this to the list of recent server resources ...
-	pqServerResource resource;
-	resource.setScheme("session");
-	resource.setPath(filename);
-	resource.setSessionServer(server->getResource());
-	pqApplicationCore::instance()->serverResources().add(resource);
-	pqApplicationCore::instance()->serverResources().save(
-	*pqApplicationCore::instance()->settings());
+	//pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
+	//	if (cursorData)
+	//	{
+	//		pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::STREAMTRACER_INPUT); 
+	//		if (nextData)
+	//		{	
+	//			
+	//			vtkSMPVRepresentationProxy *nextDataProxy = 0;
+	//			nextDataProxy = vtkSMPVRepresentationProxy::SafeDownCast(nextData->getProxy());
+	//			double* newPosition =  new double[3];
+	//			vtkSMPropertyHelper(nextDataProxy,"Position").Get(newPosition,3); 
+	//			vtkSMPVRepresentationProxy *repProxy = 0;
+	//			repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
+	//			vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
+	//			repProxy->UpdateVTKObjects(); 
+	//			pqView* view = pqActiveObjects::instance().activeView();
+	//			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
+	//			viewProxy->GetRenderer()->Render();
+	//		} 
+	//	} 
+	//QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm");
+	//pqApplicationCore::instance()->saveState(filename);
+	//pqServer *server = pqActiveObjects::instance().activeServer();
+	//// Add this to the list of recent server resources ...
+	//pqServerResource resource;
+	//resource.setScheme("session");
+	//resource.setPath(filename);
+	//resource.setSessionServer(server->getResource());
+	//pqApplicationCore::instance()->serverResources().add(resource);
+	//pqApplicationCore::instance()->serverResources().save(
+	//*pqApplicationCore::instance()->settings());
 
 
-	this->uninitializeDevices();
-	pqCommandLineOptionsBehavior::resetApplication();	
-	pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
+	//this->uninitializeDevices();
+	//pqCommandLineOptionsBehavior::resetApplication();	
+	//pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/current.pvsm"));
 
-		
-	//TODO: remove this for general use case. 
-	this->initializeEyeAngle();
-	//qWarning("initialize devices");
-	this->initializeDevices();   
-	//qWarning("reset!!!!");
+	//	
+	////TODO: remove this for general use case. 
+	//this->initializeEyeAngle();
+	////qWarning("initialize devices");
+	//this->initializeDevices();   
+	////qWarning("reset!!!!");
 }  
 void pqVRPNStarter::initializeEyeAngle()
 {
