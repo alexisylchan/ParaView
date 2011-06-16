@@ -203,9 +203,9 @@ void pqVRPNStarter::onStartup()
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
-	//undoStack = pqApplicationCore::instance()->getUndoStack();
-	//QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
-	//		    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
+	undoStack = pqApplicationCore::instance()->getUndoStack();
+	/*QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
+			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));*/
 
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
@@ -246,46 +246,15 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 // Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
-{ 
-	//VRPNTimer->stop();
-	//VRPNTimer->blockSignals(true);
-	VRPNTimer->blockSignals(true); 
-	qWarning("QTimer stopped!");
-	pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/arrow.pvsm"));
-	this->blockSignals(false);
-	
-	//VRPNTimer->blockSignals(false);
-	//VRPNTimer->start();
-	qWarning("QTimer started!");
-
-	//VRPNTimer->start();
-	/*doesn't work
+{  
+	VRPNTimer->blockSignals(true);  
 	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
 	xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/teststack.txt"); 
 	xmlParser->Parse();
 	vtkPVXMLElement * root=  xmlParser->GetRootElement(); 
 	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
-	uSet->Redo(); */
-	//Code for editing properties
-	//vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-	//xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/arrowsource.txt"); 
-	//xmlParser->Parse();
-	//int proxy_id;
-	//vtkPVXMLElement * xmlElement=  xmlParser->GetRootElement(); 
-	//vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-	//vtkSMProxy* proxy = pxm->GetProxy(vtkProcessModuleConnectionManager::GetRootServerConnectionID(),948);//proxy_id);
-	//vtkSMStateLoader* loader = vtkSMStateLoader::New();
-	//loader->GetProxyLocator()->SetConnectionID(pqActiveObjects::instance().activeServer()->GetConnectionID());
-	//proxy->LoadState(xmlElement,loader->GetProxyLocator());
-	//proxy->UpdateVTKObjects(); 
-	//pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	// 
-	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
-	//{
-	//	pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-	//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-	//	proxy->GetRenderWindow()->Render();
-	//}
+	uSet->Redo(); 
+	VRPNTimer->blockSignals(false);   
 }  
 void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel, 
     bool canRedo, QString redoLabel)
@@ -572,7 +541,7 @@ void pqVRPNStarter::timerCallback()
 			this->inputInteractor->Update(); 
 	}
 	
-
+	qWarning("Still timing!");
 	///////////////////////////////////Render///////////////////////////
 	//Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
