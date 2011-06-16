@@ -608,8 +608,8 @@ void PluginMain::modifyStackSlot(QList<int> versions, int commonIndex) {
 
 			// We have to treat xml deltas and state loads differently
 			char type = deltas[i][0].toAscii();
-			QString thisdelta = deltas[i].remove(0,1);
 
+			QString thisdelta = deltas[i].remove(0,1);
 			if (type == 'x') {
 
 				// Redo the xml to get to the next version.
@@ -986,6 +986,8 @@ bool SocketHelper::readInt(int &i) {
 	int hosti = ntohl(neti);
 
 	i = hosti;
+	//Alexis:
+	qWarning("%d",i);
 	return true;
 }
 
@@ -999,6 +1001,7 @@ bool SocketHelper::readString(QString &s) {
 		return false;
 
 	s = raw.data();
+	qWarning(s.toAscii().data());
 	return true;
 }
 

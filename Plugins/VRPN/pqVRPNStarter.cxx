@@ -193,7 +193,7 @@ void pqVRPNStarter::onStartup()
 	this->tngAddress = options->GetTNGAddress();
  
 	this->listenToSelfSave();
-	this->initialLoadState();
+	this->initialLoadState(); 
 	this->initializeEyeAngle();
 	this->initializeDevices();
 
@@ -247,6 +247,18 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
 { 
+	//VRPNTimer->stop();
+	//VRPNTimer->blockSignals(true);
+	VRPNTimer->blockSignals(true); 
+	qWarning("QTimer stopped!");
+	pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/arrow.pvsm"));
+	this->blockSignals(false);
+	
+	//VRPNTimer->blockSignals(false);
+	//VRPNTimer->start();
+	qWarning("QTimer started!");
+
+	//VRPNTimer->start();
 	/*doesn't work
 	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
 	xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/teststack.txt"); 
@@ -454,7 +466,7 @@ void pqVRPNStarter::initializeDevices()
 		inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
    }  
 	if (this->usePhantom)
-	{
+	{ 
 		/////////////////////////CREATE  PHANTOM////////////////////////////
 		
 		vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
@@ -502,13 +514,7 @@ void pqVRPNStarter::initializeDevices()
 		TNGC1->initialValue = 0;
 		strncpy(TNGC1->tng_name,this->tngAddress,sizeof(TNGC1->tng_name));
 		tng1->register_change_handler(TNGC1,handleTNG);
-	}
-	//TODO: Uncomment after debugging
-	//Delete objects .
-	//tracker1->Delete();
-	//trackerStyleCamera1->Delete();
-	//interactor1->Delete();
-	//interactorStyle1->Delete();
+	} 
 	
     connect(this->VRPNTimer,SIGNAL(timeout()),
 		 this,SLOT(timerCallback()));
