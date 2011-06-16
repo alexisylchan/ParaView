@@ -79,7 +79,7 @@ public:
 	NoOpStream& operator<<(float) { return *this; }
 	NoOpStream& operator<<(double) { return *this; }
 };
-//#define qWarning NoOpStream
+#define qDebug NoOpStream
 #endif
 
 
@@ -150,7 +150,6 @@ void PluginMain::Startup() {
       return;
     }
   }
-  qWarning("Application Directory %s",appDir.c_str());
   #ifdef __APPLE__
     // On a Mac we will assume we will run from inside paraview bundle
     // We will also assume that there will be a VisTrailsPlugin bundle to 
@@ -158,28 +157,22 @@ void PluginMain::Startup() {
     vtcmd = QString("/Applications/VisTrailsParaViewPlugin.app");
   #else
     #ifdef WIN32
-	  //06/15/11 Alexis: Change command use python.exe instead of VisTrails.exe because we compile from  source
-      vtcmd = QString(appDir.c_str()) + QString("/vistrails/Python26/python.exe ")+ QString(appDir.c_str())+ QString("/vistrails/vistrails.py");
-      //vtcmd = QString("python ") + pluginPath + QString("/vistrails/api/VisTrails.py");
+      vtcmd = QString(appDir.c_str()) + QString("/vistrails/VisTrails.exe");
     #else
       vtcmd = QString("python ") + pluginPath + QString("/vistrails/api/VisTrails.py");
       linux = 1;
     #endif
   #endif
-	  //06/15/11 Alexis: Comment out Error Message when VisTrails.exe is not found
-     
- /* if (!QFile(vtcmd).exists() && linux == 0) {
-     qWarning() << (vtcmd);
+  if (!QFile(vtcmd).exists() && linux == 0) {
+     qDebug() << (vtcmd);
      QMessageBox::critical(NULL, "Provenance Recorder", "couldn't find vistrails executable!");
      return;
-  }*/
+  }
   #ifdef NDEBUG
-     //shellcmd = QString("");
-	  shellcmd = QString("cmd /c start set ")+ QString("PATH = ")+QString(appDir.c_str())+QString(";%PATH%; "); //Start cmd shell and add the Release path to PATH
-
+     shellcmd = QString("");
   #else
      #ifdef WIN32
-        shellcmd = QString("cmd /c start cd");
+        shellcmd = QString("cmd /c start ");
      #else
         #ifdef __APPLE__
            shellcmd = QString("");
@@ -189,9 +182,7 @@ void PluginMain::Startup() {
         #endif
      #endif
    #endif
-
-   
-   qWarning()<<(shellcmd   + vtcmd  ); 
+   qDebug()<<(shellcmd+vtcmd);
    visTrails.setProcessChannelMode(QProcess::ForwardedChannels);
    visTrails.start(shellcmd + "\"" + vtcmd + "\""); 
    if (visTrails.waitForStarted()) {
@@ -218,7 +209,7 @@ void PluginMain::Shutdown() {
     mutex.unlock();
 	// Send the shutdown signal if vistrails is still running, and close the socket
 	if (vtSender) {
-          qWarning() << "Sending Shutdown";
+          qDebug() << "Sending Shutdown";
 		if (!vistrailsShutdown) {
 			vtSender->writeInt(vtSHUTDOWN);
 			vtSender->waitForBytesWritten(-1);
@@ -243,7 +234,7 @@ void PluginMain::Shutdown() {
 
 
 void PluginMain::aboutToQuit() {
-        qWarning() << "about to quit";
+        qDebug() << "about to quit";
 	mutex.lock();
 	quit = true;
 	mutex.unlock();
@@ -257,7 +248,7 @@ to handle messages that VisTrails sends.
 */
 void PluginMain::run() {
 
-	qWarning() << "Listener starting...";
+	qDebug() << "Listener starting...";
 
 	// Open the port to listen for a VisTrails connection.
     QTcpServer serv;
@@ -269,27 +260,27 @@ void PluginMain::run() {
 	while (receiver==NULL || vtSender==NULL) {
 
 		if (vtSender==NULL) {
-			qWarning() << "Opening connection to VisTrails server...";
+			qDebug() << "Opening connection to VisTrails server...";
 			QTcpSocket *tmpSock = new QTcpSocket();
 			tmpSock->connectToHost(vtHost, vtPort);
 			if (tmpSock->waitForConnected(1000)) {
 				// All interaction with this socket comes from the main thread.
 				tmpSock->moveToThread(mainThread);
 				vtSender = new SocketHelper(tmpSock);
-				qWarning() << "connection open.";
+				qDebug() << "connection open.";
 			} else {
 				delete tmpSock;
-				qWarning() << "timed out";
+				qDebug() << "timed out";
 			}
 		}
 
 		if (receiver==NULL) {
-			qWarning() << "Waiting for incoming VisTrails connection...";
+			qDebug() << "Waiting for incoming VisTrails connection...";
 			if (serv.waitForNewConnection(1000)) {
 				receiver = new SocketHelper(serv.nextPendingConnection());
-				qWarning() << "found connection.";
+				qDebug() << "found connection.";
 			} else {
-				qWarning() << "timed out.";
+				qDebug() << "timed out.";
 			}
 		}
 	}
@@ -319,7 +310,7 @@ void PluginMain::run() {
 		connect(undoStack, SIGNAL(stackChanged(bool,QString,bool,QString)), 
 			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
 	else{
-		qWarning() << "Unable to link to ParaView undo stack! Aborting plugin";
+		qDebug() << "Unable to link to ParaView undo stack! Aborting plugin";
 		Shutdown();
 	}
 	// track when state loading happens
@@ -348,7 +339,7 @@ void PluginMain::run() {
 	//this->multiViewManager().saveState(root);
 	//root->Delete();
 	// Go into the main listener loop.
-	qWarning() << "Entering listener loop";
+	qDebug() << "Entering listener loop";
 	while (!quit) {
 		int msg;
 		if (!receiver->readInt(msg)) {
@@ -358,7 +349,7 @@ void PluginMain::run() {
 		switch (msg) {
 			    case pvSHUTDOWN:
 					{
-						qWarning() << "received SHUTDOWN";
+						qDebug() << "received SHUTDOWN";
 						receiver->close();
 
 						if (!quit) {
@@ -385,7 +376,7 @@ void PluginMain::run() {
 
 				case pvRESET:
 					{
-						qWarning() << "received RESET";
+						qDebug() << "received RESET";
 
 						int maxId;
 						if (!receiver->readInt(maxId))
@@ -401,7 +392,7 @@ void PluginMain::run() {
 
 				case pvMODIFYSTACK:
 					{
-						qWarning() << "received MODIFYSTACK";
+						qDebug() << "received MODIFYSTACK";
 
 						int numVersions;
 						if (!receiver->readInt(numVersions))
@@ -924,7 +915,7 @@ void PluginMain::serverRemoved(pqServer *server) {
 
 void PluginMain::serverResourcesChanged() {
 	if (stateLoading) {
-		qWarning() << "state file:" << pqApplicationCore::instance()->serverResources().list()[0].path();
+		qDebug() << "state file:" << pqApplicationCore::instance()->serverResources().list()[0].path();
 		stateLoading = false;
 
 
@@ -959,7 +950,7 @@ void PluginMain::stateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator) 
 		return;
 	}
 
-	qWarning() << "state loaded";
+	qDebug() << "state loaded";
 	stateLoading = true;
 }
 

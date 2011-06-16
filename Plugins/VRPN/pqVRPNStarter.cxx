@@ -247,25 +247,33 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
 { 
+	/*doesn't work
 	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-	xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/arrowsource.txt"); 
+	xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/teststack.txt"); 
 	xmlParser->Parse();
-	int proxy_id;
-	vtkPVXMLElement * xmlElement=  xmlParser->GetRootElement(); 
-	vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-	vtkSMProxy* proxy = pxm->GetProxy(vtkProcessModuleConnectionManager::GetRootServerConnectionID(),948);//proxy_id);
-	vtkSMStateLoader* loader = vtkSMStateLoader::New();
-	loader->GetProxyLocator()->SetConnectionID(pqActiveObjects::instance().activeServer()->GetConnectionID());
-	proxy->LoadState(xmlElement,loader->GetProxyLocator());
-	proxy->UpdateVTKObjects(); 
-	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	 
-	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
-	{
-		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-		proxy->GetRenderWindow()->Render();
-	}
+	vtkPVXMLElement * root=  xmlParser->GetRootElement(); 
+	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
+	uSet->Redo(); */
+	//Code for editing properties
+	//vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	//xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/arrowsource.txt"); 
+	//xmlParser->Parse();
+	//int proxy_id;
+	//vtkPVXMLElement * xmlElement=  xmlParser->GetRootElement(); 
+	//vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+	//vtkSMProxy* proxy = pxm->GetProxy(vtkProcessModuleConnectionManager::GetRootServerConnectionID(),948);//proxy_id);
+	//vtkSMStateLoader* loader = vtkSMStateLoader::New();
+	//loader->GetProxyLocator()->SetConnectionID(pqActiveObjects::instance().activeServer()->GetConnectionID());
+	//proxy->LoadState(xmlElement,loader->GetProxyLocator());
+	//proxy->UpdateVTKObjects(); 
+	//pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	// 
+	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
+	//{
+	//	pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+	//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+	//	proxy->GetRenderWindow()->Render();
+	//}
 }  
 void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel, 
     bool canRedo, QString redoLabel)
