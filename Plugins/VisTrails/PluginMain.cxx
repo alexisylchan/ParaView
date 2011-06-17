@@ -97,10 +97,10 @@ const int vtREQUEST_VERSION_DATA = 4;
 
 // Where do we expect to find VisTrails listening for us.
 QHostAddress vtHost(QHostAddress::LocalHost);
-const int vtPort = 50007;
+int vtPort = 50007;
 
 // The Port that we listen on.
-const int pvPort = 50013;
+int pvPort = 50013;
 
 
 
@@ -252,7 +252,19 @@ void PluginMain::run() {
 
 	// Open the port to listen for a VisTrails connection.
     QTcpServer serv;
-	serv.listen(QHostAddress::LocalHost, pvPort);
+	if (!serv.listen(QHostAddress::LocalHost, pvPort))
+	{
+		qWarning("Reassigning Server Port");
+		pvPort++;
+		if (!serv.listen(QHostAddress::LocalHost, pvPort))
+		{ 
+			qWarning("Reassigning Server Port failed");
+		}
+		else
+		{
+			vtPort++;// if the server port has to be reassigned, the VisTrails port should probably be reassigned.
+		}
+	}
 
 	// Loop trying to open the sender and receiver sockets.
 	SocketHelper *receiver = NULL;
@@ -481,6 +493,7 @@ void PluginMain::fetchVersionDeltas(const QList<int> &versions, int commonIndex,
 			QString delta;
 			if (!vtSender->readString(delta))
 				qCritical() << "socket error";
+			qWarning(delta.toAscii().data());
 			deltas.push_back(delta);
 		}
 	}
@@ -808,6 +821,7 @@ void PluginMain::handleStackChanged(bool canUndo, QString undoLabel,
 		vtSender->writeInt(vtNEW_VERSION);
 		vtSender->writeString(undoLabel);
 		vtSender->writeString(xmlStr);
+		qWarning(xmlStr.toAscii().data());
 		vtSender->writeInt(vtkProcessModule::GetProcessModule()->GetUniqueID().ID+1);
 		vtSender->waitForBytesWritten(-1);
 

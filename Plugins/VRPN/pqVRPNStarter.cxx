@@ -204,9 +204,9 @@ void pqVRPNStarter::onStartup()
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
 	undoStack = pqApplicationCore::instance()->getUndoStack(); 
-	std::stringstream newXMLSnippetFile; 
-	newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
-		xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
+	//std::stringstream newXMLSnippetFile; 
+	//newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
+	//	xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
     
 	if (undoStack)
 	{
@@ -216,7 +216,7 @@ void pqVRPNStarter::onStartup()
 	} 
 	if (this->sensorIndex)
 	{
-		fileStart = 4;
+		fileStart = 3;
 	}
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
@@ -282,9 +282,7 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 	/*if (!this->sensorIndex)
 	{ */
 		std::stringstream newXMLSnippetFile;
-		fileIndex++;
 		newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
-		xmlSnippetFile.close();
 		xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
 		std::stringstream xmlStream;
 		std::string xmlString;
@@ -296,8 +294,11 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 
 			xml->PrintXML(xmlStream, vtkIndent());
 			QString xmlStr(xmlStream.str().c_str());
+			qWarning(xmlStr.toAscii().data());
 			xmlSnippetFile <<xmlStream.str().c_str();	 
 			xmlSnippetFile.flush();
+			xmlSnippetFile.close();
+			fileIndex++;
 		} 
 	/*}*/
 
