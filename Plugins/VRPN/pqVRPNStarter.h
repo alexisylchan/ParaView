@@ -164,6 +164,8 @@ private:
   ofstream xmlSnippetFile;
 
   int fileIndex;
+  int fileStart;
+
   //Track pqUndoStack to deal with creation?  OR track Apply?
   pqUndoStack* undoStack;
   void loadXMLSnippet();

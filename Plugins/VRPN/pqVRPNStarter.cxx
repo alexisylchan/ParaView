@@ -203,23 +203,20 @@ void pqVRPNStarter::onStartup()
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
-	undoStack = pqApplicationCore::instance()->getUndoStack();
-	if (!this->sensorIndex)
-	{
+	undoStack = pqApplicationCore::instance()->getUndoStack(); 
 	std::stringstream newXMLSnippetFile; 
-		newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets" <<fileIndex<<".xml";
+	newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
 		xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
     
-		if (undoStack)
+	if (undoStack)
 	{
 		QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
 			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
 
-	}
-	}
-	else
+	} 
+	if (this->sensorIndex)
 	{
-		fileIndex = 4;
+		fileStart = 4;
 	}
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
@@ -282,11 +279,11 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 {
 	//Code from VisTrails ParaView Plugin .
 
-	if (!this->sensorIndex)
-	{ 
+	/*if (!this->sensorIndex)
+	{ */
 		std::stringstream newXMLSnippetFile;
 		fileIndex++;
-		newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets" <<fileIndex<<".xml";
+		newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
 		xmlSnippetFile.close();
 		xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
 		std::stringstream xmlStream;
@@ -302,7 +299,7 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 			xmlSnippetFile <<xmlStream.str().c_str();	 
 			xmlSnippetFile.flush();
 		} 
-	}
+	/*}*/
 
 }
 void pqVRPNStarter::serverResourcesChanged( )
@@ -762,7 +759,7 @@ void  pqVRPNStarter::loadXMLSnippet()
 	{
     VRPNTimer->blockSignals(true); 
 	std::stringstream filename; 
-		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets" <<fileIndex<<".xml";
+		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/0xmlsnippets"<<fileStart<<".xml";
 		qWarning(filename.str().c_str());
 	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
 	xmlParser->SetFileName(filename.str().c_str());//"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml"); 
@@ -774,7 +771,7 @@ void  pqVRPNStarter::loadXMLSnippet()
 	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
 	if (uSet)
 		uSet->Redo(); 
-	fileIndex++;
+	fileStart++;
 	}
 	VRPNTimer->blockSignals(false); 
 	//this->changeTimeStamp();
