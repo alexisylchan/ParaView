@@ -164,11 +164,13 @@ void pqVRPNStarter::onStartup()
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
+	
+	//Temporary code to overcome MVS crashing - does not allow properties to be changed
 	//Tracker Options
-	this->useTracker = options->GetUseTracker();
-	this->trackerAddress = options->GetTrackerAddress();
+	this->useTracker = true;
+	this->trackerAddress = "Tracker0@tracker1-cs.cs.unc.edu";
 	//Parse tracker origin
-	char* trackerOriginStr = options->GetTrackerOrigin();
+	char* trackerOriginStr = "8.08,5.3,1.19";
 	char* coordStr = strtok(trackerOriginStr,",");
 	int count = 0;
 	while (coordStr != NULL)
@@ -177,20 +179,48 @@ void pqVRPNStarter::onStartup()
 	count++;
 	coordStr = strtok(NULL,",");
 	}
-	this->sensorIndex = options->GetTrackerSensor(); 
-	this->origSensorIndex = options->GetTrackerSensor();
+	this->sensorIndex = 0;
+	this->origSensorIndex = 0;
 
 	//SpaceNavigator Options
-	this->useSpaceNavigator = options->GetUseSpaceNavigator();
-	this->spacenavigatorAddress = options->GetSpaceNavigatorAddress();
+	this->useSpaceNavigator = true;
+	this->spacenavigatorAddress = "device0@localhost";
 
 	//Phantom Options
-	this->usePhantom = options->GetUsePhantom();
-	this->phantomAddress = options->GetPhantomAddress();
+	this->usePhantom = true;
+	this->phantomAddress = "Phantom0@localhost";
 
 	//TNG Options
-	this->useTNG = options->GetUseTNG();
-	this->tngAddress = options->GetTNGAddress();
+	this->useTNG = true;
+	this->tngAddress = "tng3name@localhost";
+
+	////Tracker Options
+	//this->useTracker = options->GetUseTracker();
+	//this->trackerAddress = options->GetTrackerAddress();
+	////Parse tracker origin
+	//char* trackerOriginStr = options->GetTrackerOrigin();
+	//char* coordStr = strtok(trackerOriginStr,",");
+	//int count = 0;
+	//while (coordStr != NULL)
+	//{
+	//this->trackerOrigin[count] = -1*atof(coordStr);
+	//count++;
+	//coordStr = strtok(NULL,",");
+	//}
+	//this->sensorIndex = options->GetTrackerSensor(); 
+	//this->origSensorIndex = options->GetTrackerSensor();
+
+	////SpaceNavigator Options
+	//this->useSpaceNavigator = options->GetUseSpaceNavigator();
+	//this->spacenavigatorAddress = options->GetSpaceNavigatorAddress();
+
+	////Phantom Options
+	//this->usePhantom = options->GetUsePhantom();
+	//this->phantomAddress = options->GetPhantomAddress();
+
+	////TNG Options
+	//this->useTNG = options->GetUseTNG();
+	//this->tngAddress = options->GetTNGAddress();
  
 	this->listenToSelfSave();
 	this->initialLoadState(); 
