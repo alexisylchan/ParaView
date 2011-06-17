@@ -116,7 +116,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProxyLocator.h"
 #include "vtkPVXMLElement.h" 
 
-//#include "pqPushToSharedStateReaction.h"
 // From Cory Quammen's code
 class sn_user_callback
 {
@@ -165,36 +164,6 @@ void pqVRPNStarter::onStartup()
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
-	
-	////Temporary code to overcome MVS crashing - does not allow properties to be changed
-	////Tracker Options
-	//this->useTracker = true;
-	//this->trackerAddress = "Tracker0@tracker1-cs.cs.unc.edu";
-	////Parse tracker origin
-	//char* trackerOriginStr = "8.08,5.3,1.19";
-	//char* coordStr = strtok(trackerOriginStr,",");
-	//int count = 0;
-	//while (coordStr != NULL)
-	//{
-	//this->trackerOrigin[count] = -1*atof(coordStr);
-	//count++;
-	//coordStr = strtok(NULL,",");
-	//}
-	//this->sensorIndex = 0;
-	//this->origSensorIndex = 0;
-
-	////SpaceNavigator Options
-	//this->useSpaceNavigator = true;
-	//this->spacenavigatorAddress = "device0@localhost";
-
-	////Phantom Options
-	//this->usePhantom = true;
-	//this->phantomAddress = "Phantom0@localhost";
-
-	////TNG Options
-	//this->useTNG = true;
-	//this->tngAddress = "tng3name@localhost";
-
 	//Tracker Options
 	this->useTracker = options->GetUseTracker();
 	this->trackerAddress = options->GetTrackerAddress();
@@ -235,25 +204,22 @@ void pqVRPNStarter::onStartup()
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
 	undoStack = pqApplicationCore::instance()->getUndoStack();
-	char* fileIndexStr;
-		itoa(fileIndex,fileIndexStr,10);
-		QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
-		+ QString(fileIndexStr)+QString(".xml");
-		xmlSnippetFile.open(filename.toStdString().c_str());
-		/*char* fileIndexStr2;
-		fileIndex++;
-		itoa(fileIndex,fileIndexStr2,10);
-		QString filename2 = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
-		+ QString(fileIndexStr)+QString(".xml");
-
-		xmlSnippetFile.close();
-		xmlSnippetFile.open(filename2.toStdString().c_str());*/
+	if (!this->sensorIndex)
+	{
+	std::stringstream newXMLSnippetFile; 
+		newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets" <<fileIndex<<".xml";
+		xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
     
-	if (undoStack)
+		if (undoStack)
 	{
 		QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
 			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
 
+	}
+	}
+	else
+	{
+		fileIndex = 4;
 	}
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
@@ -295,6 +261,10 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
 {  
+	if (this->sensorIndex)
+	{
+		this->loadXMLSnippet();
+	}
 	//if (this->sharedStateModified())
 		//this->loadXMLSnippet();
 	/*
@@ -310,30 +280,15 @@ void pqVRPNStarter::onResetPhantom()
 void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel, 
     bool canRedo, QString redoLabel)
 {
-	//Code from VisTrails ParaView Plugin
-	/*qWarning (" Stack Changed !!! %s , %s" ,
-		undoLabel.toStdString().c_str(),redoLabel.toStdString().c_str());*/
-
-		//Code from VisTrails plugin
-		// Get the xml delta for the operation at the top of the undo stack.
+	//Code from VisTrails ParaView Plugin .
 
 	if (!this->sensorIndex)
-	{
-		//mutex.lock();
-		//undoStack->blockSignals(true);
-		//xmlSnippetFile.close();
+	{ 
 		std::stringstream newXMLSnippetFile;
 		fileIndex++;
 		newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets" <<fileIndex<<".xml";
 		xmlSnippetFile.close();
-		xmlSnippetFile.open(newXMLSnippetFile.str().c_str());
-
-		//char* fileIndexStr;
-		//itoa(fileIndex,fileIndexStr,10);
-		//QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
-		//+ QString(fileIndexStr)+QString(".xml");
-		////xmlSnippetFile.open(filename.toStdString().c_str());
-  //  
+		xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
 		std::stringstream xmlStream;
 		std::string xmlString;
  
@@ -346,13 +301,8 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 			QString xmlStr(xmlStream.str().c_str());
 			xmlSnippetFile <<xmlStream.str().c_str();	 
 			xmlSnippetFile.flush();
-		}
-		
-		//undoStack->blockSignals(false);
-		//mutex.unlock();
+		} 
 	}
-		//this->changeTimeStamp();
-		/*qWarning("%s",xmlStream.str().c_str());		*/
 
 }
 void pqVRPNStarter::serverResourcesChanged( )
@@ -811,22 +761,22 @@ void  pqVRPNStarter::loadXMLSnippet()
 	if (this->sensorIndex)
 	{
     VRPNTimer->blockSignals(true); 
-	char* fileIndexStr;
-		itoa(fileIndex,fileIndexStr,10);
-		QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
-		+ QString(fileIndexStr)+QString(".xml");
-		 
-
-
+	std::stringstream filename; 
+		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets" <<fileIndex<<".xml";
+		qWarning(filename.str().c_str());
 	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-	xmlParser->SetFileName(filename.toStdString().c_str());//"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml"); 
+	xmlParser->SetFileName(filename.str().c_str());//"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml"); 
 	xmlParser->Parse();
 	vtkPVXMLElement * root=  xmlParser->GetRootElement(); 
+	 
+	if (root)
+	{
 	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
 	if (uSet)
 		uSet->Redo(); 
-	VRPNTimer->blockSignals(false); 
 	fileIndex++;
+	}
+	VRPNTimer->blockSignals(false); 
 	//this->changeTimeStamp();
 	}	
 }
