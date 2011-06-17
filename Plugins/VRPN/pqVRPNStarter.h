@@ -41,9 +41,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __pqVRPNStarter_h
 
 #include <QObject>
+#include <QMutex>
 #include <vtkInteractionDeviceManager.h>
 #include <vrpn_Analog.h> 
-
 
 class QTimer;
 class ParaViewVRPN;
@@ -59,6 +59,7 @@ class pqVRPNStarter : public QObject
   Q_OBJECT
   typedef QObject Superclass;
 public:
+	QMutex mutex;
 
 	//Constants used for selecting Data Set Type in the Special UseCase: Vortex Visualization
 	enum DataType

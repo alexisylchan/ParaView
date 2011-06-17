@@ -115,6 +115,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMStateLoader.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkPVXMLElement.h" 
+
 //#include "pqPushToSharedStateReaction.h"
 // From Cory Quammen's code
 class sn_user_callback
@@ -165,40 +166,12 @@ void pqVRPNStarter::onStartup()
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
 	
-	//Temporary code to overcome MVS crashing - does not allow properties to be changed
-	//Tracker Options
-	this->useTracker = true;
-	this->trackerAddress = "Tracker0@tracker1-cs.cs.unc.edu";
-	//Parse tracker origin
-	char* trackerOriginStr = "8.08,5.3,1.19";
-	char* coordStr = strtok(trackerOriginStr,",");
-	int count = 0;
-	while (coordStr != NULL)
-	{
-	this->trackerOrigin[count] = -1*atof(coordStr);
-	count++;
-	coordStr = strtok(NULL,",");
-	}
-	this->sensorIndex = 0;
-	this->origSensorIndex = 0;
-
-	//SpaceNavigator Options
-	this->useSpaceNavigator = true;
-	this->spacenavigatorAddress = "device0@localhost";
-
-	//Phantom Options
-	this->usePhantom = true;
-	this->phantomAddress = "Phantom0@localhost";
-
-	//TNG Options
-	this->useTNG = true;
-	this->tngAddress = "tng3name@localhost";
-
+	////Temporary code to overcome MVS crashing - does not allow properties to be changed
 	////Tracker Options
-	//this->useTracker = options->GetUseTracker();
-	//this->trackerAddress = options->GetTrackerAddress();
+	//this->useTracker = true;
+	//this->trackerAddress = "Tracker0@tracker1-cs.cs.unc.edu";
 	////Parse tracker origin
-	//char* trackerOriginStr = options->GetTrackerOrigin();
+	//char* trackerOriginStr = "8.08,5.3,1.19";
 	//char* coordStr = strtok(trackerOriginStr,",");
 	//int count = 0;
 	//while (coordStr != NULL)
@@ -207,20 +180,48 @@ void pqVRPNStarter::onStartup()
 	//count++;
 	//coordStr = strtok(NULL,",");
 	//}
-	//this->sensorIndex = options->GetTrackerSensor(); 
-	//this->origSensorIndex = options->GetTrackerSensor();
+	//this->sensorIndex = 0;
+	//this->origSensorIndex = 0;
 
 	////SpaceNavigator Options
-	//this->useSpaceNavigator = options->GetUseSpaceNavigator();
-	//this->spacenavigatorAddress = options->GetSpaceNavigatorAddress();
+	//this->useSpaceNavigator = true;
+	//this->spacenavigatorAddress = "device0@localhost";
 
 	////Phantom Options
-	//this->usePhantom = options->GetUsePhantom();
-	//this->phantomAddress = options->GetPhantomAddress();
+	//this->usePhantom = true;
+	//this->phantomAddress = "Phantom0@localhost";
 
 	////TNG Options
-	//this->useTNG = options->GetUseTNG();
-	//this->tngAddress = options->GetTNGAddress();
+	//this->useTNG = true;
+	//this->tngAddress = "tng3name@localhost";
+
+	//Tracker Options
+	this->useTracker = options->GetUseTracker();
+	this->trackerAddress = options->GetTrackerAddress();
+	//Parse tracker origin
+	char* trackerOriginStr = options->GetTrackerOrigin();
+	char* coordStr = strtok(trackerOriginStr,",");
+	int count = 0;
+	while (coordStr != NULL)
+	{
+	this->trackerOrigin[count] = -1*atof(coordStr);
+	count++;
+	coordStr = strtok(NULL,",");
+	}
+	this->sensorIndex = options->GetTrackerSensor(); 
+	this->origSensorIndex = options->GetTrackerSensor();
+
+	//SpaceNavigator Options
+	this->useSpaceNavigator = options->GetUseSpaceNavigator();
+	this->spacenavigatorAddress = options->GetSpaceNavigatorAddress();
+
+	//Phantom Options
+	this->usePhantom = options->GetUsePhantom();
+	this->phantomAddress = options->GetPhantomAddress();
+
+	//TNG Options
+	this->useTNG = options->GetUseTNG();
+	this->tngAddress = options->GetTNGAddress();
  
 	this->listenToSelfSave();
 	this->initialLoadState(); 
@@ -239,12 +240,21 @@ void pqVRPNStarter::onStartup()
 		QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
 		+ QString(fileIndexStr)+QString(".xml");
 		xmlSnippetFile.open(filename.toStdString().c_str());
-    
+		/*char* fileIndexStr2;
+		fileIndex++;
+		itoa(fileIndex,fileIndexStr2,10);
+		QString filename2 = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
+		+ QString(fileIndexStr)+QString(".xml");
 
-	QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
+		xmlSnippetFile.close();
+		xmlSnippetFile.open(filename2.toStdString().c_str());*/
+    
+	if (undoStack)
+	{
+		QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
 			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
 
-
+	}
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
 
@@ -286,7 +296,7 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 void pqVRPNStarter::onResetPhantom()
 {  
 	//if (this->sharedStateModified())
-		this->loadXMLSnippet();
+		//this->loadXMLSnippet();
 	/*
 	VRPNTimer->blockSignals(true);  
 	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
@@ -309,15 +319,21 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 
 	if (!this->sensorIndex)
 	{
-		undoStack->blockSignals(true);
-		xmlSnippetFile.close();
+		//mutex.lock();
+		//undoStack->blockSignals(true);
+		//xmlSnippetFile.close();
+		std::stringstream newXMLSnippetFile;
 		fileIndex++;
-		char* fileIndexStr;
-		itoa(fileIndex,fileIndexStr,10);
-		QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
-		+ QString(fileIndexStr)+QString(".xml");
-		xmlSnippetFile.open(filename.toStdString().c_str());
-    
+		newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets" <<fileIndex<<".xml";
+		xmlSnippetFile.close();
+		xmlSnippetFile.open(newXMLSnippetFile.str().c_str());
+
+		//char* fileIndexStr;
+		//itoa(fileIndex,fileIndexStr,10);
+		//QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
+		//+ QString(fileIndexStr)+QString(".xml");
+		////xmlSnippetFile.open(filename.toStdString().c_str());
+  //  
 		std::stringstream xmlStream;
 		std::string xmlString;
  
@@ -331,8 +347,9 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 			xmlSnippetFile <<xmlStream.str().c_str();	 
 			xmlSnippetFile.flush();
 		}
-		//
-		undoStack->blockSignals(false);
+		
+		//undoStack->blockSignals(false);
+		//mutex.unlock();
 	}
 		//this->changeTimeStamp();
 		/*qWarning("%s",xmlStream.str().c_str());		*/
