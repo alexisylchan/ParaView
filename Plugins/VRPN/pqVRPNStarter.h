@@ -159,9 +159,14 @@ private:
   //Log file for recording Phantom positions
   ofstream evaluationlog;
 
+  //xml file
+  ofstream xmlSnippetFile;
+
+  int fileIndex;
   //Track pqUndoStack to deal with creation?  OR track Apply?
   pqUndoStack* undoStack;
-
+  void loadXMLSnippet();
+  bool xmlSnippetModified();
 };
 
 #endif

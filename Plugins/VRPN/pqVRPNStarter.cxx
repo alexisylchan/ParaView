@@ -159,9 +159,9 @@ pqVRPNStarter::~pqVRPNStarter()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onStartup()
 {
-
+	fileIndex = 0;
 	evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
-    vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
 	//Tracker Options
@@ -204,8 +204,16 @@ void pqVRPNStarter::onStartup()
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
 
 	undoStack = pqApplicationCore::instance()->getUndoStack();
-	/*QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
-			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));*/
+	char* fileIndexStr;
+		itoa(fileIndex,fileIndexStr,10);
+		QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
+		+ QString(fileIndexStr)+QString(".xml");
+		xmlSnippetFile.open(filename.toStdString().c_str());
+    
+
+	QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
+			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
+
 
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
@@ -247,6 +255,9 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
 {  
+	//if (this->sharedStateModified())
+		this->loadXMLSnippet();
+	/*
 	VRPNTimer->blockSignals(true);  
 	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
 	xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/teststack.txt"); 
@@ -254,27 +265,47 @@ void pqVRPNStarter::onResetPhantom()
 	vtkPVXMLElement * root=  xmlParser->GetRootElement(); 
 	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
 	uSet->Redo(); 
-	VRPNTimer->blockSignals(false);   
+	VRPNTimer->blockSignals(false); */  
 }  
 void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel, 
     bool canRedo, QString redoLabel)
 {
 	//Code from VisTrails ParaView Plugin
-	qWarning (" Stack Changed !!! %s , %s" ,
-		undoLabel.toStdString().c_str(),redoLabel.toStdString().c_str());
+	/*qWarning (" Stack Changed !!! %s , %s" ,
+		undoLabel.toStdString().c_str(),redoLabel.toStdString().c_str());*/
 
 		//Code from VisTrails plugin
 		// Get the xml delta for the operation at the top of the undo stack.
+
+	if (!this->sensorIndex)
+	{
+		undoStack->blockSignals(true);
+		xmlSnippetFile.close();
+		fileIndex++;
+		char* fileIndexStr;
+		itoa(fileIndex,fileIndexStr,10);
+		QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
+		+ QString(fileIndexStr)+QString(".xml");
+		xmlSnippetFile.open(filename.toStdString().c_str());
+    
 		std::stringstream xmlStream;
 		std::string xmlString;
  
-		vtkUndoSet *uset = undoStack->getLastUndoSet();
-		vtkPVXMLElement* xml = uset->SaveState(NULL);
+		vtkUndoSet *uSet = undoStack->getLastUndoSet();
+		if (uSet)
+		{
+			vtkPVXMLElement* xml = uSet->SaveState(NULL);
 
-		xml->PrintXML(xmlStream, vtkIndent());
-		QString xmlStr(xmlStream.str().c_str());
-
-		qWarning("%s",xmlStream.str().c_str());		
+			xml->PrintXML(xmlStream, vtkIndent());
+			QString xmlStr(xmlStream.str().c_str());
+			xmlSnippetFile <<xmlStream.str().c_str();	 
+			xmlSnippetFile.flush();
+		}
+		//
+		undoStack->blockSignals(false);
+	}
+		//this->changeTimeStamp();
+		/*qWarning("%s",xmlStream.str().c_str());		*/
 
 }
 void pqVRPNStarter::serverResourcesChanged( )
@@ -522,26 +553,27 @@ void pqVRPNStarter::onShutdown()
 void pqVRPNStarter::timerCallback()
 {
 
-	if (this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
-	{
-		this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();		 
-		this->loadState();
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices();
-	} 
-	else
-	{
+	//if (this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
+	//{
+	//	this->loadXMLSnippet();
+	//	/*this->uninitializeDevices();
+	//	pqCommandLineOptionsBehavior::resetApplication();		 
+	//	this->loadState();
+	//	this->changeTimeStamp();
+	//	this->initializeEyeAngle();
+	//	this->initializeDevices();*/
+	//} 
+	//else
+	//{
 		if (this->useSpaceNavigator)
 			this->spaceNavigator1->mainloop();
 		if (this->useTNG)
 			this->tng1->mainloop();
 		if (this->useTracker || this->usePhantom)
 			this->inputInteractor->Update(); 
-	}
+	/*}*/
 	
-	qWarning("Still timing!");
+	 
 	///////////////////////////////////Render///////////////////////////
 	//Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
@@ -704,7 +736,8 @@ const vrpn_ANALOGCB t)
 bool pqVRPNStarter::sharedStateModified()
 {
 	struct stat filestat;
-	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )
+	//if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )
+	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat) != -1) )
 	{   if (last_write)
 		{
 			if (filestat.st_mtime != this->last_write)
@@ -724,6 +757,31 @@ void  pqVRPNStarter::loadState()
         pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
 		this->changeTimeStamp();
 		
+} 
+
+void  pqVRPNStarter::loadXMLSnippet()
+{  
+	if (this->sensorIndex)
+	{
+    VRPNTimer->blockSignals(true); 
+	char* fileIndexStr;
+		itoa(fileIndex,fileIndexStr,10);
+		QString filename = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets")
+		+ QString(fileIndexStr)+QString(".xml");
+		 
+
+
+	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	xmlParser->SetFileName(filename.toStdString().c_str());//"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml"); 
+	xmlParser->Parse();
+	vtkPVXMLElement * root=  xmlParser->GetRootElement(); 
+	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
+	if (uSet)
+		uSet->Redo(); 
+	VRPNTimer->blockSignals(false); 
+	fileIndex++;
+	//this->changeTimeStamp();
+	}	
 }
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
@@ -767,9 +825,10 @@ void  pqVRPNStarter::loadSASState()
 }
 void pqVRPNStarter::changeTimeStamp()
 {
-	struct stat filestat;
-	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
-	this->last_write = filestat.st_mtime;
+	//struct stat filestat;
+	//stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
+	//stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat);
+	//this->last_write = filestat.st_mtime;
 }
 void pqVRPNStarter::createConeInParaView()
 {
