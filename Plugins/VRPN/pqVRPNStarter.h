@@ -53,6 +53,7 @@ class vtkPVXMLElement;
 class vtkVRPNPhantom;
 class vtkEventQtSlotConnect;
 class pqUndoStack;
+#define DEBUG 1
 
 class pqVRPNStarter : public QObject
 {

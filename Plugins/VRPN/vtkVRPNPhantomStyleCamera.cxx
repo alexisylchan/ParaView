@@ -475,6 +475,8 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 				newPosition2[j] = newPosition[j];
 			}
 		/*}*/
+		if (!DEBUG)
+		{
 		camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
 		double matrix0Data[3][3];
 		double *matrix0[3]; 
@@ -692,6 +694,9 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		delete newPosition;
 		delete newPosition2;
 		return newScaledPosition;
+		} 
+	return newPosition2;
+			 
 }
  
 //----------------------------------------------------------------------------

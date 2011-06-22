@@ -202,21 +202,24 @@ void pqVRPNStarter::onStartup()
 	QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
 	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
-
 	undoStack = pqApplicationCore::instance()->getUndoStack(); 
-	//std::stringstream newXMLSnippetFile; 
-	//newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
-	//	xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
-    
-	if (undoStack)
+	if (!DEBUG)
 	{
-		QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
-			    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
+		
+		//std::stringstream newXMLSnippetFile; 
+		//newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
+		//	xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
+	    
+		if (undoStack)
+		{
+			QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
+					this, SLOT(handleStackChanged(bool,QString,bool,QString)));
 
-	} 
-	if (this->sensorIndex)
-	{
-		fileStart = 3;
+		} 
+		if (this->sensorIndex)
+		{
+			fileStart = 3;
+		}
 	}
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
@@ -258,10 +261,41 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
 {  
-	if (this->sensorIndex)
+	
+	//this->VRPNTimer->blockSignals(true);
+	//pqDeleteReaction::deleteAll();
+	//this->initialLoadState();
+	//		///////////////////////////////////Render///////////////////////////
+	////Get the Server Manager Model so that we can get each view
+	//pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	// 
+	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
+	//{
+	//	pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+	//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+	//	proxy->GetRenderWindow()->Render();
+	//}
+	//this->VRPNTimer->blockSignals(false);
+
+	 VRPNTimer->blockSignals(true); 
+	std::stringstream filename; 
+		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/0snippets/0xmlsnippets2.xml";
+		qWarning(filename.str().c_str());
+	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
+	xmlParser->SetFileName(filename.str().c_str());//"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml"); 
+	xmlParser->Parse();
+	vtkPVXMLElement * root=  xmlParser->GetRootElement(); 
+	 
+	if (root)
 	{
-		this->loadXMLSnippet();
+	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
+	if (uSet)
+		uSet->Redo(); 
+	//fileStart++;
 	}
+	VRPNTimer->blockSignals(false); 
+
+	
 	//if (this->sharedStateModified())
 		//this->loadXMLSnippet();
 	/*
