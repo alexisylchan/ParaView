@@ -53,7 +53,13 @@ class vtkPVXMLElement;
 class vtkVRPNPhantom;
 class vtkEventQtSlotConnect;
 class pqUndoStack;
+class pqProxy;
+class pqPipelineSource;
+
 #define DEBUG 1
+#define DEBUG_1_USER 1
+//TODO: Make this a user-input option (vortex visualization workbench)
+#define VORTEX_VISUALIZATION 0
 
 class pqVRPNStarter : public QObject
 {
@@ -105,8 +111,15 @@ public slots:
 
 	// Handle stack change on ParaView
 	void handleStackChanged(bool canUndo, QString undoLabel, bool canRedo, QString redoLabel);
-	// Handle server resources changed
-	void serverResourcesChanged();
+
+	//For debugging. Turns on and off VRPN Timer
+	void debugToggleVRPNTimer();
+	
+	//Listen to proxy creation from pqObjectBuilder
+	void onSourceCreated(pqPipelineSource* createdSource);
+
+	//Listen to accept from pqObjectInspectorWidget via QMainWindow (paraview_revised project)
+	void onObjectInspectorWidgetAccept();
 protected:
 	//
     QTimer *VRPNTimer;
@@ -171,6 +184,11 @@ private:
   pqUndoStack* undoStack;
   void loadXMLSnippet();
   bool xmlSnippetModified();
+
+  void writeChangeSnippet(const char* snippet);
+  void changeSnippetTimeStamp();
+  bool snippetFileModified();
+  void respondToOtherAppsChange();
 };
 
 #endif

@@ -115,6 +115,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMStateLoader.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkPVXMLElement.h" 
+#include "pqObjectInspectorWidget.h"
+
 
 // From Cory Quammen's code
 class sn_user_callback
@@ -160,22 +162,25 @@ pqVRPNStarter::~pqVRPNStarter()
 void pqVRPNStarter::onStartup()
 {
 	fileIndex = 0;
+	//Log file to log test data (Vortex Visualization)
 	evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
+	
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
 	//Tracker Options
 	this->useTracker = options->GetUseTracker();
 	this->trackerAddress = options->GetTrackerAddress();
+
 	//Parse tracker origin
 	char* trackerOriginStr = options->GetTrackerOrigin();
 	char* coordStr = strtok(trackerOriginStr,",");
 	int count = 0;
 	while (coordStr != NULL)
 	{
-	this->trackerOrigin[count] = -1*atof(coordStr);
-	count++;
-	coordStr = strtok(NULL,",");
+		this->trackerOrigin[count] = -1*atof(coordStr);
+		count++;
+		coordStr = strtok(NULL,",");
 	}
 	this->sensorIndex = options->GetTrackerSensor(); 
 	this->origSensorIndex = options->GetTrackerSensor();
@@ -199,30 +204,111 @@ void pqVRPNStarter::onStartup()
 
 	//Listen to Custom Application's GUI Qt signals for Vortex Visualization
 	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
-	QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
-	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
-	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
-	undoStack = pqApplicationCore::instance()->getUndoStack(); 
-	if (!DEBUG)
+	
+	if (VORTEX_VISUALIZATION)
 	{
-		
-		//std::stringstream newXMLSnippetFile; 
-		//newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
-		//	xmlSnippetFile.open(newXMLSnippetFile.str().c_str()); 
-	    
+		QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
+	}
+	if (DEBUG)
+	{
+		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugToggleVRPNTimer()));
+		if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
+			|| (!DEBUG_1_USER))
+		{
+			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+							this, SLOT(onSourceCreated(pqPipelineSource*))); 
+			QObject::connect(mainWindow, SIGNAL(objectInspectorWidgetAccept()),
+							this, SLOT(onObjectInspectorWidgetAccept()));
+			//QObject::connect(mainWindow->fin
+		}
+	}
+	else
+	{
+		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
+		QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
+		undoStack = pqApplicationCore::instance()->getUndoStack(); 
+		    
 		if (undoStack)
 		{
 			QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
-					this, SLOT(handleStackChanged(bool,QString,bool,QString)));
+					this, SLOT(handleStackChanged(bool,QString,bool,QString))); //TODO: change this
 
-		} 
-		if (this->sensorIndex)
-		{
-			fileStart = 3;
-		}
+		} 	  
 	}
-	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
-	//	this, SLOT(serverResourcesChanged()));
+	
+	
+}
+void pqVRPNStarter::writeChangeSnippet(const char* snippet)
+{
+	//save proxy values to file.
+	std::stringstream filename; 
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->origSensorIndex<<"source1.xml";
+	//TODO: rename xmlSnippetFile
+	xmlSnippetFile.open(filename.str().c_str()); 
+	xmlSnippetFile << snippet; 
+	xmlSnippetFile.flush();				 
+	xmlSnippetFile.close();
+	
+}
+
+void pqVRPNStarter::onObjectInspectorWidgetAccept()
+{
+	std::stringstream snippetStream;
+	snippetStream <<"Apply"<<std::endl;
+	writeChangeSnippet(snippetStream.str().c_str());
+}
+
+// Listen to proxy creation from pqObjectBuilder
+// TODO: Handle 
+// - Undo & Redo
+// - handle python script.
+// - handle self signals.
+// TODO: write file names as constants
+void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
+{
+		//Check if it is a filter or a source (This check is seen in 
+	//pqPipelineSource* createdSource =  qobject_cast<pqPipelineSource*>(pqProxyCreated); 
+	std::stringstream snippetStream;
+	snippetStream  << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<createdSource->getSMName().toAscii().data()<<std::endl;
+
+	writeChangeSnippet(snippetStream.str().c_str());
+	//pqOutputPort* opPort =  qobject_cast<pqOutputPort*>(pqProxyCreated);
+	//		if (createdSource) // Assume that this is always true
+	//		{
+	//			this->ModifySeedPosition(createdSource,newPosition);
+	//			this->DisplayCreatedObject(view,createdSource);  
+ //
+	//			 
+	//			pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1"); 
+	//		 
+	//			//pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(4);
+	//			if (tubeSource)
+	//			{  
+	//				pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
+	//				
+	//				//TODO FIX BUG: REPLACE7 WITH ACTUAL COUNT
+	//				this->CreateParaViewObject(7,-1,view,Phantom,newPosition,"TubeFilter");
+	//			}  
+	//		
+	//		}
+
+	//// pqObjectBuilder::createProxyInternal
+	//pqProxyCreated->getSMGroup();
+	//pqProxyCreated->getSMName();
+	//pqProxyCreated->getServer();
+	// 
+	
+	/*std::stringstream xmlStream;
+	std::string xmlString;
+ 
+	vtkPVXMLElement* xml = uSet->SaveState(NULL);
+
+			xml->PrintXML(xmlStream, vtkIndent());
+			QString xmlStr(xmlStream.str().c_str());
+			qWarning(xmlStr.toAscii().data());
+			xmlSnippetFile <<xmlStream.str().c_str();*/	 
+
+
 
 }
 
@@ -257,6 +343,21 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 	this->initializeEyeAngle();
 	
 }
+// Used as a debugging tool to start and stop timer. TODO: remove
+void pqVRPNStarter::debugToggleVRPNTimer() 
+{
+	if (showPartnersView)
+	{
+		showPartnersView = false; 
+	}
+	else
+	{
+		showPartnersView = true;
+	}
+	this->VRPNTimer->blockSignals(showPartnersView); 
+	
+}
+
 // Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
 // Note: 06/13/11 Comment out code since it doesn't do anything useful
 void pqVRPNStarter::onResetPhantom()
@@ -291,6 +392,8 @@ void pqVRPNStarter::onResetPhantom()
 	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
 	if (uSet)
 		uSet->Redo(); 
+	else 
+		qWarning("error");
 	//fileStart++;
 	}
 	VRPNTimer->blockSignals(false); 
@@ -336,11 +439,7 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 		} 
 	/*}*/
 
-}
-void pqVRPNStarter::serverResourcesChanged( )
-{
-	qWarning (" Server Resources Changed !!!");
-}
+} 
 void pqVRPNStarter::initializeEyeAngle()
 {
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
@@ -579,8 +678,15 @@ void pqVRPNStarter::onShutdown()
 }
 
 //-----------------------------------------------------------------------------
+
+void pqVRPNStarter::respondToOtherAppsChange()
+{
+	qWarning("Changed!!!!!");
+}
+
 void pqVRPNStarter::timerCallback()
 {
+
 
 	//if (this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
 	//{
@@ -594,13 +700,19 @@ void pqVRPNStarter::timerCallback()
 	//} 
 	//else
 	//{
+	if (DEBUG_1_USER && this->origSensorIndex && this->snippetFileModified())
+	{
+		respondToOtherAppsChange();
+	}
+	else
+	{
 		if (this->useSpaceNavigator)
 			this->spaceNavigator1->mainloop();
 		if (this->useTNG)
 			this->tng1->mainloop();
 		if (this->useTracker || this->usePhantom)
 			this->inputInteractor->Update(); 
-	/*}*/
+	}
 	
 	 
 	///////////////////////////////////Render///////////////////////////
@@ -778,6 +890,23 @@ bool pqVRPNStarter::sharedStateModified()
 	return false;
 
 }
+bool pqVRPNStarter::snippetFileModified()
+{
+	struct stat filestat; 
+	std::stringstream filename; 
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<(this->origSensorIndex+1)%2<<"source1.xml";
+	if (stat(filename.str().c_str(),&filestat) != -1)
+	{
+		if (last_write)
+		{
+			if (filestat.st_mtime != this->last_write)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
@@ -817,8 +946,14 @@ void  pqVRPNStarter::loadXMLSnippet()
 void  pqVRPNStarter::initialLoadState()
 {
 		//createConeInParaView(); 
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
+		if (VORTEX_VISUALIZATION)
+			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
+		else
+			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));
+
 		this->changeTimeStamp(); 
+		if (DEBUG_1_USER && this->origSensorIndex)
+			this->changeSnippetTimeStamp();
 }
 //Load Test State
 void  pqVRPNStarter::loadTestState()
@@ -854,10 +989,24 @@ void  pqVRPNStarter::loadSASState()
 }
 void pqVRPNStarter::changeTimeStamp()
 {
-	//struct stat filestat;
-	//stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
-	//stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat);
-	//this->last_write = filestat.st_mtime;
+	if (!DEBUG)
+	{
+	struct stat filestat;
+	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
+	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat);
+	this->last_write = filestat.st_mtime;
+	}
+}
+void pqVRPNStarter::changeSnippetTimeStamp()
+{
+	struct stat filestat; 
+	std::stringstream filename; 
+	int index = this->origSensorIndex;
+	if (DEBUG_1_USER && this->origSensorIndex) 
+		index = (this->origSensorIndex + 1)%2;
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<index<<"source1.xml";
+	stat(filename.str().c_str(),&filestat);
+	this->last_write = filestat.st_mtime;
 }
 void pqVRPNStarter::createConeInParaView()
 {

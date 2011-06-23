@@ -170,6 +170,11 @@ myMainWindow::myMainWindow()
     SIGNAL(helpRequested(QString)),
     this, SLOT(showHelpForProxy(const QString&)));
 
+  //Propagate the ObjectInspectorWidget's accept signal 
+  QObject::connect(this->Internals->proxyTabWidget->getObjectInspector(),
+    SIGNAL(accept()),
+    this, SLOT(onObjectInspectorWidgetAccept()));
+
   // Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
   pqParaViewMenuBuilders::buildEditMenu(*this->Internals->menu_Edit);
@@ -231,6 +236,10 @@ myMainWindow::myMainWindow()
  //this->showPartnersView = false;
 }
 
+void myMainWindow::onObjectInspectorWidgetAccept()
+{
+	emit this->objectInspectorWidgetAccept();
+}
 void myMainWindow::onChangeDataSet(int index)
 {
 	emit this->changeDataSet(index);

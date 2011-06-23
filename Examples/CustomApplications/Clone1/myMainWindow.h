@@ -82,12 +82,16 @@ public slots:
 
    //Change dataset
    void onChangeDataSet(int index );
+
+   //Slot for propagating Object Inspector Accept
+   void onObjectInspectorWidgetAccept();
 signals: 
   /// emitted to request the scene to change it's animation time.
   void changeSceneTime(double);
   void changeDataSet(int index);
   void resetPhantom(); 
   void toggleView();
+  void objectInspectorWidgetAccept();
   //void toggleView(bool togglePartnersView);
 
 protected slots:
