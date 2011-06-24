@@ -163,7 +163,8 @@ void pqVRPNStarter::onStartup()
 {
 	fileIndex = 0;
 	//Log file to log test data (Vortex Visualization)
-	evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
+	if(VORTEX_VISUALIZATION)
+		evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
 	
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
@@ -212,14 +213,24 @@ void pqVRPNStarter::onStartup()
 	if (DEBUG)
 	{
 		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugToggleVRPNTimer()));
+		readFileIndex = 0;
+		writeFileIndex = 0;
+		isRepeating = false;
 		if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
 			|| (!DEBUG_1_USER))
 		{
+			
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-							this, SLOT(onSourceCreated(pqPipelineSource*))); 
+							this, SLOT(onSourceCreated(pqPipelineSource*)));  
 			QObject::connect(mainWindow, SIGNAL(objectInspectorWidgetAccept()),
 							this, SLOT(onObjectInspectorWidgetAccept()));
 			//QObject::connect(mainWindow->fin
+		}
+		else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
+		{
+			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
+								mainWindow, SLOT(onTriggerObjectInspectorWidgetAccept()));
+		
 		}
 	}
 	else
@@ -242,12 +253,19 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
 	//save proxy values to file.
 	std::stringstream filename; 
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->origSensorIndex<<"source1.xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"<<this->origSensorIndex<<"snippet"<<writeFileIndex<<".xml";
+	
 	//TODO: rename xmlSnippetFile
 	xmlSnippetFile.open(filename.str().c_str()); 
+	if (!xmlSnippetFile)
+	{		qWarning ("File not opened!!!");
+			qWarning(filename.str().c_str());
+	} 
+	
 	xmlSnippetFile << snippet; 
 	xmlSnippetFile.flush();				 
 	xmlSnippetFile.close();
+	writeFileIndex++;
 	
 }
 
@@ -255,6 +273,7 @@ void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
 	std::stringstream snippetStream;
 	snippetStream <<"Apply"<<std::endl;
+	qWarning(snippetStream.str().c_str());
 	writeChangeSnippet(snippetStream.str().c_str());
 }
 
@@ -266,50 +285,46 @@ void pqVRPNStarter::onObjectInspectorWidgetAccept()
 // TODO: write file names as constants
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
+	if (!isRepeating) 
+	{
 		//Check if it is a filter or a source (This check is seen in 
-	//pqPipelineSource* createdSource =  qobject_cast<pqPipelineSource*>(pqProxyCreated); 
-	std::stringstream snippetStream;
-	snippetStream  << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<createdSource->getSMName().toAscii().data()<<std::endl;
-
-	writeChangeSnippet(snippetStream.str().c_str());
-	//pqOutputPort* opPort =  qobject_cast<pqOutputPort*>(pqProxyCreated);
-	//		if (createdSource) // Assume that this is always true
-	//		{
-	//			this->ModifySeedPosition(createdSource,newPosition);
-	//			this->DisplayCreatedObject(view,createdSource);  
- //
-	//			 
-	//			pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1"); 
-	//		 
-	//			//pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(4);
-	//			if (tubeSource)
-	//			{  
-	//				pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
-	//				
-	//				//TODO FIX BUG: REPLACE7 WITH ACTUAL COUNT
-	//				this->CreateParaViewObject(7,-1,view,Phantom,newPosition,"TubeFilter");
-	//			}  
-	//		
-	//		}
-
-	//// pqObjectBuilder::createProxyInternal
-	//pqProxyCreated->getSMGroup();
-	//pqProxyCreated->getSMName();
-	//pqProxyCreated->getServer();
-	// 
-	
-	/*std::stringstream xmlStream;
-	std::string xmlString;
- 
-	vtkPVXMLElement* xml = uSet->SaveState(NULL);
-
-			xml->PrintXML(xmlStream, vtkIndent());
-			QString xmlStr(xmlStream.str().c_str());
-			qWarning(xmlStr.toAscii().data());
-			xmlSnippetFile <<xmlStream.str().c_str();*/	 
-
-
-
+		//pqPipelineSource* createdSource =  qobject_cast<pqPipelineSource*>(pqProxyCreated); 
+		std::stringstream snippetStream;
+		qWarning("vtk class name %s", createdSource->getProxy()->GetVTKClassName()); 
+		//TODO: replace vtk class name with prototype name because sometimes a prototype may be using the same vtk class name
+		// but different prototype name for different default properties. see PhantomCursorSource
+		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
+		std::string vtkClassNameStr = std::string(vtkClassName);
+		int classStartIndex = vtkClassNameStr.find("vtkPV");
+		qWarning("%d",classStartIndex);
+		if (classStartIndex ==0)
+		{
+			std::string vtkClassNameStr1 = vtkClassNameStr.substr(5);// 5 = length of vtkPV
+			qWarning(vtkClassNameStr1.c_str());
+		/*	int classEndIndex = vtkClassNameStr1.find("Source");
+			qWarning("%d",classEndIndex);
+			std::string vtkClassNameStr2 = vtkClassNameStr1.substr(0,classEndIndex); 
+			qWarning(vtkClassNameStr2.c_str());*/
+			snippetStream  << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
+			qWarning(snippetStream.str().c_str());
+			writeChangeSnippet(snippetStream.str().c_str()); 
+		}
+		/*std::string::compare
+		char vtkClassName1[SNIPPET_LENGTH];
+		strncpy(vtkClassName1,vtkClassName[3],strlen(vtkClassName)-3);
+		char vtkClassName2[SNIPPET_LENGTH];
+		sscanf(vtkClassName1,"Source");*/
+		////int prefixLength = sscanf(vtkClassName,"vtk");
+		//char* vtkClassName1;
+		//memmove(vtkClassName,vtkClassName1,prefixLength
+		
+	}
+	else
+	{
+		isRepeating = false;
+		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
+		qWarning("Repeating %s",vtkClassName);
+	}
 }
 
 void pqVRPNStarter::onChangeDataSet(int index)
@@ -676,12 +691,111 @@ void pqVRPNStarter::onShutdown()
   //qWarning() << "Message from pqVRPNStarter: Application Shutting down";
  // fclose(vrpnpluginlog);
 }
+//-----------------------------------------------------------------------------
+
+void pqVRPNStarter::repeatCreateSource(char* groupName,char* sourceName ) 
+{
+
+	isRepeating = true;
+	//disconnect signals to avoid infinite loop of creation between apps
+	//QObject::disconnect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+	//						this, SLOT(onSourceCreated(pqPipelineSource*)));  
+	qWarning("group name %s",groupName);
+	qWarning("source name %s",sourceName);
+	pqApplicationCore::instance()->getObjectBuilder()->createSource(QString(groupName),QString(sourceName),pqActiveObjects::instance().activeServer());
+	//TODO: do I have to block until source is created?
+	//QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+	//						this, SLOT(onSourceCreated(pqPipelineSource*)));  
+	
+}
+void pqVRPNStarter::repeatApply()
+{
+	isRepeating = true;
+	emit this->triggerObjectInspectorWidgetAccept();	
+}
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 
 void pqVRPNStarter::respondToOtherAppsChange()
 {
-	qWarning("Changed!!!!!");
+	
+    VRPNTimer->blockSignals(true);  
+	//TODO:Do we really want to open a directory?
+	
+	/*while(true)
+	{*/
+		std::stringstream filename; 
+		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"
+			     <<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
+		qWarning(filename.str().c_str());
+		readFile.open(filename.str().c_str());
+		char snippet[SNIPPET_LENGTH]; //TODO: need to modify length 
+		//if (!readFile || !(readFile.is_open()))
+		//	break; // THIS IS IMPORTANT. TERMINATE IF FILE IS NOT READ.
+		  
+		readFile.getline(snippet,SNIPPET_LENGTH);
+		 
+		if (readFile.good())
+		{
+			qWarning(snippet);
+			char* operation = strtok(snippet,","); 
+		
+			
+			//while (operation != NULL)
+			//{ 
+				if (!strcmp(operation,"Source"))
+				{
+					
+					qWarning("Repeat  Source!!"); 
+					char* groupName = strtok(NULL,",");
+					char* sourceName = strtok(NULL,",");
+					repeatCreateSource(groupName,sourceName);
+				}
+				else if (!strcmp(operation,"Apply"))
+				{
+					qWarning("Repeat  Apply!!"); 
+					repeatApply();
+				}
+				else 
+				{
+					qWarning("New operation!!!");
+					qWarning(operation);
+				}
+				//				operation = strtok(NULL,",");
+			//}
+			//create source 
+			//
+			//delete[] snippet;
+		} 
+				
+		readFile.close();
+		 
+		if (!IGNORE_FILE_ACC) //TODO: turn this off in order to debug "remove snippet files that are accumulating"
+		{
+			if (remove(filename.str().c_str()))
+			{	qWarning("File successfully removed");}
+			else
+			{
+				qWarning("File NOT removed");  // File always not removed if it is not created by current fstream.
+				//TEST
+				
+				std::stringstream filename2; 
+				filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/test.xml";
+				ifstream testRemove;
+				testRemove.open(filename2.str().c_str());
+				testRemove.close();
+				if (remove(filename2.str().c_str()))
+					qWarning("TEST File successfully removed");
+				else
+					qWarning("TEST File NOT removed");
+
+			}
+		}
+		readFileIndex++;
+	/*}   */
+	VRPNTimer->blockSignals(false); 
+	//this->changeTimeStamp(); 
 }
 
 void pqVRPNStarter::timerCallback()
@@ -700,7 +814,7 @@ void pqVRPNStarter::timerCallback()
 	//} 
 	//else
 	//{
-	if (DEBUG_1_USER && this->origSensorIndex && this->snippetFileModified())
+	if (DEBUG_1_USER && this->origSensorIndex && this->changeSnippetModified())
 	{
 		respondToOtherAppsChange();
 	}
@@ -890,11 +1004,11 @@ bool pqVRPNStarter::sharedStateModified()
 	return false;
 
 }
-bool pqVRPNStarter::snippetFileModified()
+bool pqVRPNStarter::changeSnippetModified()
 {
 	struct stat filestat; 
-	std::stringstream filename; 
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<(this->origSensorIndex+1)%2<<"source1.xml";
+	std::stringstream filename;  
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"<<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
 	if (stat(filename.str().c_str(),&filestat) != -1)
 	{
 		if (last_write)
@@ -953,7 +1067,7 @@ void  pqVRPNStarter::initialLoadState()
 
 		this->changeTimeStamp(); 
 		if (DEBUG_1_USER && this->origSensorIndex)
-			this->changeSnippetTimeStamp();
+			this->changeMySnippetTimeStamp();
 }
 //Load Test State
 void  pqVRPNStarter::loadTestState()
@@ -991,22 +1105,26 @@ void pqVRPNStarter::changeTimeStamp()
 {
 	if (!DEBUG)
 	{
-	struct stat filestat;
-	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
-	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat);
-	this->last_write = filestat.st_mtime;
+		struct stat filestat;
+		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat); 
+		this->last_write = filestat.st_mtime;
 	}
-}
-void pqVRPNStarter::changeSnippetTimeStamp()
+} 
+void pqVRPNStarter::changeMySnippetTimeStamp()
 {
-	struct stat filestat; 
+	if (!DEBUG){struct stat filestat; 
 	std::stringstream filename; 
 	int index = this->origSensorIndex;
+	//TODO: DEBUG: REMOVE THIS. LOAD STATE BEFORE CONNECTING TO SOURCECREATED/APPLY
+	
 	if (DEBUG_1_USER && this->origSensorIndex) 
 		index = (this->origSensorIndex + 1)%2;
+	
 	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<index<<"source1.xml";
+	  
+
 	stat(filename.str().c_str(),&filestat);
-	this->last_write = filestat.st_mtime;
+	this->last_write = filestat.st_mtime;}
 }
 void pqVRPNStarter::createConeInParaView()
 {

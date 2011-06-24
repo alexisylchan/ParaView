@@ -172,8 +172,17 @@ myMainWindow::myMainWindow()
 
   //Propagate the ObjectInspectorWidget's accept signal 
   QObject::connect(this->Internals->proxyTabWidget->getObjectInspector(),
-    SIGNAL(accept()),
+    SIGNAL(postaccept()),
     this, SLOT(onObjectInspectorWidgetAccept()));
+  
+	 
+
+  //Tell ObjectInspectorWidget's accept signal 
+  QObject::connect(this,
+    SIGNAL(triggerObjectInspectorAccept()),
+    this->Internals->proxyTabWidget->getObjectInspector(), SLOT(accept()));
+
+
 
   // Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
@@ -235,9 +244,14 @@ myMainWindow::myMainWindow()
  this->showTurbineGeometry = true;
  //this->showPartnersView = false;
 }
+void myMainWindow::onTriggerObjectInspectorWidgetAccept()
+{ 
+	qWarning("My Main Window triggered apply");
+	emit this->triggerObjectInspectorAccept();
+}
 
 void myMainWindow::onObjectInspectorWidgetAccept()
-{
+{ 
 	emit this->objectInspectorWidgetAccept();
 }
 void myMainWindow::onChangeDataSet(int index)

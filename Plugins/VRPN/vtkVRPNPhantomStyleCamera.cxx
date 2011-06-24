@@ -181,6 +181,8 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
 		repProxy->UpdateVTKObjects();
 	
+		if (VORTEX_VISUALIZATION)
+		{
 		//Operate on object
 		// FOR REMOTE DEBUGGING if (first)
 		if (Phantom->GetButton(0))
@@ -228,6 +230,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		}
 		//else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
 		//	CreateStreamTracerTube(view,Phantom,newPosition);
+		}
 		}
 	}  
 		

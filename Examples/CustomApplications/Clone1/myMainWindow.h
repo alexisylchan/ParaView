@@ -85,6 +85,9 @@ public slots:
 
    //Slot for propagating Object Inspector Accept
    void onObjectInspectorWidgetAccept();
+
+   //Slot to receive ObjectInspectorAcceptTrigger
+   void onTriggerObjectInspectorWidgetAccept();
 signals: 
   /// emitted to request the scene to change it's animation time.
   void changeSceneTime(double);
@@ -92,6 +95,7 @@ signals:
   void resetPhantom(); 
   void toggleView();
   void objectInspectorWidgetAccept();
+  void triggerObjectInspectorAccept();
   //void toggleView(bool togglePartnersView);
 
 protected slots:

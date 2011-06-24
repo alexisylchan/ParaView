@@ -58,8 +58,12 @@ class pqPipelineSource;
 
 #define DEBUG 1
 #define DEBUG_1_USER 1
+#define SNIPPET_LENGTH 200
+#define IGNORE_FILE_ACC 1
 //TODO: Make this a user-input option (vortex visualization workbench)
 #define VORTEX_VISUALIZATION 0
+
+
 
 class pqVRPNStarter : public QObject
 {
@@ -95,7 +99,8 @@ public:
 
   // Callback for startup.
   void onStartup();
-
+  signals:
+	  void triggerObjectInspectorWidgetAccept();
 public slots:
 
 	// QTimer callback to update visualization with collected VRPN Devices input
@@ -185,10 +190,19 @@ private:
   void loadXMLSnippet();
   bool xmlSnippetModified();
 
+  //Custom file writing and reading
+  int readFileIndex;
+  int writeFileIndex; 
+  ifstream readFile;
+  bool isRepeating;
+  
   void writeChangeSnippet(const char* snippet);
-  void changeSnippetTimeStamp();
-  bool snippetFileModified();
+  void changeMySnippetTimeStamp();
+  bool changeSnippetModified();
   void respondToOtherAppsChange();
+  void repeatCreateSource(char* groupName,char* sourceName );
+  void repeatApply();
+
 };
 
 #endif
