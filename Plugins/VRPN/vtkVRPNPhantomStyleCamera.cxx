@@ -76,6 +76,9 @@
 #include "pqPVApplicationCore.h"
 #include "pqAnimationManager.h"
 
+//Fix Phantom Source creation
+#include "pqUndoStack.h"
+
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 
@@ -190,16 +193,17 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			if (createdSource) // Assume that this is always true
 			{
 				this->ModifySeedPosition(createdSource,newPosition);
-				this->DisplayCreatedObject(view,createdSource);  
- 
+				this->DisplayCreatedObject(view,createdSource, false);   
 				 
 				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1"); 
-			 
+				if (!tubeSource)
+					tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube2"); //Hack: Make this Tube2 instead of Tube1 for certain occasions where ParaView renames the Tubes
 				//pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(4);
 				if (tubeSource)
 				{  
+					BEGIN_UNDO_SET(QString("Delete %1").arg(tubeSource->getSMName()));
 					pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
-					
+					END_UNDO_SET();
 					//TODO FIX BUG: REPLACE7 WITH ACTUAL COUNT
 					this->CreateParaViewObject(7,-1,view,Phantom,newPosition,"TubeFilter");
 				}  
@@ -253,7 +257,7 @@ void vtkVRPNPhantomStyleCamera::CreateStreamTracerTube(pqView* view, vtkVRPNPhan
 int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputIndex,pqView* view, vtkVRPNPhantom* Phantom, double* newPosition,const char* name)
 {
 	
-	
+		BEGIN_UNDO_SET(QString("Create '%1'").arg(name));
 		vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
 		vtkSMProxy* prototype = pxm->GetPrototypeProxy("filters",name);
 		QList<pqOutputPort*> outputPorts;
@@ -313,19 +317,29 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 
 		pqPipelineSource* createdSource = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", name,
 		namedInputs, pqActiveObjects::instance().activeServer());
+		END_UNDO_SET();
+
+		bool setVisible = true;
 		if (!strcmp(name,"StreamTracer") )
+		{
+			setVisible = false;		
 			createdSource->setObjectName("UserSeededStreamTracer");
+		}
 		else if (!strcmp(name,"TubeFilter"))
+		{
+			setVisible = true;
 			createdSource->setObjectName("Tube1");
+		}
 		
 		this->ModifySeedPosition(createdSource,newPosition);
-		this->DisplayCreatedObject(view,createdSource);
+
+		this->DisplayCreatedObject(view,createdSource,setVisible);
  
 		int newSourceIndex = pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqPipelineSource*>();
 		//qWarning("Source index %d", --newSourceIndex);
 	return newSourceIndex;
 }
-void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource)
+void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource, bool setVisible)
 {
 	//Display createdSource in view
 		//Modified code from pqObjectInspectorWizard::accept()
@@ -361,6 +375,9 @@ void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSour
 				repr->setVisible(true);
 
 			}
+			proxy->GetRenderWindow()->Render();
+			//Todo: Debug if this is actually needed to repaint an object then set it to invisible
+			createdSource->getRepresentation(0,view)->setVisible(setVisible);
 			proxy->GetRenderWindow()->Render();
 		} 
 }
