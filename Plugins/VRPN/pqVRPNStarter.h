@@ -65,7 +65,10 @@ public:
     { 
 		SST,
 		SAS,
-		TEST
+		DES,
+		SSTTIMELINE,
+		SASTIMELINE,
+		DESTIMELINE
     };
 	//Constants used to index objects in state files for the Special UseCase: Vortex Visualization
 	enum VortexFilter
@@ -130,6 +133,13 @@ private:
   void loadState();
   void initialLoadState();
   void loadTestState();
+  
+  void loadSSTTimelineState();
+  void loadSASTimelineState();
+  void loadDESTimelineState();
+
+  void loadDESState();
+  void loadAllState();
   void loadSSTState();
   void loadSASState();
   void removeRepresentations();

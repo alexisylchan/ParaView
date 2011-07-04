@@ -144,7 +144,7 @@ myMainWindow::myMainWindow()
   Slider0->setMaximum(100);
   Slider0->setFocusPolicy(Qt::StrongFocus);
   Slider0->setTickPosition(QSlider::TicksBothSides);
-  Slider0->setTickInterval(10);
+  Slider0->setTickInterval(1);
   Slider0->setSingleStep(1);
   QLineEdit *LineEdit0 = this->Internals->TimeSlider->findChild<QLineEdit*>("LineEdit"); 
   LineEdit0->hide(); 
@@ -155,10 +155,13 @@ myMainWindow::myMainWindow()
     this, SLOT(sliderTimeIndexChanged(int))); 
   
 
-    this->Internals->VortexDataSetComboBox->setMaxVisibleItems(3); 
+    this->Internals->VortexDataSetComboBox->setMaxVisibleItems(6); 
 	this->Internals->VortexDataSetComboBox->insertItem(0,QString("SST DataSet"));
 	this->Internals->VortexDataSetComboBox->insertItem(1,"SAS DataSet");
-	this->Internals->VortexDataSetComboBox->insertItem(2,"Test DataSet");
+	this->Internals->VortexDataSetComboBox->insertItem(2,"DES DataSet");
+	this->Internals->VortexDataSetComboBox->insertItem(3,"SST Timeline");
+	this->Internals->VortexDataSetComboBox->insertItem(4,"SAS Timeline");
+	this->Internals->VortexDataSetComboBox->insertItem(5,"DES Timeline");
 	QObject::connect(this->Internals->VortexDataSetComboBox,SIGNAL(currentIndexChanged(int)),this,
 		SLOT(onChangeDataSet(int )));
   

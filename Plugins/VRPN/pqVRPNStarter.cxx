@@ -222,8 +222,17 @@ void pqVRPNStarter::onChangeDataSet(int index)
 	case SAS:
 		loadSASState();
 		break;
-	case TEST:
-		loadTestState();
+	case DES:
+		loadDESState();
+		break;
+	case SSTTIMELINE:
+		loadSSTTimelineState();
+		break;
+	case SASTIMELINE:
+		loadSASTimelineState();
+		break;
+	case DESTIMELINE:
+		loadDESTimelineState();
 		break;
 	}
 
@@ -768,6 +777,17 @@ void  pqVRPNStarter::loadTestState()
 		this->initializeEyeAngle();
 		this->initializeDevices(); 
 }
+
+//Load All Data State
+void  pqVRPNStarter::loadAllState()
+{
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESSASSST.pvsm"));
+		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices(); 
+}
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadSSTState()
 {
@@ -790,6 +810,52 @@ void  pqVRPNStarter::loadSASState()
 		this->initializeEyeAngle();
 		this->initializeDevices();  
 }
+
+//Load DES State
+void  pqVRPNStarter::loadDESState()
+{
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDES.pvsm"));
+		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices(); 
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSSTTimelineState()
+{
+
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSSTTimeline.pvsm"));
+		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices();  
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSASTimelineState()
+{
+
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSASTimeline.pvsm"));
+		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices();  
+}
+
+//Load DES State
+void  pqVRPNStarter::loadDESTimelineState()
+{
+	    this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESTimeline.pvsm"));
+		this->changeTimeStamp();
+		this->initializeEyeAngle();
+		this->initializeDevices(); 
+}
+
+
 void pqVRPNStarter::changeTimeStamp()
 {
 	struct stat filestat;

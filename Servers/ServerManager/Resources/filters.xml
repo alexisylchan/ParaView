@@ -3600,7 +3600,7 @@ The Ribbon filter creates ribbons from the lines in the input data set. This fil
         command="SetWidth"
         number_of_elements="1"
         default_values="1" >
-       <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="0.01">
+       <BoundsDomain name="bounds" mode="scaled_extent" scale_factor="1.0">
          <RequiredProperties>
             <Property name="Input" function="Input"/>
          </RequiredProperties>
