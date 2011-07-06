@@ -54,6 +54,9 @@ class vtkVRPNPhantom;
 class vtkEventQtSlotConnect;
 class pqUndoStack;
 
+//Timeline
+class vtkVRPNPhantomStyleCamera;
+
 class pqVRPNStarter : public QObject
 {
   Q_OBJECT
@@ -131,6 +134,8 @@ private:
   void initializeEyeAngle();
   void listenToSelfSave();
   void loadState();
+
+  void loadState(char* filename); 
   void initialLoadState();
   void loadTestState();
   
@@ -165,12 +170,17 @@ private:
   const char* phantomAddress;
   int useTNG;
   const char* tngAddress;
+
+  int showingTimeline;
  
   //Log file for recording Phantom positions
   ofstream evaluationlog;
 
   //Track pqUndoStack to deal with creation?  OR track Apply?
   pqUndoStack* undoStack;
+  
+  //Disable phantom when Timelines are being displayed
+  vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
 
 };
 

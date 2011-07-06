@@ -152,13 +152,20 @@ void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor)
 //} 
 //----------------------------------------------------------------------------
 
+void vtkVRPNPhantomStyleCamera::SetShowingTimeline(int showingTimeline)
+{ 
+	this->showingTimeline = showingTimeline;
+}
 void vtkVRPNPhantomStyleCamera::SetEvaluationLog(ofstream* evaluationlog)
 { 
 	this->evaluationlog = evaluationlog;
 }
 void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 { 
-		
+	
+	if (!this->showingTimeline)
+	{
+	//qWarning(" Showing Timeline %d",this->showingTimeline);
 	double* position = Phantom->GetPosition(); 
 	
 	
@@ -234,7 +241,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		//	CreateStreamTracerTube(view,Phantom,newPosition);
 		}
 	}  
-		
+	}
 }
 void vtkVRPNPhantomStyleCamera::SetCreateTube(bool createTube)
 {

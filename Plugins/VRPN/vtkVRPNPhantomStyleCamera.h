@@ -62,6 +62,9 @@ public:
 
   void SetEvaluationLog(ofstream* evaluationlog);
 
+  //To handle showing timeline ribbons
+  void SetShowingTimeline(int showingTimeline);
+
 protected:
   vtkVRPNPhantomStyleCamera();
   ~vtkVRPNPhantomStyleCamera();
@@ -84,6 +87,7 @@ private:
   int CreateParaViewObject(int sourceIndex,int inputIndex, pqView* view, vtkVRPNPhantom* Phantom,double* newPosition,const char* name);
   int first;
   bool createTube;
+  int showingTimeline;
   ofstream* evaluationlog;
 };
 

@@ -159,7 +159,7 @@ pqVRPNStarter::~pqVRPNStarter()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onStartup()
 {
-
+	this->showingTimeline = false;
 	evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
     vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
@@ -210,6 +210,7 @@ void pqVRPNStarter::onStartup()
 	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
 	//	this, SLOT(serverResourcesChanged()));
 
+	
 }
 
 void pqVRPNStarter::onChangeDataSet(int index)
@@ -475,10 +476,11 @@ void pqVRPNStarter::initializeDevices()
 
 
 		/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
-		vtkVRPNPhantomStyleCamera* phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
+		phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
 		phantomStyleCamera1->SetPhantom(phantom1);
 		phantomStyleCamera1->SetRenderer(renderer1);
 		phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
+		phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
 
 		
 	    /////////////////////////INTERACTOR////////////////////////////
@@ -767,92 +769,88 @@ void  pqVRPNStarter::initialLoadState()
         pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
 		this->changeTimeStamp(); 
 }
+
+void pqVRPNStarter::loadState(char* filename)
+{
+	this->VRPNTimer->blockSignals(true); 
+	
+	phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+	/*this->uninitializeDevices();
+	pqCommandLineOptionsBehavior::resetApplication();	*/
+	pqDeleteReaction::deleteAll();
+    pqLoadStateReaction::loadState(QString(filename));
+	this->changeTimeStamp();
+	 ///////////////////////////////////Render///////////////////////////
+ 
+	//pqView* view = pqActiveObjects::instance().activeView();//->getItemAtIndex<pqView*>(i);
+	// vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
+	// proxy->GetRenderWindow()->Render();
+	this->initializeEyeAngle();
+    /*this->initializeDevices(); */
+
+	this->VRPNTimer->blockSignals(false);
+}
+
+
 //Load Test State
 void  pqVRPNStarter::loadTestState()
 {
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTest.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices(); 
+		this->showingTimeline = false;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+		loadState("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTest.pvsm" ); 
 }
 
 //Load All Data State
 void  pqVRPNStarter::loadAllState()
 {
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESSASSST.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices(); 
+		this->showingTimeline = false;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESSASSST.pvsm" ); 
 }
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadSSTState()
 {
-
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices();  
+		this->showingTimeline = false;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);		
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm" ); 
 }
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadSASState()
 {
-
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSAS.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices();  
+		this->showingTimeline = false;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSAS.pvsm" ); 
+ 
 }
 
 //Load DES State
 void  pqVRPNStarter::loadDESState()
 {
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDES.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices(); 
+		this->showingTimeline = false;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+	    loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDES.pvsm" ); 
 }
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadSSTTimelineState()
 {
-
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSSTTimeline.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices();  
+		this->showingTimeline = true;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSSTTimeline.pvsm" ); 
 }
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadSASTimelineState()
 {
-
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSASTimeline.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices();  
+		this->showingTimeline = true;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSASTimeline.pvsm" ); 
 }
 
 //Load DES State
 void  pqVRPNStarter::loadDESTimelineState()
-{
-	    this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESTimeline.pvsm"));
-		this->changeTimeStamp();
-		this->initializeEyeAngle();
-		this->initializeDevices(); 
+{ 
+		this->showingTimeline = true;
+		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESTimeline.pvsm" ); 
 }
 
 
