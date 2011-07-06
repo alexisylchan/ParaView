@@ -706,10 +706,14 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 				zmax = abs(value[p][2]);
 			//qWarning("value in loop %f %f %f",value[p][0],value[p][1],value[p][2]);
 		} 
-		newScaledPosition[0] = (newPosition2[0]/0.5)* (xmax/2000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-		newScaledPosition[1] = (newPosition2[1]/0.5 )* (ymax/2000.0);
-		newScaledPosition[2] = (newPosition2[2]/0.5)* (zmax/2000.0);
-
+		//newScaledPosition[0] = (newPosition2[0]/0.5)* (xmax/2000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		//newScaledPosition[1] = (newPosition2[1]/0.5 )* (ymax/2000.0);
+		//newScaledPosition[2] = (newPosition2[2]/0.5)* (zmax/2000.0);
+		
+		//TODO: Right now we scale by x and y vector?
+		newScaledPosition[0] = (newPosition2[0]/0.5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		newScaledPosition[1] = (newPosition2[1]/0.5);///*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		newScaledPosition[2] = (newPosition2[2]/0.5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
 		/*
 		qWarning("newScaledPosition %f %f %f",newScaledPosition[0],newScaledPosition[1],newScaledPosition[2]);*/
 		delete index;

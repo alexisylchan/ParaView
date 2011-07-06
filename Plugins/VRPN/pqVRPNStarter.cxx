@@ -324,28 +324,28 @@ void pqVRPNStarter::initializeEyeAngle()
 		double value = 1.0;
 		if (this->sensorIndex == 1)
 		{
-		DisplayOrigin[0]= -value;
-		DisplayOrigin[1]= -value; 
-		DisplayOrigin[2]= value; 
-		DisplayX[0]= -value; 
-		DisplayX[1]= -value; 
-		DisplayX[2]= -value; 
-		DisplayY[0]= -value;
-		DisplayY[1]= value; 
-		DisplayY[2]= -value; 
+		DisplayOrigin[0]= -0.45;//-value;
+		DisplayOrigin[1]= -0.3;//-value; 
+		DisplayOrigin[2]= 0.9;//value; 
+		DisplayX[0]= -0.45;//-value; 
+		DisplayX[1]= -0.3;//-value; 
+		DisplayX[2]= -0.9;//-value; 
+		DisplayY[0]= -0.45;//-value;
+		DisplayY[1]= 0.3;//value; 
+		DisplayY[2]= -0.9;//-value; 
 
 		}
 		else
 		{
-			DisplayOrigin[0]= -value;
-			DisplayOrigin[1]= -value; 
-			DisplayOrigin[2]= -value; 
-			DisplayX[0]= value; 
-			DisplayX[1]= -value; 
-			DisplayX[2]= -value; 
-			DisplayY[0]= value; 
-			DisplayY[1]= value; 
-			DisplayY[2]= -value; 
+			DisplayOrigin[0]= -0.45;//-value;
+			DisplayOrigin[1]= -0.3;//-value; 
+			DisplayOrigin[2]= -0.9;//-value; 
+			DisplayX[0]= 0.45;//value; 
+			DisplayX[1]= -0.3;//-value; 
+			DisplayX[2]= -0.9;//-value; 
+			DisplayY[0]= 0.45;//value; 
+			DisplayY[1]= 0.3;//value; 
+			DisplayY[2]= -0.9;//-value; 
 		}
 
 		double xBase[3],yBase[3],zBase[3];
@@ -633,7 +633,7 @@ const vrpn_ANALOGCB t)
     {
     tData->sn_counts[0] = 0;
 
-    vrpn_ANALOGCB at = SNAugmentChannelsToRetainLargestMagnitude(t);
+    vrpn_ANALOGCB at = t;//TODO: TEST If this is better SNAugmentChannelsToRetainLargestMagnitude(t);
     pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
 	
 	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
