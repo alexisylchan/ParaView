@@ -104,8 +104,7 @@ public slots:
 	void onChangeDataSet(int index);
 	// Switch between partner's (other user) view and self
 	void onToggleView();
-	// Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
-	void onResetPhantom();
+	//void onToggleTimelineSummary();
 
 	// Handle stack change on ParaView
 	void handleStackChanged(bool canUndo, QString undoLabel, bool canRedo, QString redoLabel);

@@ -134,9 +134,9 @@ myMainWindow::myMainWindow()
 
 
   
-  this->Internals->ResetPhantomButton->setIconSize(QSize(24,24));
-  this->Internals->ResetPhantomButton->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/pqResetCenter24.png"));
-  QObject::connect(this->Internals->ResetPhantomButton,SIGNAL(clicked()),this,SLOT(onResetPhantom())); 
+  this->Internals->ToggleTimelineSummary->setIconSize(QSize(24,24));
+  this->Internals->ToggleTimelineSummary->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/pqLineChart16.png"));
+  QObject::connect(this->Internals->ToggleTimelineSummary,SIGNAL(clicked()),this,SLOT(onToggleTimelineSummary())); 
 
   //QObject::connect(this->Internals->TimeSlider, SIGNAL(valueEdited(double)),
   //                 this, SLOT(timeSliderChanged(double)));
@@ -155,13 +155,13 @@ myMainWindow::myMainWindow()
     this, SLOT(sliderTimeIndexChanged(int))); 
   
 
-    this->Internals->VortexDataSetComboBox->setMaxVisibleItems(6); 
+    this->Internals->VortexDataSetComboBox->setMaxVisibleItems(3);//6); 
 	this->Internals->VortexDataSetComboBox->insertItem(0,QString("SST DataSet"));
 	this->Internals->VortexDataSetComboBox->insertItem(1,"SAS DataSet");
 	this->Internals->VortexDataSetComboBox->insertItem(2,"DES DataSet");
-	this->Internals->VortexDataSetComboBox->insertItem(3,"SST Timeline");
-	this->Internals->VortexDataSetComboBox->insertItem(4,"SAS Timeline");
-	this->Internals->VortexDataSetComboBox->insertItem(5,"DES Timeline");
+	//this->Internals->VortexDataSetComboBox->insertItem(3,"SST Timeline");
+	//this->Internals->VortexDataSetComboBox->insertItem(4,"SAS Timeline");
+	//this->Internals->VortexDataSetComboBox->insertItem(5,"DES Timeline");
 	QObject::connect(this->Internals->VortexDataSetComboBox,SIGNAL(currentIndexChanged(int)),this,
 		SLOT(onChangeDataSet(int )));
   
@@ -231,6 +231,7 @@ myMainWindow::myMainWindow()
  this->showVortexCore = true;
  this->showVortexCoreLine = true;
  this->showTurbineGeometry = true;
+ this->showTimelineSummary = false;
  //this->showPartnersView = false;
 }
 
@@ -371,9 +372,108 @@ void myMainWindow::turbineGeometry()
 } 
 
 //-----------------------------------------------------------------------------
-void myMainWindow::onResetPhantom()
+void myMainWindow::onToggleTimelineSummary()
 { 
-	emit this->resetPhantom();
+	if (this->showTimelineSummary)
+	{
+		this->showTimelineSummary = false;
+		pqPipelineSource* VTPVortices = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPVortices");
+		DisplayObject(pqActiveObjects::instance().activeView(),VTPVortices);
+		this->showVortexCore = true;
+		 
+		/*pqPipelineSource* VTPStreamTracers = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPStreamTracers.pvd");
+		DisplayObject(pqActiveObjects::instance().activeView(),VTPStreamTracers);
+		this->showContextualFlow = false;*/
+		/*
+		pqPipelineSource* geometry = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("geometry.vtu");
+		DisplayObject(pqActiveObjects::instance().activeView(),geometry);
+		this->showTurbineGeometry = true;*/
+			
+		pqPipelineSource* VTPVortexCoreDirection = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPVortexCoreDirection");
+		DisplayObject(pqActiveObjects::instance().activeView(),VTPVortexCoreDirection);
+		this->showVortexCoreLine = true;
+		
+		 /*pqPipelineSource* UserSeededStreamTracer = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
+		 HideObject(pqActiveObjects::instance().activeView(),UserSeededStreamTracer);*/
+		 //
+		 //pqPipelineSource* Tube1 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");
+		 //DisplayObject(pqActiveObjects::instance().activeView(),Tube1);
+		 ////Hack
+		 //pqPipelineSource* Tube2 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube2");
+		 //DisplayObject(pqActiveObjects::instance().activeView(),Tube2);
+		 //pqPipelineSource* Tube3 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube3");
+		 //DisplayObject(pqActiveObjects::instance().activeView(),Tube3);
+		 //pqPipelineSource* Tube4 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube4");
+		 //DisplayObject(pqActiveObjects::instance().activeView(),Tube4);
+
+		/* Slider0->setEnabled(false);*/
+		  pqPipelineSource* TimelineGlyph = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("TimelineGlyph");
+		 HideObject(pqActiveObjects::instance().activeView(),TimelineGlyph);
+		 
+		 pqPipelineSource* TimelineRibbon = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("TimelineRibbon");
+		 HideObject(pqActiveObjects::instance().activeView(),TimelineRibbon);
+		  pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	 
+		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
+		{
+			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+			proxy->GetRenderWindow()->Render();
+		}
+
+	}
+	else
+	{
+		this->showTimelineSummary = true;
+		//emit this->toggleTimelineSummary();
+		pqPipelineSource* VTPVortices = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPVortices");
+		HideObject(pqActiveObjects::instance().activeView(),VTPVortices);
+		this->showVortexCore = false;
+		 
+		pqPipelineSource* VTPStreamTracers = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPStreamTracers.pvd");
+		HideObject(pqActiveObjects::instance().activeView(),VTPStreamTracers);
+		this->showContextualFlow = false;
+		
+		/*pqPipelineSource* geometry = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("geometry.vtu");
+		HideObject(pqActiveObjects::instance().activeView(),geometry);
+		this->showTurbineGeometry = false;*/
+			
+		pqPipelineSource* VTPVortexCoreDirection = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("VTPVortexCoreDirection");
+		HideObject(pqActiveObjects::instance().activeView(),VTPVortexCoreDirection);
+		this->showVortexCoreLine = false;
+		
+		 pqPipelineSource* UserSeededStreamTracer = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
+		 HideObject(pqActiveObjects::instance().activeView(),UserSeededStreamTracer);
+		 
+		 //pqPipelineSource* Tube1 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");
+		 //HideObject(pqActiveObjects::instance().activeView(),Tube1);
+		 ////Hack
+		 //pqPipelineSource* Tube2 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube2");
+		 //HideObject(pqActiveObjects::instance().activeView(),Tube2);
+		 //pqPipelineSource* Tube3 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube3");
+		 //HideObject(pqActiveObjects::instance().activeView(),Tube3);
+		 //pqPipelineSource* Tube4 = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube4");
+		 //HideObject(pqActiveObjects::instance().activeView(),Tube4);
+
+		 
+		 pqPipelineSource* TimelineGlyph = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("TimelineGlyph");
+		 DisplayObject(pqActiveObjects::instance().activeView(),TimelineGlyph);
+		 
+		 pqPipelineSource* TimelineRibbon = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("TimelineRibbon");
+		 DisplayObject(pqActiveObjects::instance().activeView(),TimelineRibbon);
+
+		QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
+		 Slider0->setEnabled(false);
+		pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	 
+		for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
+		{
+			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+			proxy->GetRenderWindow()->Render();
+		}
+	}
+
 } 
 
 //-----------------------------------------------------------------------------

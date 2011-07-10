@@ -174,7 +174,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
+       <y>30</y>
        <width>271</width>
        <height>41</height>
       </rect>
@@ -187,7 +187,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>190</y>
+       <y>140</y>
        <width>271</width>
        <height>51</height>
       </rect>
@@ -200,7 +200,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>420</y>
+       <y>470</y>
        <width>261</width>
        <height>31</height>
       </rect>
@@ -213,7 +213,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>130</y>
+       <y>80</y>
        <width>271</width>
        <height>51</height>
       </rect>
@@ -226,7 +226,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>250</y>
+       <y>200</y>
        <width>271</width>
        <height>51</height>
       </rect>
@@ -235,24 +235,24 @@
       <string>Toggle Turbine Geometry</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="ResetPhantomButton">
+    <widget class="QPushButton" name="ToggleTimelineSummary">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>30</y>
+       <y>370</y>
        <width>271</width>
        <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>Reset Phantom</string>
+      <string>Toggle Timeline Summary</string>
      </property>
     </widget>
     <widget class="pqDoubleRangeWidget" name="TimeSlider" native="true">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>380</y>
+       <y>340</y>
        <width>431</width>
        <height>20</height>
       </rect>
@@ -261,8 +261,8 @@
     <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>360</y>
+       <x>10</x>
+       <y>310</y>
        <width>110</width>
        <height>16</height>
       </rect>
@@ -278,7 +278,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>310</y>
+       <y>260</y>
        <width>261</width>
        <height>41</height>
       </rect>
@@ -291,7 +291,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>460</y>
+       <y>510</y>
        <width>261</width>
        <height>31</height>
       </rect>

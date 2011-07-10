@@ -195,6 +195,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		// FOR REMOTE DEBUGGING if (first)
 		if (Phantom->GetButton(0))
 		{	
+			//qWarning("Button 0!");
 			//this->CreateStreamTracerTube(view,Phantom,newPosition);	
 			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
 			if (createdSource) // Assume that this is always true
@@ -711,9 +712,9 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		//newScaledPosition[2] = (newPosition2[2]/0.5)* (zmax/2000.0);
 		
 		//TODO: Right now we scale by x and y vector?
-		newScaledPosition[0] = (newPosition2[0]/0.5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
-		newScaledPosition[1] = (newPosition2[1]/0.5);///*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
-		newScaledPosition[2] = (newPosition2[2]/0.5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		newScaledPosition[0] = (newPosition2[0]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		newScaledPosition[1] = (newPosition2[1]*5);///*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		newScaledPosition[2] = (newPosition2[2]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
 		/*
 		qWarning("newScaledPosition %f %f %f",newScaledPosition[0],newScaledPosition[1],newScaledPosition[2]);*/
 		delete index;

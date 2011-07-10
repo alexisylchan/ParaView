@@ -77,8 +77,8 @@ public slots:
    void turbineGeometry();
    //Toggle Enable time Slider
    void enableTimeSlider();
-   //ResetPhantom
-   void onResetPhantom();
+   ////Toggle Timeline Summary
+   void onToggleTimelineSummary();
 
    //Change dataset
    void onChangeDataSet(int index );
@@ -86,7 +86,7 @@ signals:
   /// emitted to request the scene to change it's animation time.
   void changeSceneTime(double);
   void changeDataSet(int index);
-  void resetPhantom(); 
+  //void toggleTimelineSummary(); 
   void toggleView();
   //void toggleView(bool togglePartnersView);
 
@@ -113,6 +113,7 @@ private:
   bool showVortexCore;
   bool showVortexCoreLine;
   bool showTurbineGeometry;
+  bool showTimelineSummary;
   //bool showPartnersView;
 };
 

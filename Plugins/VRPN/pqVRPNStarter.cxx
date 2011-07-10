@@ -201,7 +201,7 @@ void pqVRPNStarter::onStartup()
 	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
 	QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int)));
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView()));
-	QObject::connect(mainWindow,SIGNAL(resetPhantom()),this,SLOT(onResetPhantom())); 
+	//QObject::connect(mainWindow,SIGNAL(toggleTimelineSummary()),this,SLOT(onToggleTimelineSummary())); 
 
 	//undoStack = pqApplicationCore::instance()->getUndoStack();
 	//QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
@@ -253,38 +253,11 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 	this->initializeEyeAngle();
 	
 }
-// Note: 05/24/11 This does not reset the Phantom position like it was supposed to do.
-// Note: 06/13/11 Comment out code since it doesn't do anything useful
-void pqVRPNStarter::onResetPhantom()
+ 
+/*void pqVRPNStarter::onToggleTimelineSummary()
 { 
-	/*doesn't work
-	vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-	xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/teststack.txt"); 
-	xmlParser->Parse();
-	vtkPVXMLElement * root=  xmlParser->GetRootElement(); 
-	vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
-	uSet->Redo(); */
-	//Code for editing properties
-	//vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-	//xmlParser->SetFileName("C:/Users/alexisc/Documents/EVE/arrowsource.txt"); 
-	//xmlParser->Parse();
-	//int proxy_id;
-	//vtkPVXMLElement * xmlElement=  xmlParser->GetRootElement(); 
-	//vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-	//vtkSMProxy* proxy = pxm->GetProxy(vtkProcessModuleConnectionManager::GetRootServerConnectionID(),948);//proxy_id);
-	//vtkSMStateLoader* loader = vtkSMStateLoader::New();
-	//loader->GetProxyLocator()->SetConnectionID(pqActiveObjects::instance().activeServer()->GetConnectionID());
-	//proxy->LoadState(xmlElement,loader->GetProxyLocator());
-	//proxy->UpdateVTKObjects(); 
-	//pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	// 
-	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
-	//{
-	//	pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-	//	vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
-	//	proxy->GetRenderWindow()->Render();
-	//}
-}  
+	 
+} */ 
 void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel, 
     bool canRedo, QString redoLabel)
 {
@@ -323,7 +296,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		double DisplayX[3], DisplayY[3],DisplayOrigin[3];
 		double value = 1.0;
 		if (this->sensorIndex == 1)
-		{
+		{ 
 		DisplayOrigin[0]= -0.45;//-value;
 		DisplayOrigin[1]= -0.3;//-value; 
 		DisplayOrigin[2]= 0.9;//value; 
@@ -337,13 +310,13 @@ void pqVRPNStarter::initializeEyeAngle()
 		}
 		else
 		{
-			DisplayOrigin[0]= -0.45;//-value;
+			DisplayOrigin[0]= -0.5;//-value;
 			DisplayOrigin[1]= -0.3;//-value; 
 			DisplayOrigin[2]= -0.9;//-value; 
-			DisplayX[0]= 0.45;//value; 
+			DisplayX[0]= 0.5;//value; 
 			DisplayX[1]= -0.3;//-value; 
 			DisplayX[2]= -0.9;//-value; 
-			DisplayY[0]= 0.45;//value; 
+			DisplayY[0]= 0.5;//value; 
 			DisplayY[1]= 0.3;//value; 
 			DisplayY[2]= -0.9;//-value; 
 		}
