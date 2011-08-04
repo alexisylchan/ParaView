@@ -1,0 +1,15 @@
+1: Toggle Switch View has same icon as Push To Shared State
+2: line 306: Source creation: VTK Class Name is different from Source Name, even after stripping of "vtk" and "vtkPV" for: 
+ Test3DWidget vtkConeSource 
+ SelectionQuerySource vtkQuerySelectionSource      BlockSelectionSource vtkPVSelectionSource
+ FrustumSelectionSource vtkPVSelectionSource
+ GlobalIDSelectionSource vtkPVSelectionSource
+ PedigreeIDSelectionSource vtkPVSelectionSource
+ IDSelectionSource vtkPVSelectionSource"
+ CompositeDataIDSelectionSource vtkPVSelectionSource    HierarchicalDataIDSelectionSource vtkPVSelectionSource  ThresholdSelectionSource vtkPVSelectionSource
+LocationSelectionSource vtkPVSelectionSource" TimeToTextConvertorSource vtkTimeToTextConvertor
+TimeSource vtkTimeSourceExample 
+NetworkImageSourceProxy name="NetworkImageSource" class="vtkNetworkImageSource"
+ SplineSource vtkParametricFunctionSource 
+
+3: Delete xml snippets when plugin is shutting down. 

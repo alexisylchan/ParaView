@@ -304,7 +304,7 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
 		std::string vtkClassNameStr = std::string(vtkClassName);
 		int classStartIndex = vtkClassNameStr.find("vtkPV");
-		qWarning("%d",classStartIndex);
+		qWarning("find vtkPV %d",classStartIndex);
 		if (classStartIndex ==0)
 		{
 			std::string vtkClassNameStr1 = vtkClassNameStr.substr(5);// 5 = length of vtkPV
@@ -316,6 +316,19 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 			snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
 			qWarning(snippetStream.str().c_str());
 			writeChangeSnippet(snippetStream.str().c_str());
+		}
+		else 
+		{
+			int classStartIndex2 = vtkClassNameStr.find("vtk");
+			qWarning("find vtk %d",classStartIndex2);
+			if (classStartIndex2 ==0)
+			{
+				std::string vtkClassNameStr1 = vtkClassNameStr.substr(3);// 5 = length of vtkPV
+				qWarning(vtkClassNameStr1.c_str()); 
+				snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
+				qWarning(snippetStream.str().c_str());
+				writeChangeSnippet(snippetStream.str().c_str());
+			}
 		}
 		/*std::string::compare
 		char vtkClassName1[SNIPPET_LENGTH];
