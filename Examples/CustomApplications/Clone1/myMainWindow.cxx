@@ -173,6 +173,18 @@ myMainWindow::myMainWindow()
     SIGNAL(helpRequested(QString)),
     this, SLOT(showHelpForProxy(const QString&)));
 
+  /********************************* CONCURRENT SYNC ******************************/
+   //Propagate the ObjectInspectorWidget's accept signal 
+  QObject::connect(this->Internals->proxyTabWidget->getObjectInspector(),
+    SIGNAL(postaccept()),
+    this, SLOT(onObjectInspectorWidgetAccept()));
+
+  //Tell ObjectInspectorWidget's accept signal 
+  QObject::connect(this,
+    SIGNAL(triggerObjectInspectorAccept()),
+    this->Internals->proxyTabWidget->getObjectInspector(), SLOT(accept()));
+
+  /********************************* CONCURRENT SYNC ******************************/
   // Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
   pqParaViewMenuBuilders::buildEditMenu(*this->Internals->menu_Edit);
@@ -233,6 +245,17 @@ myMainWindow::myMainWindow()
  this->showTurbineGeometry = true;
  this->showTimelineSummary = false;
  //this->showPartnersView = false;
+}
+
+void myMainWindow::onTriggerObjectInspectorWidgetAccept()
+{ 
+	qWarning("My Main Window triggered apply");
+	emit this->triggerObjectInspectorAccept();
+}
+
+void myMainWindow::onObjectInspectorWidgetAccept()
+{ 
+	emit this->objectInspectorWidgetAccept();
 }
 
 void myMainWindow::onChangeDataSet(int index)

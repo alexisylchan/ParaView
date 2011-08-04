@@ -53,6 +53,15 @@ class vtkPVXMLElement;
 class vtkVRPNPhantom;
 class vtkEventQtSlotConnect;
 class pqUndoStack;
+class pqProxy;
+class pqPipelineSource;
+
+#define DEBUG 1
+#define DEBUG_1_USER 1
+#define SNIPPET_LENGTH 200
+#define IGNORE_FILE_ACC 1
+//TODO: Make this a user-input option (vortex visualization workbench)
+#define VORTEX_VISUALIZATION 0
 
 //Timeline
 class vtkVRPNPhantomStyleCamera;
@@ -94,6 +103,9 @@ public:
   // Callback for startup.
   void onStartup();
 
+signals:
+	void triggerObjectInspectorWidgetAccept();
+
 public slots:
 
 	// QTimer callback to update visualization with collected VRPN Devices input
@@ -108,8 +120,16 @@ public slots:
 
 	// Handle stack change on ParaView
 	void handleStackChanged(bool canUndo, QString undoLabel, bool canRedo, QString redoLabel);
-	// Handle server resources changed
-	void serverResourcesChanged();
+	//// Handle server resources changed
+	//void serverResourcesChanged();
+	//For debugging. Turns on and off VRPN Timer
+	void debugToggleVRPNTimer();
+
+	//Listen to proxy creation from pqObjectBuilder
+	void onSourceCreated(pqPipelineSource* createdSource);
+
+	//Listen to accept from pqObjectInspectorWidget via QMainWindow (paraview_revised project)
+	void onObjectInspectorWidgetAccept();
 protected:
 	//
     QTimer *VRPNTimer;
@@ -175,8 +195,27 @@ private:
   //Log file for recording Phantom positions
   ofstream evaluationlog;
 
-  //Track pqUndoStack to deal with creation?  OR track Apply?
-  pqUndoStack* undoStack;
+  //xml file
+  ofstream xmlSnippetFile;
+  
+  int fileIndex;
+  int fileStart;
+ //Track pqUndoStack to deal with creation? OR track Apply?
+  pqUndoStack* undoStack; 
+ //void loadXMLSnippet();
+  bool xmlSnippetModified();
+
+   //Custom file writing and reading
+  int readFileIndex;
+  int writeFileIndex;
+  ifstream readFile;
+  bool isRepeating;
+  void writeChangeSnippet(const char* snippet);
+  void changeMySnippetTimeStamp();
+  bool changeSnippetModified();
+  void respondToOtherAppsChange();
+  void repeatCreateSource(char* groupName,char* sourceName );
+  void repeatApply();
   
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
