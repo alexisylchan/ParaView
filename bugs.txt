@@ -13,3 +13,4 @@ NetworkImageSourceProxy name="NetworkImageSource" class="vtkNetworkImageSource"
  SplineSource vtkParametricFunctionSource 
 
 3: Delete xml snippets when plugin is shutting down. 
+4: Temporarily comment out Phantom-scaling by frustum. Heap-reallocation problem.
