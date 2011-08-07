@@ -55,6 +55,7 @@ class vtkEventQtSlotConnect;
 class pqUndoStack;
 class pqProxy;
 class pqPipelineSource;
+class vtkSMProxy;
 
 #define DEBUG 1
 #define DEBUG_1_USER 1
@@ -221,6 +222,8 @@ private:
   void repeatCreateSource(char* groupName,char* sourceName );
   void repeatApply();
   
+  // Grab properties
+  void printSMProperties(vtkSMProxy* proxy);
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
 
