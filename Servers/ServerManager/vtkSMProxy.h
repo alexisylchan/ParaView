@@ -139,6 +139,7 @@ class vtkSMProxyLocator;
 class VTK_EXPORT vtkSMProxy : public vtkSMObject
 {
 public:
+  vtkSMProxyInternals* Internals;
   static vtkSMProxy* New();
   vtkTypeMacro(vtkSMProxy, vtkSMObject);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -833,7 +834,6 @@ protected:
   vtkClientServerID VTKObjectID;
 
 private:
-  vtkSMProxyInternals* Internals;
   vtkSMProxyObserver* SubProxyObserver;
 
   // Description:
