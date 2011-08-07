@@ -136,6 +136,8 @@ private slots:
 
   void smLinkedPropertyChanged();
   void qtLinkedPropertyChanged();
+  void printSMProperties(vtkSMProxy* smProxy);
+  void printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
 
 private:
   class pqInternal;

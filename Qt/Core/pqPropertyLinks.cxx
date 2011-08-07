@@ -53,7 +53,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProperty.h"
 #include "pqSMAdaptor.h"
 
-
+//Scientific Visualization Workbench. Alexis YL Chan. 08/07/11
+#include "vtkSMProxyInternals.h"
+#include "vtkSMDoubleVectorProperty.h"
+#include "vtkSMIntVectorProperty.h"
+#include "vtkSMIdTypeVectorProperty.h"
+#include  "vtkSMStringVectorProperty.h"
+#include "vtkStringList.h"
 class pqPropertyLinksConnection::pqInternal
 {
 public:
@@ -302,6 +308,9 @@ void pqPropertyLinksConnection::smLinkedPropertyChanged()
     case pqSMAdaptor::PROXYLIST:
       break;
       }
+	  /*
+	qWarning ("SM Property Changed");
+	printSMProperties(this->Internal->Proxy);*/
     }
   this->Internal->SettingProperty = NULL;
   emit this->smPropertyChanged();
@@ -538,9 +547,158 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
     case pqSMAdaptor::PROXYLIST:
       break;
       }
-    }
+	  
+	qWarning ("Qt Property Changed");
+	printSMProperty(this->Internal->Proxy,this->Internal->Property);
+	}
   this->Internal->SettingProperty = NULL;
   emit this->qtWidgetChanged();
+}
+void pqPropertyLinksConnection::printSMProperties(vtkSMProxy* smProxy)
+{
+	qWarning("%s",smProxy->GetXMLName());
+		
+	 vtkSMProxyInternals::PropertyInfoMap::iterator it;
+ 
+		  for (it  = smProxy->Internals->Properties.begin();
+		  it != smProxy->Internals->Properties.end();
+		  ++it)
+		  {
+			vtkSMProperty* smProperty = it->second.Property.GetPointer();
+
+			qWarning("%s",smProperty->GetXMLLabel());
+
+			vtkSMDoubleVectorProperty* dvp;
+			vtkSMIntVectorProperty* ivp;
+			vtkSMIdTypeVectorProperty* idvp;
+			vtkSMStringVectorProperty* svp;
+
+			dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
+			ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
+			idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
+			svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
+
+			if(dvp)
+			{
+				int num = dvp->GetNumberOfElements();
+				double* test = dvp->GetElements();
+				for (int i =0; i< num; i++)
+				{
+					qWarning(" dvp %f", test[i]);
+				}
+			}
+			else if (ivp)
+			{
+				int num = ivp->GetNumberOfElements();
+				int* test = ivp->GetElements();
+				for (int i =0; i< num; i++)
+				{
+					qWarning(" ivp %d", test[i]);
+				}
+			}
+			else if (svp)
+			{
+			  int num = svp->GetNumberOfElements();
+			   vtkStringList* strList;
+				svp->GetElements(strList);
+				for (int i =0; i< num; i++)
+				{
+					qWarning(" svp %f", strList->GetString(i));
+				}
+			}
+			else if (idvp)
+			{
+			 vtkIdType v;
+			  int num = idvp->GetNumberOfElements();
+			  for (int i =0; i < num; i++)
+			  {
+				  #if defined (VTK_USE_64BIT_IDS)
+			 
+				  qWarning(" vtkIdType %l", idvp->GetElement(i));
+			#else 
+				  qWarning(" vtkIdType %d",idvp->GetElement(i));
+			#endif
+
+					  
+			  }
+		  }
+		  }
+}
+
+void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
+{
+	qWarning("%s",smProxy->GetXMLName());
+		
+	 vtkSMProxyInternals::PropertyInfoMap::iterator it;
+ 
+		/*  for (it  = smProxy->Internals->Properties.begin();
+		  it != smProxy->Internals->Properties.end();
+		  ++it)
+		  {
+			vtkSMProperty* smProperty = it->second.Property.GetPointer();*/
+
+			 
+
+			vtkSMDoubleVectorProperty* dvp;
+			vtkSMIntVectorProperty* ivp;
+			vtkSMIdTypeVectorProperty* idvp;
+			vtkSMStringVectorProperty* svp;
+
+			dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
+			ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
+			idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
+			svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
+
+			if(dvp)
+			{
+				int num = dvp->GetNumberOfElements();
+				double* test = dvp->GetElements();
+				for (int i =0; i< num; i++)
+				{
+					qWarning("%s dvp %f", smProperty->GetXMLLabel(),test[i]);
+				}
+			}
+			else if (ivp)
+			{
+				int num = ivp->GetNumberOfElements();
+				int* test = ivp->GetElements();
+				for (int i =0; i< num; i++)
+				{
+					qWarning("%s ivp %d", smProperty->GetXMLLabel(),test[i]);
+				}
+			}
+			else if (svp)
+			{
+			  int num = svp->GetNumberOfElements();
+			  vtkStringList* strList = vtkStringList::New();
+				svp->GetElements(strList);
+				if (strList)
+				{
+					//qWarning("strList");
+				for (int i =0; i< num; i++)
+				{
+					QString qStr = QString(  strList->GetString(i)) ;
+					qWarning("%s svp %s",smProperty->GetXMLLabel(),qStr.toAscii().data());
+				}
+				}
+			}
+			else if (idvp)
+			{
+			 vtkIdType v;
+			  int num = idvp->GetNumberOfElements();
+			  for (int i =0; i < num; i++)
+			  {
+				  #if defined (VTK_USE_64BIT_IDS)
+			 
+				  qWarning(" vtkIdType %l", idvp->GetElement(i));
+			#else 
+				  qWarning("%s vtkIdType %d",smProperty->GetXMLLabel(),idvp->GetElement(i));
+			#endif
+
+					  
+			  }
+		 /* }*/
+		  }
 }
 
 bool pqPropertyLinksConnection::useUncheckedProperties() const
