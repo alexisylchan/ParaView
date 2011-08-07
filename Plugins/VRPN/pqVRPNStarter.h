@@ -122,8 +122,12 @@ public slots:
 	void handleStackChanged(bool canUndo, QString undoLabel, bool canRedo, QString redoLabel);
 	//// Handle server resources changed
 	//void serverResourcesChanged();
+	
 	//For debugging. Turns on and off VRPN Timer
 	void debugToggleVRPNTimer();
+
+	//For debugging. Grabs properties from Object Inspector Widget.
+	void debugGrabProps();
 
 	//Listen to proxy creation from pqObjectBuilder
 	void onSourceCreated(pqPipelineSource* createdSource);

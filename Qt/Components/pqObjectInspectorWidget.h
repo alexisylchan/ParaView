@@ -85,6 +85,10 @@ public:
   bool showOnAccept() const
     { return this->ShowOnAccept; }
 
+  pqObjectPanel* CurrentPanel;
+
+  // This keeps all the panels created. 
+  QMap<pqProxy*, pqObjectPanel*> PanelStore;
 public slots:
   void setProxy(pqProxy *proxy);
 
@@ -158,10 +162,6 @@ private:
   static bool AutoAccept;
   bool ShowOnAccept;
   
-  pqObjectPanel* CurrentPanel;
-
-  // This keeps all the panels created. 
-  QMap<pqProxy*, pqObjectPanel*> PanelStore;
 };
 
 #endif
