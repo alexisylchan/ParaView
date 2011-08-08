@@ -628,15 +628,6 @@ void pqPropertyLinksConnection::printSMProperties(vtkSMProxy* smProxy)
 void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
 {
 	qWarning("%s",smProxy->GetXMLName());
-		
-	 vtkSMProxyInternals::PropertyInfoMap::iterator it;
- 
-		/*  for (it  = smProxy->Internals->Properties.begin();
-		  it != smProxy->Internals->Properties.end();
-		  ++it)
-		  {
-			vtkSMProperty* smProperty = it->second.Property.GetPointer();*/
-
 			 
 
 			vtkSMDoubleVectorProperty* dvp;
