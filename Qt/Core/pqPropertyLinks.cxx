@@ -561,8 +561,8 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	QString str; 
 
 	qWarning("%s",smProxy->GetXMLName());
-	snippetStream <<smProxy->GetXMLName()<<std::endl;
-	str.append(snippetStream.str().c_str());
+	snippetStream <<smProxy->GetXMLName()<<",";
+	//str = QString(snippetStream.str().c_str());
 
 	vtkSMDoubleVectorProperty* dvp;
 	vtkSMIntVectorProperty* ivp;
@@ -580,9 +580,9 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		double* test = dvp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			qWarning("%s dvp %f", smProperty->GetXMLLabel(),test[i]);
-			snippetStream <<smProperty->GetXMLLabel()<<" "<<test[i]<<std::endl;
-			str.append(snippetStream.str().c_str());
+			qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
+			snippetStream <<smProperty->GetXMLName()<<","<<"dvp,"<<test[i]<<std::endl;
+			//str.append(snippetStream.str().c_str());
 		}
 	}
 	else if (ivp)
@@ -591,9 +591,9 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		int* test = ivp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			qWarning("%s ivp %d", smProperty->GetXMLLabel(),test[i]);
-			snippetStream <<smProperty->GetXMLLabel()<<" "<<test[i]<<std::endl;
-			str.append(snippetStream.str().c_str());
+			qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
+			snippetStream <<smProperty->GetXMLName()<<","<<"ivp,"<<test[i]<<std::endl;
+			//str.append(snippetStream.str().c_str());
 		}
 	}
 	else if (svp)
@@ -607,10 +607,10 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		for (int i =0; i< num; i++)
 		{
 			QString qStr = QString(  strList->GetString(i)) ;
-			qWarning("%s svp %s",smProperty->GetXMLLabel(),qStr.toAscii().data());
+			qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
 			
-			snippetStream <<smProperty->GetXMLLabel()<<" "<<qStr.toAscii().data()<<std::endl;
-			str.append(snippetStream.str().c_str());
+			snippetStream <<smProperty->GetXMLName()<<","<<"svp,"<<qStr.toAscii().data()<<std::endl;
+			//str.append(snippetStream.str().c_str());
 		}
 		}
 	}
@@ -623,18 +623,18 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		  #if defined (VTK_USE_64BIT_IDS)
 		  {
 			  qWarning(" vtkIdType %l", idvp->GetElement(i));
-			snippetStream <<"vtkIdType "<<" "<<ltoa(idvp->GetElement(i))<<std::endl;
-			str.append(snippetStream.str().c_str());
+			snippetStream <<"vtkIdType "<<","<<ltoa(idvp->GetElement(i))<<std::endl;
+			//str.append(snippetStream.str().c_str());
 		  }
 	#else 
-		  qWarning("%s vtkIdType %d",smProperty->GetXMLLabel(),idvp->GetElement(i));
-		  snippetStream <<"vtkIdType "<<" "<<idvp->GetElement(i)<<std::endl;
-			str.append(snippetStream.str().c_str());
+		  qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
+		  snippetStream <<"vtkIdType "<<","<<"idvp,"<<idvp->GetElement(i)<<std::endl;
+			//str.append(snippetStream.str().c_str());
 	#endif
 
 			  
 	  }
-	/* }*/
+	 
 	}
 
 	std::stringstream filename;
@@ -647,7 +647,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		qWarning ("File not opened!!!");
 		qWarning(filename.str().c_str());
 	}
-	this->linkMaster->xmlSnippetFile << str.toAscii().data();
+	this->linkMaster->xmlSnippetFile << snippetStream.str().c_str();//str.toAscii().data();
 	this->linkMaster->xmlSnippetFile.close();
 	this->linkMaster->writeFileIndex = this->linkMaster->writeFileIndex+1;
 }

@@ -215,6 +215,13 @@ public:
   // Description:
   // The label assigned by the xml parser.
   vtkGetStringMacro(XMLLabel);
+  
+  // Description:
+  // The name assigned by the xml parser. Used to get the property
+  // from a proxy. Note that the name used to obtain a property
+  // that is on a subproxy may be different from the XMLName of the property,
+  // see the note on ExposedProperties for vtkSMProxy.
+  vtkGetStringMacro(XMLName);
 
   // Description:
   // If repeatable, a property can have 1 or more values of the same kind.
@@ -302,13 +309,6 @@ protected:
   // that is on a subproxy may be different from the XMLName of the property,
   // see the note on ExposedProperties for vtkSMProxy.
   vtkSetStringMacro(XMLName);
-  
-  // Description:
-  // The name assigned by the xml parser. Used to get the property
-  // from a proxy. Note that the name used to obtain a property
-  // that is on a subproxy may be different from the XMLName of the property,
-  // see the note on ExposedProperties for vtkSMProxy.
-  vtkGetStringMacro(XMLName);
 
   // Description:
   // Add a sub-property with the given name.

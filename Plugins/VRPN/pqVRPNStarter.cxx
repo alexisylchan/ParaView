@@ -819,70 +819,62 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"
 	<<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
 	qWarning(filename.str().c_str());
-	readFile.open(filename.str().c_str());
-	char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
-	//if (!readFile || !(readFile.is_open()))
-	// break; // THIS IS IMPORTANT. TERMINATE IF FILE IS NOT READ.
+	//readFile.open(filename.str().c_str());
+	//char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
 
-	readFile.getline(snippet,SNIPPET_LENGTH);
+	//readFile.getline(snippet,SNIPPET_LENGTH);
 
-	if (readFile.good())
-	{
-	qWarning(snippet);
-	char* operation = strtok(snippet,",");
-
-
-	//while (operation != NULL)
+	//if (readFile.good())
 	//{
-	if (!strcmp(operation,"Source"))
-	{
+	//qWarning(snippet);
+	//char* operation = strtok(snippet,",");
 
-		qWarning("Repeat Source!!");
-		char* groupName = strtok(NULL,",");
-		char* sourceName = strtok(NULL,",");
-		repeatCreateSource(groupName,sourceName);
-	}
-	else if (!strcmp(operation,"Apply"))
-	{
-		qWarning("Repeat Apply!!");
-		repeatApply();
-	}
-	else
-	{
-		qWarning("New operation!!!");
-		qWarning(operation);
-	}
-	// operation = strtok(NULL,",");
+ //
+	//if (!strcmp(operation,"Source"))
+	//{
+
+	//	qWarning("Repeat Source!!");
+	//	char* groupName = strtok(NULL,",");
+	//	char* sourceName = strtok(NULL,",");
+	//	repeatCreateSource(groupName,sourceName);
 	//}
-	//create source
-	//
-	//delete[] snippet;
-	}
+	//else if (!strcmp(operation,"Apply"))
+	//{
+	//	qWarning("Repeat Apply!!");
+	//	repeatApply();
+	//}
+	//else
+	//{
+	//	qWarning("New operation!!!");
+	//	qWarning(operation);
+	//}
+	// 
+	//}
 
-	readFile.close();
+	//readFile.close();
 
-	if (!IGNORE_FILE_ACC) //TODO: turn this off in order to debug "remove snippet files that are accumulating"
-	{
-		if (remove(filename.str().c_str()))
-		{ 
-			qWarning("File successfully removed");
-		}
-		else
-		{
-			qWarning("File NOT removed"); // File always not removed if it is not created by current fstream.
-			//TEST
+	//if (!IGNORE_FILE_ACC) //TODO: turn this off in order to debug "remove snippet files that are accumulating"
+	//{
+	//	if (remove(filename.str().c_str()))
+	//	{ 
+	//		qWarning("File successfully removed");
+	//	}
+	//	else
+	//	{
+	//		qWarning("File NOT removed"); // File always not removed if it is not created by current fstream.
+	//		//TEST
 
-			std::stringstream filename2;
-			filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/test.xml";
-			ifstream testRemove;
-			testRemove.open(filename2.str().c_str());
-			testRemove.close();
-			if (remove(filename2.str().c_str()))
-				qWarning("TEST File successfully removed");
-			else
-				qWarning("TEST File NOT removed");
-		}
-	}
+	//		std::stringstream filename2;
+	//		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/test.xml";
+	//		ifstream testRemove;
+	//		testRemove.open(filename2.str().c_str());
+	//		testRemove.close();
+	//		if (remove(filename2.str().c_str()))
+	//			qWarning("TEST File successfully removed");
+	//		else
+	//			qWarning("TEST File NOT removed");
+	//	}
+	//}
 	readFileIndex++;
 	/*} */
 	VRPNTimer->blockSignals(false);
@@ -1103,6 +1095,7 @@ bool pqVRPNStarter::changeSnippetModified()
 		{
 			if (filestat.st_mtime != this->last_write)
 			{
+				qWarning("Changed!!! %d",readFileIndex);
 				return true;
 			}
 		}
