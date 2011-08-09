@@ -112,6 +112,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProxyManager.h"
 #include "vtkProcessModuleConnectionManager.h"
 #include "vtkSMProperty.h"
+#include "vtkSMProxy.h"
 #include "vtkSMStateLoader.h"
 #include "vtkSMProxyLocator.h"
 #include "vtkPVXMLElement.h" 
@@ -126,6 +127,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMIdTypeVectorProperty.h"
 #include  "vtkSMStringVectorProperty.h"
 #include "vtkStringList.h"
+#include "pqDisplayProxyEditorWidget.h"
+#include "pqPropertyLinks.h"
 
 // From Cory Quammen's code
 class sn_user_callback
@@ -222,51 +225,119 @@ void pqVRPNStarter::onStartup()
 	}
 
 	if (DEBUG)
-	{
+	{ 
+		pqObjectInspectorWidget*  objectInspector = qobject_cast<pqObjectInspectorWidget*> (mainWindow->findChild<QObject*>("objectInspector"));
+		
+		pqDisplayProxyEditorWidget*  displayProxyEditorWidget = qobject_cast<pqDisplayProxyEditorWidget*> (mainWindow->findChild<QObject*>("displayProxyEditorWidget"));
+
+		QList<QPointer<pqPropertyLinksConnection>> linksConnList = displayProxyEditorWidget->getPropertyLinksConnectionList();  
+		for (int i = 0; i < linksConnList.size(); i++)
+		{
+			QPointer<pqPropertyLinksConnection> linksConnPtr =  linksConnList.at(i);
+			QObject::connect(qobject_cast<QObject*>(linksConnPtr.data()),SIGNAL(privatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)),
+							 this,SLOT(printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)));
+		}
+	     
+			
 		//QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugToggleVRPNTimer()));
 		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugGrabProps()));
 		readFileIndex = 0;
 		writeFileIndex = 0;
 		isRepeating = false;
-		if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
-		|| (!DEBUG_1_USER))
-		{
+		//if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
+		//|| (!DEBUG_1_USER))
+		//{
 
-			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-			this, SLOT(onSourceCreated(pqPipelineSource*)));
-			QObject::connect(mainWindow, SIGNAL(objectInspectorWidgetAccept()),
-			this, SLOT(onObjectInspectorWidgetAccept()));
-		//QObject::connect(mainWindow->fin
-		}
-		else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
-		{
-			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
-			mainWindow, SLOT(onTriggerObjectInspectorWidgetAccept()));
-		}
+		//	QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+		//	this, SLOT(onSourceCreated(pqPipelineSource*)));
+		//	QObject::connect(mainWindow, SIGNAL(objectInspectorWidgetAccept()),
+		//	this, SLOT(onObjectInspectorWidgetAccept())); 
+
+		//}
+		//else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
+		//{
+		//	QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
+		//	mainWindow, SLOT(onTriggerObjectInspectorWidgetAccept()));
+		//}
 		}
 	else
 	{
 		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 
-		//undoStack = pqApplicationCore::instance()->getUndoStack();
-
-		//if (undoStack)
-		//{
-		//QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)),
-		//this, SLOT(handleStackChanged(bool,QString,bool,QString))); //TODO: change this
-
-		//}
-	}
-	//QObject::connect(mainWindow,SIGNAL(toggleTimelineSummary()),this,SLOT(onToggleTimelineSummary())); 
-
-	//undoStack = pqApplicationCore::instance()->getUndoStack();
-	//QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
-	//		    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
-
-	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
-	//	this, SLOT(serverResourcesChanged()));
+		 
+	} 
 
 	
 }
+
+
+void pqVRPNStarter::printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
+{
+	qWarning("%s",smProxy->GetXMLName());
+			 
+
+			vtkSMDoubleVectorProperty* dvp;
+			vtkSMIntVectorProperty* ivp;
+			vtkSMIdTypeVectorProperty* idvp;
+			vtkSMStringVectorProperty* svp;
+
+			dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
+			ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
+			idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
+			svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
+
+			if(dvp)
+			{
+				int num = dvp->GetNumberOfElements();
+				double* test = dvp->GetElements();
+				for (int i =0; i< num; i++)
+				{
+					qWarning("%s dvp %f", smProperty->GetXMLLabel(),test[i]);
+				}
+			}
+			else if (ivp)
+			{
+				int num = ivp->GetNumberOfElements();
+				int* test = ivp->GetElements();
+				for (int i =0; i< num; i++)
+				{
+					qWarning("%s ivp %d", smProperty->GetXMLLabel(),test[i]);
+				}
+			}
+			else if (svp)
+			{
+			  int num = svp->GetNumberOfElements();
+			  vtkStringList* strList = vtkStringList::New();
+				svp->GetElements(strList);
+				if (strList)
+				{
+					//qWarning("strList");
+				for (int i =0; i< num; i++)
+				{
+					QString qStr = QString(  strList->GetString(i)) ;
+					qWarning("%s svp %s",smProperty->GetXMLLabel(),qStr.toAscii().data());
+				}
+				}
+			}
+			else if (idvp)
+			{
+			 vtkIdType v;
+			  int num = idvp->GetNumberOfElements();
+			  for (int i =0; i < num; i++)
+			  {
+				  #if defined (VTK_USE_64BIT_IDS)
+			 
+				  qWarning(" vtkIdType %l", idvp->GetElement(i));
+			#else 
+				  qWarning("%s vtkIdType %d",smProperty->GetXMLLabel(),idvp->GetElement(i));
+			#endif
+
+					  
+			  }
+		 /* }*/
+		  }
+}
+
+
 void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
 	//save proxy values to file.
@@ -455,7 +526,7 @@ void pqVRPNStarter::printSMProperties(vtkSMProxy* smProxy)
   else if (svp)
   {
 	  int num = svp->GetNumberOfElements();
-	   vtkStringList* strList;
+	  vtkStringList* strList = vtkStringList::New();
 		svp->GetElements(strList);
 		for (int i =0; i< num; i++)
 		{

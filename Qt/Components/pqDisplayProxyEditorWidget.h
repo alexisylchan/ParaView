@@ -34,12 +34,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QWidget>
 #include "pqComponentsExport.h"
-#include "pqDisplayPanel.h"
+#include "pqDisplayPanel.h" 
 
 class pqOutputPort;
 class pqPipelineSource;
 class pqRepresentation;
 class pqView;
+class pqPropertyLinks;
+class pqDefaultDisplayPanel; 
+class pqPropertyLinksConnection;
 
 // This is a widget that can create different kinds of display 
 // editors based on the type of the representations. It encapsulates the code
@@ -60,6 +63,12 @@ public:
 
 
   pqRepresentation* getRepresentation() const;
+  // //Alexis YL Chan: Hack to enable VRPN Plugin (Scientific Visualization Workbench)
+  //// to access DisplayPanel's pqPropertyLinks for enabling "concurrent" sync
+  //pqDefaultDisplayPanel* DefaultDisplayPanel;
+
+  
+  QList<QPointer<pqPropertyLinksConnection>> getPropertyLinksConnectionList();
 
 public slots:
   void reloadGUI();
@@ -68,6 +77,8 @@ public slots:
   /// that the widget can show a default GUI which allows the user to
   /// turn visibility on which entails creating a new representation.
   void setRepresentation(pqRepresentation*);
+
+
 
 signals:
   /// Fired when the browser begins performing an undoable change.
@@ -92,12 +103,13 @@ private:
 
 
 /// default representation panel with only a visibility checkbox
-class pqDefaultDisplayPanel : public pqDisplayPanel
-{
+class PQCOMPONENTS_EXPORT pqDefaultDisplayPanel : public pqDisplayPanel
+{ 
   Q_OBJECT
 public:
   pqDefaultDisplayPanel(pqRepresentation* repr, QWidget* p);
   ~pqDefaultDisplayPanel();
+  QList<QPointer<pqPropertyLinksConnection>> getPropertyLinksConnectionList();
 
 signals:
   void visibilityChanged(bool);

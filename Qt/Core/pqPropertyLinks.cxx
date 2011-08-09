@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt includes
 #include <QString>
 #include <QStringList>
-#include <QPointer>
+//#include <QPointer>
 #include <QVariant>
 #include <QSet>
 #include <QSignalMapper>
@@ -100,7 +100,9 @@ public:
   {
     this->VTKConnections = vtkEventQtSlotConnect::New();
     this->UseUncheckedProperties = false;
-    this->AutoUpdate = true;
+    this->AutoUpdate = true; 
+	/*PublicLinks = new QList<QPointer<pqPropertyLinksConnection>>();
+	Links = *PublicLinks;*/
   }
   ~pqInternal()
   {
@@ -109,13 +111,25 @@ public:
 
   // handle changes from the SM side
   vtkEventQtSlotConnect* VTKConnections;
-  
-  typedef QList<QPointer<pqPropertyLinksConnection> > 
-    ListOfPropertyLinkConnections;
-  ListOfPropertyLinkConnections Links;
+   
+  //typedef QList<QPointer<pqPropertyLinksConnection> > 
+  //  ListOfPropertyLinkConnections;
+  //ListOfPropertyLinkConnections Links;
+
+   QList<QPointer<pqPropertyLinksConnection> >  Links;
+
+  //QList<QPointer<pqPropertyLinksConnection> >* PublicLinks;
+  //QList<pqPropertyLinksConnection *> PublicLinks;
   bool UseUncheckedProperties;
   bool AutoUpdate;
 };
+
+QList<QPointer<pqPropertyLinksConnection>> pqPropertyLinks::getPropertyLinksConnectionList()
+{
+	
+	//return (QList<QPointer<pqPropertyLinksConnection>>)(this->Internal->Links);
+	return this->Internal->Links;
+}
 
 
 pqPropertyLinksConnection::pqPropertyLinksConnection(
@@ -549,7 +563,8 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       }
 	  
 	qWarning ("Qt Property Changed");
-	printSMProperty(this->Internal->Proxy,this->Internal->Property);
+	//printSMProperty(this->Internal->Proxy,this->Internal->Property);
+	emit this->privatePrintQtLinkedPropertyChanged(this->Internal->Proxy,this->Internal->Property);
 	}
   this->Internal->SettingProperty = NULL;
   emit this->qtWidgetChanged();
@@ -717,6 +732,10 @@ pqPropertyLinks::pqPropertyLinks(QObject* p)
   : QObject(p)
 {
   this->Internal = new pqPropertyLinks::pqInternal;
+    //Alexis YL Chan: Hack to enable VRPN Plugin (Scientific Visualization Workbench)
+  // to access DisplayPanel's pqPropertyLinks for enabling "concurrent" sync
+   //LinksConnections = this->Internal->PublicLinks;
+   
 }
 
 pqPropertyLinks::~pqPropertyLinks()
@@ -743,6 +762,7 @@ void pqPropertyLinks::addPropertyLink(QObject* qObject, const char* qProperty,
   pqPropertyLinksConnection *conn = 
     new pqPropertyLinksConnection(this, Proxy, Property, Index, qObject, qProperty);
   this->Internal->Links.push_back(conn);
+  //this->Internal->PublicLinks.push_back(conn);
   this->Internal->VTKConnections->Connect(Property, vtkCommand::ModifiedEvent,
                                           conn, 
                                           SLOT(triggerDelayedSMLinkedPropertyChanged()));
@@ -753,6 +773,9 @@ void pqPropertyLinks::addPropertyLink(QObject* qObject, const char* qProperty,
     this, SIGNAL(qtWidgetChanged()));
   QObject::connect(conn, SIGNAL(smPropertyChanged()),
     this, SIGNAL(smPropertyChanged()));
+
+ /* QObject::connect(conn, SIGNAL(privatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)),
+	               this, SLOT (onPrivatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)));*/
   
   conn->setUseUncheckedProperties(this->Internal->UseUncheckedProperties);
   conn->setAutoUpdateVTKObjects(this->Internal->AutoUpdate);
@@ -761,7 +784,10 @@ void pqPropertyLinks::addPropertyLink(QObject* qObject, const char* qProperty,
   // We let the connection be marked dirty on creation.
   // conn->clearOutOfSync();
 }
-
+ void pqPropertyLinks::onPrivatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
+ {
+	 emit this->printQtLinkedPropertyChanged(smProxy,smProperty);
+ }
 //-----------------------------------------------------------------------------
 void pqPropertyLinks::removePropertyLink(QObject* qObject, 
                         const char* qProperty, const char* signal,
@@ -797,6 +823,7 @@ void pqPropertyLinks::removeAllPropertyLinks()
     delete conn;
     }
   this->Internal->Links.clear();
+  //this->Internal->PublicLinks.clear();
 }
 
 //-----------------------------------------------------------------------------
