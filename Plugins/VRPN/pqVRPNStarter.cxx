@@ -238,6 +238,7 @@ void pqVRPNStarter::onStartup()
 							 this,SLOT(printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)));
 		}
 	     
+		QObject::connect(displayProxyEditorWidget,SIGNAL(panelUpdated()),this,SLOT(updateDisplayPanelLinks()));
 			
 		//QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugToggleVRPNTimer()));
 		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugGrabProps()));
@@ -269,6 +270,20 @@ void pqVRPNStarter::onStartup()
 	
 }
 
+void pqVRPNStarter::updateDisplayPanelLinks()
+{
+	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
+	pqDisplayProxyEditorWidget*  displayProxyEditorWidget = qobject_cast<pqDisplayProxyEditorWidget*> (mainWindow->findChild<QObject*>("displayProxyEditorWidget"));
+
+		QList<QPointer<pqPropertyLinksConnection>> linksConnList = displayProxyEditorWidget->getPropertyLinksConnectionList();  
+		for (int i = 0; i < linksConnList.size(); i++)
+		{
+			QPointer<pqPropertyLinksConnection> linksConnPtr =  linksConnList.at(i);
+			QObject::connect(qobject_cast<QObject*>(linksConnPtr.data()),SIGNAL(privatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)),
+							 this,SLOT(printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)));
+		}
+
+}
 
 void pqVRPNStarter::printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
 {

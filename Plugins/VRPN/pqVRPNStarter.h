@@ -138,6 +138,7 @@ public slots:
 	void onObjectInspectorWidgetAccept();
 
 	void printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
+	void updateDisplayPanelLinks();
 
 protected:
 	//

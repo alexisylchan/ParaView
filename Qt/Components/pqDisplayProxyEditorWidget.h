@@ -87,6 +87,7 @@ signals:
   /// Fired when the browser is finished with the undoable change.
   void endUndo();
 
+  void panelUpdated();
 protected slots:
   void onVisibilityChanged(bool);
 

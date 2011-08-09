@@ -162,7 +162,10 @@ pqDefaultDisplayPanel::pqDefaultDisplayPanel(pqRepresentation* repr, QWidget* p)
 
 QList<QPointer<pqPropertyLinksConnection>> pqDefaultDisplayPanel::getPropertyLinksConnectionList()
 {
-	return this->Internal->Links.getPropertyLinksConnectionList();
+	if (this->Internal)
+		return this->Internal->Links.getPropertyLinksConnectionList();
+	else
+		return QList<QPointer<pqPropertyLinksConnection>>();
 }
 
 pqDefaultDisplayPanel::~pqDefaultDisplayPanel()
@@ -220,8 +223,14 @@ pqDisplayProxyEditorWidget::pqDisplayProxyEditorWidget(QWidget* p /*=0*/)
 QList<QPointer<pqPropertyLinksConnection>> pqDisplayProxyEditorWidget::getPropertyLinksConnectionList()
 {
 	pqDisplayPanel* displayPanel = this->Internal->DisplayPanel.data();
-	pqDefaultDisplayPanel* defaultDP = (pqDefaultDisplayPanel*) displayPanel;
-	return defaultDP->getPropertyLinksConnectionList();
+	pqDefaultDisplayPanel* defaultDP = qobject_cast<pqDefaultDisplayPanel*>(displayPanel);
+	if (defaultDP)
+	{ return defaultDP->getPropertyLinksConnectionList();
+	}
+	else
+	{
+		return QList<QPointer<pqPropertyLinksConnection>>();
+	}
 }
 
 
@@ -356,6 +365,7 @@ void pqDisplayProxyEditorWidget::updatePanel()
     }
 
   this->layout()->addWidget(this->Internal->DisplayPanel);
+  emit this->panelUpdated();
 }
 
 //-----------------------------------------------------------------------------
