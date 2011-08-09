@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt includes
 #include <QString>
 #include <QStringList>
-//#include <QPointer>
+#include <QPointer>
 #include <QVariant>
 #include <QSet>
 #include <QSignalMapper>
@@ -60,6 +60,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMIdTypeVectorProperty.h"
 #include  "vtkSMStringVectorProperty.h"
 #include "vtkStringList.h"
+#include <sstream>
+#include <fstream>
+#include "vtkProcessModule.h"
+#include "vtkPVOptions.h"
 class pqPropertyLinksConnection::pqInternal
 {
 public:
@@ -100,9 +104,7 @@ public:
   {
     this->VTKConnections = vtkEventQtSlotConnect::New();
     this->UseUncheckedProperties = false;
-    this->AutoUpdate = true; 
-	/*PublicLinks = new QList<QPointer<pqPropertyLinksConnection>>();
-	Links = *PublicLinks;*/
+    this->AutoUpdate = true;
   }
   ~pqInternal()
   {
@@ -111,25 +113,13 @@ public:
 
   // handle changes from the SM side
   vtkEventQtSlotConnect* VTKConnections;
-   
-  //typedef QList<QPointer<pqPropertyLinksConnection> > 
-  //  ListOfPropertyLinkConnections;
-  //ListOfPropertyLinkConnections Links;
-
-   QList<QPointer<pqPropertyLinksConnection> >  Links;
-
-  //QList<QPointer<pqPropertyLinksConnection> >* PublicLinks;
-  //QList<pqPropertyLinksConnection *> PublicLinks;
+  
+  typedef QList<QPointer<pqPropertyLinksConnection> > 
+    ListOfPropertyLinkConnections;
+  ListOfPropertyLinkConnections Links;
   bool UseUncheckedProperties;
   bool AutoUpdate;
 };
-
-QList<QPointer<pqPropertyLinksConnection>> pqPropertyLinks::getPropertyLinksConnectionList()
-{
-	
-	//return (QList<QPointer<pqPropertyLinksConnection>>)(this->Internal->Links);
-	return this->Internal->Links;
-}
 
 
 pqPropertyLinksConnection::pqPropertyLinksConnection(
@@ -321,10 +311,7 @@ void pqPropertyLinksConnection::smLinkedPropertyChanged()
     case pqSMAdaptor::UNKNOWN:
     case pqSMAdaptor::PROXYLIST:
       break;
-      }
-	  /*
-	qWarning ("SM Property Changed");
-	printSMProperties(this->Internal->Proxy);*/
+      }	   
     }
   this->Internal->SettingProperty = NULL;
   emit this->smPropertyChanged();
@@ -563,148 +550,106 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       }
 	  
 	qWarning ("Qt Property Changed");
-	//printSMProperty(this->Internal->Proxy,this->Internal->Property);
-	emit this->privatePrintQtLinkedPropertyChanged(this->Internal->Proxy,this->Internal->Property);
+	printSMProperty(this->Internal->Proxy,this->Internal->Property);
 	}
   this->Internal->SettingProperty = NULL;
   emit this->qtWidgetChanged();
-}
-void pqPropertyLinksConnection::printSMProperties(vtkSMProxy* smProxy)
-{
-	qWarning("%s",smProxy->GetXMLName());
-		
-	 vtkSMProxyInternals::PropertyInfoMap::iterator it;
- 
-		  for (it  = smProxy->Internals->Properties.begin();
-		  it != smProxy->Internals->Properties.end();
-		  ++it)
-		  {
-			vtkSMProperty* smProperty = it->second.Property.GetPointer();
-
-			qWarning("%s",smProperty->GetXMLLabel());
-
-			vtkSMDoubleVectorProperty* dvp;
-			vtkSMIntVectorProperty* ivp;
-			vtkSMIdTypeVectorProperty* idvp;
-			vtkSMStringVectorProperty* svp;
-
-			dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
-			ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
-			idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
-			svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
-
-			if(dvp)
-			{
-				int num = dvp->GetNumberOfElements();
-				double* test = dvp->GetElements();
-				for (int i =0; i< num; i++)
-				{
-					qWarning(" dvp %f", test[i]);
-				}
-			}
-			else if (ivp)
-			{
-				int num = ivp->GetNumberOfElements();
-				int* test = ivp->GetElements();
-				for (int i =0; i< num; i++)
-				{
-					qWarning(" ivp %d", test[i]);
-				}
-			}
-			else if (svp)
-			{
-			  int num = svp->GetNumberOfElements();
-			   vtkStringList* strList;
-				svp->GetElements(strList);
-				for (int i =0; i< num; i++)
-				{
-					qWarning(" svp %f", strList->GetString(i));
-				}
-			}
-			else if (idvp)
-			{
-			 vtkIdType v;
-			  int num = idvp->GetNumberOfElements();
-			  for (int i =0; i < num; i++)
-			  {
-				  #if defined (VTK_USE_64BIT_IDS)
-			 
-				  qWarning(" vtkIdType %l", idvp->GetElement(i));
-			#else 
-				  qWarning(" vtkIdType %d",idvp->GetElement(i));
-			#endif
-
-					  
-			  }
-		  }
-		  }
-}
-
+} 
 void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
 {
+	std::stringstream snippetStream; 
+	QString str; 
+
 	qWarning("%s",smProxy->GetXMLName());
-			 
+	snippetStream <<smProxy->GetXMLName()<<std::endl;
+	str.append(snippetStream.str().c_str());
 
-			vtkSMDoubleVectorProperty* dvp;
-			vtkSMIntVectorProperty* ivp;
-			vtkSMIdTypeVectorProperty* idvp;
-			vtkSMStringVectorProperty* svp;
+	vtkSMDoubleVectorProperty* dvp;
+	vtkSMIntVectorProperty* ivp;
+	vtkSMIdTypeVectorProperty* idvp;
+	vtkSMStringVectorProperty* svp;
 
-			dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
-			ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
-			idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
-			svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
+	dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
+	ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
+	idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
+	svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
 
-			if(dvp)
-			{
-				int num = dvp->GetNumberOfElements();
-				double* test = dvp->GetElements();
-				for (int i =0; i< num; i++)
-				{
-					qWarning("%s dvp %f", smProperty->GetXMLLabel(),test[i]);
-				}
-			}
-			else if (ivp)
-			{
-				int num = ivp->GetNumberOfElements();
-				int* test = ivp->GetElements();
-				for (int i =0; i< num; i++)
-				{
-					qWarning("%s ivp %d", smProperty->GetXMLLabel(),test[i]);
-				}
-			}
-			else if (svp)
-			{
-			  int num = svp->GetNumberOfElements();
-			  vtkStringList* strList = vtkStringList::New();
-				svp->GetElements(strList);
-				if (strList)
-				{
-					//qWarning("strList");
-				for (int i =0; i< num; i++)
-				{
-					QString qStr = QString(  strList->GetString(i)) ;
-					qWarning("%s svp %s",smProperty->GetXMLLabel(),qStr.toAscii().data());
-				}
-				}
-			}
-			else if (idvp)
-			{
-			 vtkIdType v;
-			  int num = idvp->GetNumberOfElements();
-			  for (int i =0; i < num; i++)
-			  {
-				  #if defined (VTK_USE_64BIT_IDS)
-			 
-				  qWarning(" vtkIdType %l", idvp->GetElement(i));
-			#else 
-				  qWarning("%s vtkIdType %d",smProperty->GetXMLLabel(),idvp->GetElement(i));
-			#endif
-
-					  
-			  }
-		 /* }*/
+	if(dvp)
+	{
+		int num = dvp->GetNumberOfElements();
+		double* test = dvp->GetElements();
+		for (int i =0; i< num; i++)
+		{
+			qWarning("%s dvp %f", smProperty->GetXMLLabel(),test[i]);
+			snippetStream <<smProperty->GetXMLLabel()<<" "<<test[i]<<std::endl;
+			str.append(snippetStream.str().c_str());
+		}
+	}
+	else if (ivp)
+	{
+		int num = ivp->GetNumberOfElements();
+		int* test = ivp->GetElements();
+		for (int i =0; i< num; i++)
+		{
+			qWarning("%s ivp %d", smProperty->GetXMLLabel(),test[i]);
+			snippetStream <<smProperty->GetXMLLabel()<<" "<<test[i]<<std::endl;
+			str.append(snippetStream.str().c_str());
+		}
+	}
+	else if (svp)
+	{
+	  int num = svp->GetNumberOfElements();
+	  vtkStringList* strList = vtkStringList::New();
+		svp->GetElements(strList);
+		if (strList)
+		{
+			//qWarning("strList");
+		for (int i =0; i< num; i++)
+		{
+			QString qStr = QString(  strList->GetString(i)) ;
+			qWarning("%s svp %s",smProperty->GetXMLLabel(),qStr.toAscii().data());
+			
+			snippetStream <<smProperty->GetXMLLabel()<<" "<<qStr.toAscii().data()<<std::endl;
+			str.append(snippetStream.str().c_str());
+		}
+		}
+	}
+	else if (idvp)
+	{
+	 vtkIdType v;
+	  int num = idvp->GetNumberOfElements();
+	  for (int i =0; i < num; i++)
+	  {
+		  #if defined (VTK_USE_64BIT_IDS)
+		  {
+			  qWarning(" vtkIdType %l", idvp->GetElement(i));
+			snippetStream <<"vtkIdType "<<" "<<ltoa(idvp->GetElement(i))<<std::endl;
+			str.append(snippetStream.str().c_str());
 		  }
+	#else 
+		  qWarning("%s vtkIdType %d",smProperty->GetXMLLabel(),idvp->GetElement(i));
+		  snippetStream <<"vtkIdType "<<" "<<idvp->GetElement(i)<<std::endl;
+			str.append(snippetStream.str().c_str());
+	#endif
+
+			  
+	  }
+	/* }*/
+	}
+
+	std::stringstream filename;
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"
+		<<this->linkMaster->sensorIndex<<"snippet"
+		<<this->linkMaster->writeFileIndex<<".xml";
+	this->linkMaster->xmlSnippetFile.open(filename.str().c_str());
+	if (!this->linkMaster->xmlSnippetFile)
+	{
+		qWarning ("File not opened!!!");
+		qWarning(filename.str().c_str());
+	}
+	this->linkMaster->xmlSnippetFile << str.toAscii().data();
+	this->linkMaster->xmlSnippetFile.close();
+	this->linkMaster->writeFileIndex = this->linkMaster->writeFileIndex+1;
 }
 
 bool pqPropertyLinksConnection::useUncheckedProperties() const
@@ -732,10 +677,10 @@ pqPropertyLinks::pqPropertyLinks(QObject* p)
   : QObject(p)
 {
   this->Internal = new pqPropertyLinks::pqInternal;
-    //Alexis YL Chan: Hack to enable VRPN Plugin (Scientific Visualization Workbench)
-  // to access DisplayPanel's pqPropertyLinks for enabling "concurrent" sync
-   //LinksConnections = this->Internal->PublicLinks;
-   
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
+  this->sensorIndex = options->GetTrackerSensor(); 
+  this->writeFileIndex = 0;
 }
 
 pqPropertyLinks::~pqPropertyLinks()
@@ -761,8 +706,8 @@ void pqPropertyLinks::addPropertyLink(QObject* qObject, const char* qProperty,
   
   pqPropertyLinksConnection *conn = 
     new pqPropertyLinksConnection(this, Proxy, Property, Index, qObject, qProperty);
+  conn->linkMaster = this;
   this->Internal->Links.push_back(conn);
-  //this->Internal->PublicLinks.push_back(conn);
   this->Internal->VTKConnections->Connect(Property, vtkCommand::ModifiedEvent,
                                           conn, 
                                           SLOT(triggerDelayedSMLinkedPropertyChanged()));
@@ -773,9 +718,6 @@ void pqPropertyLinks::addPropertyLink(QObject* qObject, const char* qProperty,
     this, SIGNAL(qtWidgetChanged()));
   QObject::connect(conn, SIGNAL(smPropertyChanged()),
     this, SIGNAL(smPropertyChanged()));
-
- /* QObject::connect(conn, SIGNAL(privatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)),
-	               this, SLOT (onPrivatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)));*/
   
   conn->setUseUncheckedProperties(this->Internal->UseUncheckedProperties);
   conn->setAutoUpdateVTKObjects(this->Internal->AutoUpdate);
@@ -784,10 +726,7 @@ void pqPropertyLinks::addPropertyLink(QObject* qObject, const char* qProperty,
   // We let the connection be marked dirty on creation.
   // conn->clearOutOfSync();
 }
- void pqPropertyLinks::onPrivatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
- {
-	 emit this->printQtLinkedPropertyChanged(smProxy,smProperty);
- }
+
 //-----------------------------------------------------------------------------
 void pqPropertyLinks::removePropertyLink(QObject* qObject, 
                         const char* qProperty, const char* signal,
@@ -823,7 +762,6 @@ void pqPropertyLinks::removeAllPropertyLinks()
     delete conn;
     }
   this->Internal->Links.clear();
-  //this->Internal->PublicLinks.clear();
 }
 
 //-----------------------------------------------------------------------------

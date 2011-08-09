@@ -56,7 +56,6 @@ class pqUndoStack;
 class pqProxy;
 class pqPipelineSource;
 class vtkSMProxy;
-class vtkSMProperty;
 
 #define DEBUG 1
 #define DEBUG_1_USER 1
@@ -136,10 +135,6 @@ public slots:
 
 	//Listen to accept from pqObjectInspectorWidget via QMainWindow (paraview_revised project)
 	void onObjectInspectorWidgetAccept();
-
-	void printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
-	void updateDisplayPanelLinks();
-
 protected:
 	//
     QTimer *VRPNTimer;

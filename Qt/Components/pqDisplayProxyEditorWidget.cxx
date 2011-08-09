@@ -154,18 +154,9 @@ pqDefaultDisplayPanel::pqDefaultDisplayPanel(pqRepresentation* repr, QWidget* p)
   else
     {
     this->Internal->ViewData->setCheckState(Qt::Unchecked);
-    } 
+    }
   QObject::connect(this->Internal->ViewData, SIGNAL(stateChanged(int)),
                    this, SLOT(onStateChanged(int)));
-  
-}
-
-QList<QPointer<pqPropertyLinksConnection>> pqDefaultDisplayPanel::getPropertyLinksConnectionList()
-{
-	if (this->Internal)
-		return this->Internal->Links.getPropertyLinksConnectionList();
-	else
-		return QList<QPointer<pqPropertyLinksConnection>>();
 }
 
 pqDefaultDisplayPanel::~pqDefaultDisplayPanel()
@@ -200,10 +191,6 @@ pqDisplayProxyEditorWidget::pqDisplayProxyEditorWidget(QWidget* p /*=0*/)
   this->Internal = new pqDisplayProxyEditorWidget::pqInternal;
 
   this->Internal->DisplayPanel = new pqDefaultDisplayPanel(NULL, this);
-  //Alexis YL Chan: Hack to enable VRPN Plugin (Scientific Visualization Workbench)
-  // to access DisplayPanel's pqPropertyLinks for enabling "concurrent" sync
-  //this->DefaultDisplayPanel =  dynamic_cast<pqDefaultDisplayPanel*> ( this->Internal->DisplayPanel.data());
-
   l->addWidget(this->Internal->DisplayPanel);
 
   pqUndoStack* ustack = pqApplicationCore::instance()->getUndoStack();
@@ -214,26 +201,9 @@ pqDisplayProxyEditorWidget::pqDisplayProxyEditorWidget(QWidget* p /*=0*/)
     QObject::connect(this, SIGNAL(endUndo()),
       ustack, SLOT(endUndoSet()));
     }
-  this->setObjectName("displayProxyEditorWidget");
-  qWarning(" object name %s",this->objectName().toAscii().data());
 }
 
 //-----------------------------------------------------------------------------
-
-QList<QPointer<pqPropertyLinksConnection>> pqDisplayProxyEditorWidget::getPropertyLinksConnectionList()
-{
-	pqDisplayPanel* displayPanel = this->Internal->DisplayPanel.data();
-	pqDefaultDisplayPanel* defaultDP = qobject_cast<pqDefaultDisplayPanel*>(displayPanel);
-	if (defaultDP)
-	{ return defaultDP->getPropertyLinksConnectionList();
-	}
-	else
-	{
-		return QList<QPointer<pqPropertyLinksConnection>>();
-	}
-}
-
-
 pqDisplayProxyEditorWidget::~pqDisplayProxyEditorWidget()
 {
   delete this->Internal;
@@ -365,7 +335,6 @@ void pqDisplayProxyEditorWidget::updatePanel()
     }
 
   this->layout()->addWidget(this->Internal->DisplayPanel);
-  emit this->panelUpdated();
 }
 
 //-----------------------------------------------------------------------------

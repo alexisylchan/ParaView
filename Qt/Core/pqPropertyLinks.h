@@ -35,12 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqCoreExport.h"
 #include <QObject>
-#include <QPointer>
+#include <iostream>
+#include <fstream>
 
 class vtkObject;
-class vtkSMProxy;
-class vtkSMProperty;
-class pqPropertyLinksConnection;
+class vtkSMProxy; 
+class vtkSMProperty; 
 
 /// provides direct links between Qt widgets and server manager properties
 /// changing the value of a widget automatically updates the server manager
@@ -69,17 +69,11 @@ public:
   // Call this method to un-links all property links 
   // maintained by this object.
   void removeAllPropertyLinks();
-  // //Alexis YL Chan: Hack to enable VRPN Plugin (Scientific Visualization Workbench)
-  //// to access DisplayPanel's pqPropertyLinks for enabling "concurrent" sync
-  //QList<QPointer<pqPropertyLinksConnection>>*   LinksConnections;
-
-
 
 signals:
   /// signals fired when a link is updated.
   void qtWidgetChanged();
   void smPropertyChanged();
-  void printQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
 
 public slots:
   /// accept the changes and push them to the server manager
@@ -98,8 +92,6 @@ public slots:
   /// set whether UpdateVTKObjects is called automatically when needed
   void setAutoUpdateVTKObjects(bool);
 
-  void onPrivatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
-
 public:
 
   /// get whether unchecked properties are used
@@ -107,14 +99,15 @@ public:
 
   /// get whether UpdateVTKObjects is called automatically when needed
   bool autoUpdateVTKObjects();
-  
-  QList<QPointer<pqPropertyLinksConnection>> getPropertyLinksConnectionList();
+
+  int sensorIndex;
+  int writeFileIndex;
+  std::ofstream xmlSnippetFile;
 
 protected:
   
   class pqInternal;
-  pqInternal* Internal;
-
+  pqInternal* Internal;  
 };
 
 
@@ -143,16 +136,16 @@ signals:
   void qtWidgetChanged();
   void smPropertyChanged();
 
-  void privatePrintQtLinkedPropertyChanged(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
-
 private slots:
   void triggerDelayedSMLinkedPropertyChanged();
 
   void smLinkedPropertyChanged();
-  void qtLinkedPropertyChanged();
-  void printSMProperties(vtkSMProxy* smProxy);
+  void qtLinkedPropertyChanged(); 
   void printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
+ 
 
+protected:
+	pqPropertyLinks* linkMaster;
 private:
   class pqInternal;
   pqInternal* Internal;
