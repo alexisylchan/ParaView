@@ -64,6 +64,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
+#include <conio.h>
+#include <windows.h>
 class pqPropertyLinksConnection::pqInternal
 {
 public:
@@ -550,7 +552,8 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       }
 	  
 	qWarning ("Qt Property Changed");
-	printSMProperty(this->Internal->Proxy,this->Internal->Property);
+	incrementDirectoryFile();
+	printSMProperty(this->Internal->Proxy,this->Internal->Property); 
 	}
   this->Internal->SettingProperty = NULL;
   emit this->qtWidgetChanged();
@@ -638,8 +641,9 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	}
 
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"
-		<<this->linkMaster->sensorIndex<<"snippet"
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"
+		<<"snippet"
+		<<this->linkMaster->sensorIndex<<"_"
 		<<this->linkMaster->writeFileIndex<<".xml";
 	this->linkMaster->xmlSnippetFile.open(filename.str().c_str());
 	if (!this->linkMaster->xmlSnippetFile)
@@ -649,9 +653,51 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	}
 	this->linkMaster->xmlSnippetFile << snippetStream.str().c_str();//str.toAscii().data();
 	this->linkMaster->xmlSnippetFile.close();
-	this->linkMaster->writeFileIndex = this->linkMaster->writeFileIndex+1;
+	//this->linkMaster->writeFileIndex = this->linkMaster->writeFileIndex+1;
 }
 
+// Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
+void pqPropertyLinksConnection::incrementDirectoryFile()
+{
+	std::string     strFilePath;             // Filepath
+	std::string     strPattern;              // Pattern
+	std::string     strExtension;            // Extension
+	::HANDLE          hFile;                   // Handle to file
+	::WIN32_FIND_DATA FileInformation;         // File information
+	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
+	strFilePath = strPattern + "\\snippet*";
+	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
+	if(hFile != INVALID_HANDLE_VALUE)
+	{ 
+		int index = 0;
+		do
+		{
+		  if(FileInformation.cFileName[0] != '.')
+		  {
+			strFilePath.erase();
+			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
+			int file_index_start =  strFilePath.find("snippet")+ 7;
+			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
+			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
+			
+			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
+			
+			 
+			path_parsed = strtok(NULL,"_");
+			int curr_index = atoi(path_parsed);
+			if (curr_index > index)
+				index = curr_index;
+			 
+			 
+		  }
+		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
+		this->linkMaster->writeFileIndex = index+1;
+
+		// Close handle
+		::FindClose(hFile);
+	}
+
+}
 bool pqPropertyLinksConnection::useUncheckedProperties() const
 {
   return this->Internal->UseUncheckedProperties;

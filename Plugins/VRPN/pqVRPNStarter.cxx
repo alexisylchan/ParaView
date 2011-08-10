@@ -127,6 +127,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include  "vtkSMStringVectorProperty.h"
 #include "vtkStringList.h"
 
+
 // From Cory Quammen's code
 class sn_user_callback
 {
@@ -271,7 +272,7 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
 	//save proxy values to file.
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"<<this->origSensorIndex<<"snippet"<<writeFileIndex<<".xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"<<this->origSensorIndex<<"snippet"<<writeFileIndex<<".xml";
 
 	//TODO: rename xmlSnippetFile
 	xmlSnippetFile.open(filename.str().c_str());
@@ -816,7 +817,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	/*while(true)
 	{*/
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"
 	<<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
 	qWarning(filename.str().c_str());
 	//readFile.open(filename.str().c_str());
@@ -865,7 +866,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	//		//TEST
 
 	//		std::stringstream filename2;
-	//		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/test.xml";
+	//		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/test.xml";
 	//		ifstream testRemove;
 	//		testRemove.open(filename2.str().c_str());
 	//		testRemove.close();
@@ -1088,7 +1089,7 @@ bool pqVRPNStarter::changeSnippetModified()
 {
 	struct stat filestat;
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/ChangeSnippets/"<<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"<<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
 	if (stat(filename.str().c_str(),&filestat) != -1)
 	{
 		if (last_write)
