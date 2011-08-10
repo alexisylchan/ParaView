@@ -65,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
 #include <conio.h>
-#include <windows.h>
+#include <windows.h> 
 class pqPropertyLinksConnection::pqInternal
 {
 public:
@@ -564,6 +564,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	QString str; 
 
 	qWarning("%s",smProxy->GetXMLName());
+	//snippetStream <<pqActiveObjects::instance().activeSource()->getSMName().toAscii().data()<<",";
 	snippetStream <<smProxy->GetXMLName()<<",";
 	//str = QString(snippetStream.str().c_str());
 
@@ -670,6 +671,7 @@ void pqPropertyLinksConnection::incrementDirectoryFile()
 	if(hFile != INVALID_HANDLE_VALUE)
 	{ 
 		int index = 0;
+		bool found_file = false;
 		do
 		{
 		  if(FileInformation.cFileName[0] != '.')
@@ -681,17 +683,19 @@ void pqPropertyLinksConnection::incrementDirectoryFile()
 			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
 			
 			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
-			
-			 
+			if (atoi(path_parsed) == this->linkMaster->sensorIndex)
+			{
 			path_parsed = strtok(NULL,"_");
 			int curr_index = atoi(path_parsed);
 			if (curr_index > index)
 				index = curr_index;
-			 
+			found_file = true;
+			}
 			 
 		  }
 		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
-		this->linkMaster->writeFileIndex = index+1;
+		if (found_file)
+			this->linkMaster->writeFileIndex = index+1;
 
 		// Close handle
 		::FindClose(hFile);

@@ -125,8 +125,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMIdTypeVectorProperty.h"
 #include  "vtkSMStringVectorProperty.h"
-#include "vtkStringList.h"
-
+#include "vtkStringList.h" 
 
 // From Cory Quammen's code
 class sn_user_callback
@@ -229,21 +228,28 @@ void pqVRPNStarter::onStartup()
 		readFileIndex = 0;
 		writeFileIndex = 0;
 		isRepeating = false;
-		//if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
-		//|| (!DEBUG_1_USER))
-		//{
+		if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
+		|| (!DEBUG_1_USER))
+		{
 
-		//	QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-		//	this, SLOT(onSourceCreated(pqPipelineSource*)));
-		//	QObject::connect(mainWindow, SIGNAL(objectInspectorWidgetAccept()),
-		//	this, SLOT(onObjectInspectorWidgetAccept()));
-		////QObject::connect(mainWindow->fin
-		//}
-		//else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
-		//{
-		//	QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
-		//	mainWindow, SLOT(onTriggerObjectInspectorWidgetAccept()));
-		//}
+			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+			this, SLOT(onSourceCreated(pqPipelineSource*)));
+
+			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
+			this, SLOT(onFilterCreated(pqPipelineSource*)));
+
+			QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
+			this, SLOT(onSourceChanged(pqPipelineSource*)));
+ 
+		/*	QObject::connect(mainWindow, SIGNAL(objectInspectorWidgetAccept()),
+			this, SLOT(onObjectInspectorWidgetAccept()));
+		//QObject::connect(mainWindow->fin
+		}
+		else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
+		{
+			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
+			mainWindow, SLOT(onTriggerObjectInspectorWidgetAccept()));*/
+		}
 		}
 	else
 	{
@@ -270,9 +276,10 @@ void pqVRPNStarter::onStartup()
 }
 void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
+	this->incrementDirectoryFile();
 	//save proxy values to file.
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"<<this->origSensorIndex<<"snippet"<<writeFileIndex<<".xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<this->origSensorIndex<<"_"<<writeFileIndex<<".xml";
 
 	//TODO: rename xmlSnippetFile
 	xmlSnippetFile.open(filename.str().c_str());
@@ -284,7 +291,7 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 	xmlSnippetFile << snippet;
 	xmlSnippetFile.flush();
 	xmlSnippetFile.close();
-	writeFileIndex++;
+	//writeFileIndex++;
 
 }
 
@@ -358,6 +365,71 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 		qWarning("Repeating %s",vtkClassName);
 	}
 }
+
+void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
+{
+	if (!isRepeating)
+	{
+		//Check if it is a filter or a source (This check is seen in
+		//pqPipelineSource* createdSource = qobject_cast<pqPipelineSource*>(pqProxyCreated);
+		std::stringstream snippetStream;
+		qWarning("vtk class name %s", createdFilter->getProxy()->GetVTKClassName());
+		//TODO: replace vtk class name with prototype name because sometimes a prototype may be using the same vtk class name
+		// but different prototype name for different default properties. see PhantomCursorSource
+		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
+		std::string vtkClassNameStr = std::string(vtkClassName);
+		int classStartIndex = vtkClassNameStr.find("vtkPV");
+		qWarning("find vtkPV %d",classStartIndex);
+		if (classStartIndex ==0)
+		{
+			std::string vtkClassNameStr1 = vtkClassNameStr.substr(5);// 5 = length of vtkPV
+			qWarning(vtkClassNameStr1.c_str());
+			/* int classEndIndex = vtkClassNameStr1.find("Source");
+			qWarning("%d",classEndIndex);
+			std::string vtkClassNameStr2 = vtkClassNameStr1.substr(0,classEndIndex);
+			qWarning(vtkClassNameStr2.c_str());*/
+			snippetStream << "Filter,"<<createdFilter->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
+			qWarning(snippetStream.str().c_str());
+			writeChangeSnippet(snippetStream.str().c_str());
+		}
+		else 
+		{
+			int classStartIndex2 = vtkClassNameStr.find("vtk");
+			qWarning("find vtk %d",classStartIndex2);
+			if (classStartIndex2 ==0)
+			{
+				std::string vtkClassNameStr1 = vtkClassNameStr.substr(3);// 5 = length of vtkPV
+				qWarning(vtkClassNameStr1.c_str()); 
+				snippetStream << "Filter,"<<createdFilter->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
+				qWarning(snippetStream.str().c_str());
+				writeChangeSnippet(snippetStream.str().c_str());
+			}
+		}
+		/*std::string::compare
+		char vtkClassName1[SNIPPET_LENGTH];
+		strncpy(vtkClassName1,vtkClassName[3],strlen(vtkClassName)-3);
+		char vtkClassName2[SNIPPET_LENGTH];
+		sscanf(vtkClassName1,"Source");*/
+		////int prefixLength = sscanf(vtkClassName,"vtk");
+		//char* vtkClassName1;
+		//memmove(vtkClassName,vtkClassName1,prefixLength
+
+	}
+	else
+	{
+		isRepeating = false;
+		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
+		qWarning("Repeating %s",vtkClassName);
+	}
+}
+
+void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
+{
+	std::stringstream snippetStream;
+	snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
+	qWarning(snippetStream.str().c_str());
+	writeChangeSnippet(snippetStream.str().c_str());
+}
 void pqVRPNStarter::onChangeDataSet(int index)
 {
 	switch (index)
@@ -411,6 +483,50 @@ void pqVRPNStarter::debugToggleVRPNTimer()
 		showPartnersView = true;
 	}
 	this->VRPNTimer->blockSignals(showPartnersView);
+
+}
+void pqVRPNStarter::incrementDirectoryFile()
+{
+	std::string     strFilePath;             // Filepath
+	std::string     strPattern;              // Pattern
+	std::string     strExtension;            // Extension
+	::HANDLE          hFile;                   // Handle to file
+	::WIN32_FIND_DATA FileInformation;         // File information
+	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
+	strFilePath = strPattern + "\\snippet*";
+	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
+	if(hFile != INVALID_HANDLE_VALUE)
+	{ 
+		int index = 0;
+		bool found_file = false;
+		do
+		{
+		  if(FileInformation.cFileName[0] != '.')
+		  {
+			strFilePath.erase();
+			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
+			int file_index_start =  strFilePath.find("snippet")+ 7;
+			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
+			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
+			
+			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
+			if (atoi(path_parsed) == this->origSensorIndex)
+			{
+			path_parsed = strtok(NULL,"_");
+			int curr_index = atoi(path_parsed);
+			if (curr_index > index)
+				index = curr_index;
+			found_file = true;
+			}
+			 
+		  }
+		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
+		if (found_file)
+			this->writeFileIndex = index+1;
+
+		// Close handle
+		::FindClose(hFile);
+	}
 
 }
 void pqVRPNStarter::printSMProperties(vtkSMProxy* smProxy)
@@ -792,7 +908,7 @@ void pqVRPNStarter::repeatCreateSource(char* groupName,char* sourceName )
 	//QObject::disconnect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
 	// this, SLOT(onSourceCreated(pqPipelineSource*)));
 	qWarning("group name %s",groupName);
-	qWarning("source name %s",sourceName);
+	qWarning("source name %s",sourceName); 
 	pqApplicationCore::instance()->getObjectBuilder()->createSource(QString(groupName),QString(sourceName),pqActiveObjects::instance().activeServer());
 	//TODO: do I have to block until source is created?
 	//QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
@@ -817,8 +933,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	/*while(true)
 	{*/
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"
-	<<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
+	<<(this->origSensorIndex+1)%2<<"_"<<readFileIndex<<".xml";
 	qWarning(filename.str().c_str());
 	//readFile.open(filename.str().c_str());
 	//char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
@@ -1089,7 +1205,7 @@ bool pqVRPNStarter::changeSnippetModified()
 {
 	struct stat filestat;
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"<<(this->origSensorIndex+1)%2<<"snippet"<<readFileIndex<<".xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<(this->origSensorIndex+1)%2<<"_"<<readFileIndex<<".xml";
 	if (stat(filename.str().c_str(),&filestat) != -1)
 	{
 		if (last_write)

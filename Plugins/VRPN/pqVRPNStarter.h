@@ -56,6 +56,7 @@ class pqUndoStack;
 class pqProxy;
 class pqPipelineSource;
 class vtkSMProxy;
+class pqPipelineFilter;
 
 #define DEBUG 1
 #define DEBUG_1_USER 1
@@ -132,6 +133,9 @@ public slots:
 
 	//Listen to proxy creation from pqObjectBuilder
 	void onSourceCreated(pqPipelineSource* createdSource);
+	void onFilterCreated(pqPipelineSource* createdFilter);
+
+	void onSourceChanged(pqPipelineSource* changedSource);
 
 	//Listen to accept from pqObjectInspectorWidget via QMainWindow (paraview_revised project)
 	void onObjectInspectorWidgetAccept();
@@ -177,6 +181,8 @@ private:
   bool sharedStateModified();
   void changeTimeStamp();
   void createConeInParaView();
+
+
   time_t last_write; 
 
   //Store ParaView options for device initialization. Device uninitialization
@@ -220,10 +226,11 @@ private:
   bool changeSnippetModified();
   void respondToOtherAppsChange();
   void repeatCreateSource(char* groupName,char* sourceName );
-  void repeatApply();
-  
+  void repeatApply(); 
   // Grab properties
   void printSMProperties(vtkSMProxy* proxy);
+  void incrementDirectoryFile();
+
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
 

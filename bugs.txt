@@ -15,4 +15,6 @@ NetworkImageSourceProxy name="NetworkImageSource" class="vtkNetworkImageSource"
 3: Delete xml snippets when plugin is shutting down. 
 4: Temporarily comment out Phantom-scaling by frustum. Heap-reallocation problem.
 5: For Properties Tab properties - pqPropertyLinks::printSMProperties should not be called until "Apply" is clicked. (The behavior is correct for Display Tab Properties because the property changes are applied immediately).
+
+6: Factorize pqVRPNStarter::incrementDirectoryFile()   and pqPropertyLinks::incrementDirectoryFile() into a single function
  
