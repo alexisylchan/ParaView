@@ -804,7 +804,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			read = true;
 			 
 			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
-			readFile.getline(snippet,SNIPPET_LENGTH); 
+			readFile.getline(snippet,SNIPPET_LENGTH);  
 			char* operation = strtok(snippet,",");  
 
 			if (!strcmp(operation,"Source"))
@@ -814,7 +814,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				 
 				repeatCreateSource(groupName,sourceName); 
 			}
-			if (!strcmp(operation,"Filter"))
+			else if (!strcmp(operation,"Filter"))
 			{ 
 				char* groupName = strtok(NULL,",");
 				char* sourceName = strtok(NULL,",");
@@ -827,7 +827,45 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			}
 			else 
 			{  
-				repeatPlaceHolder(); 
+				qWarning("operation %s", operation);
+				char* propertyName = strtok(NULL,",");
+				char* propertyType = strtok(NULL,",");
+				char* propertyValue = strtok(NULL,",");
+				qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
+				repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
+
+
+				char snippet[SNIPPET_LENGTH];
+				//readFile.clear();
+				while (!readFile.getline(snippet,SNIPPET_LENGTH).eof() )
+				{
+					char* propertyName = strtok(snippet,",");
+					char* propertyType = strtok(NULL,",");
+					char* propertyValue = strtok(NULL,",");
+					qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
+					
+					repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
+				}
+				
+				if (readFile.bad())
+				{
+					qWarning("readfile bad");
+					readFile.close();
+				}
+				readFile.clear();
+				/*else
+				{
+					qWarning("readfile bad");
+				}*/
+				//char* nextLine = strtok(NULL,"");
+				//qWarning("Next line %s",nextLine);
+				//while (nextLine != NULL)
+				//{
+				//	qWarning("Next line %s",nextLine);
+				//	nextLine = strtok(NULL,",");
+				//}
+				//
+
 			}
 			
 			 
@@ -835,10 +873,10 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{	newReadFileIndex = i; 
 			}
 		} 
-		else
+		/*else
 		{
 			qWarning("can't read file %s",filename.str().c_str());			 
-		}
+		}*/
 		readFile.close();
 		
 	}
@@ -854,6 +892,11 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	VRPNTimer->blockSignals(false);
 }
 
+void pqVRPNStarter::repeatPropertiesChange(char* panelType,char* propertyName,char* propertyType,char* propertyValue)
+{
+
+	isRepeating = true;
+}
 void pqVRPNStarter::timerCallback()
 {
 

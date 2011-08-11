@@ -60,7 +60,7 @@ class pqPipelineFilter;
 
 #define DEBUG 1
 #define DEBUG_1_USER 1
-#define SNIPPET_LENGTH 200
+#define SNIPPET_LENGTH 50
 #define IGNORE_FILE_ACC 1
 //TODO: Make this a user-input option (vortex visualization workbench)
 #define VORTEX_VISUALIZATION 0
@@ -231,6 +231,7 @@ private:
   // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
   void repeatPlaceHolder();
+  void repeatPropertiesChange(char* panelType,char* propertyName,char* propertyType,char* propertyValue);
 
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
