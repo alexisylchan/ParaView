@@ -1,22 +1,17 @@
+Unfixed:
 1: Toggle Switch View has same icon as Push To Shared State
-2: line 306: Source creation: VTK Class Name is different from Source Name, even after stripping of "vtk" and "vtkPV" for: 
- Test3DWidget vtkConeSource 
- SelectionQuerySource vtkQuerySelectionSource      BlockSelectionSource vtkPVSelectionSource
- FrustumSelectionSource vtkPVSelectionSource
- GlobalIDSelectionSource vtkPVSelectionSource
- PedigreeIDSelectionSource vtkPVSelectionSource
- IDSelectionSource vtkPVSelectionSource"
- CompositeDataIDSelectionSource vtkPVSelectionSource    HierarchicalDataIDSelectionSource vtkPVSelectionSource  ThresholdSelectionSource vtkPVSelectionSource
-LocationSelectionSource vtkPVSelectionSource" TimeToTextConvertorSource vtkTimeToTextConvertor
-TimeSource vtkTimeSourceExample 
-NetworkImageSourceProxy name="NetworkImageSource" class="vtkNetworkImageSource"
- SplineSource vtkParametricFunctionSource 
-
-3: Delete xml snippets when plugin is shutting down. 
 4: Temporarily comment out Phantom-scaling by frustum. Heap-reallocation problem.
 5: For Properties Tab properties - pqPropertyLinks::printSMProperties should not be called until "Apply" is clicked. (The behavior is correct for Display Tab Properties because the property changes are applied immediately).
 
 6: Factorize pqVRPNStarter::incrementDirectoryFile()   and pqPropertyLinks::incrementDirectoryFile() into a single function
 7: Currently concurrentsync operations are conditionalized by sensorIndex. Need to make conditions sensorIndex agnostic in pqPropertyLinks.cxx and pqVRPNStarter.cxx
 8: Repeat Filter creation from User0
- 
+9: Source Selection (onSourceChange) in pqVRPNStarter results in rewriting the directory read/write properties because all subsequent files cannot be read.
+
+Fixed:
+
+2: line 306: Source creation: VTK Class Name is different from Source Name, even after stripping of "vtk" and "vtkPV"  ------------------->> Hack:Fixed by making vtkSMProperty::GetXMLName public. 
+3: Delete xml snippets when plugin is shutting down. Hack: Fixed by deleting all files in the directory via the batch script used for starting a new instance of the Collaborative Scientific Visualization Workbench.
+
+  
+

@@ -227,8 +227,7 @@ private:
   void respondToOtherAppsChange();
   void repeatCreateSource(char* groupName,char* sourceName );
   void repeatApply(); 
-  // Grab properties
-  void printSMProperties(vtkSMProxy* proxy);
+  // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
   void repeatPlaceHolder();
 

@@ -255,24 +255,8 @@ void pqVRPNStarter::onStartup()
 		}
 	else
 	{
-		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 
-		//undoStack = pqApplicationCore::instance()->getUndoStack();
-
-		//if (undoStack)
-		//{
-		//QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)),
-		//this, SLOT(handleStackChanged(bool,QString,bool,QString))); //TODO: change this
-
-		//}
-	}
-	//QObject::connect(mainWindow,SIGNAL(toggleTimelineSummary()),this,SLOT(onToggleTimelineSummary())); 
-
-	//undoStack = pqApplicationCore::instance()->getUndoStack();
-	//QObject::connect(undoStack,SIGNAL(stackChanged(bool,QString,bool,QString)), 
-	//		    this, SLOT(handleStackChanged(bool,QString,bool,QString)));
-
-	//QObject::connect(&pqApplicationCore::instance()->serverResources(), SIGNAL(changed()),
-	//	this, SLOT(serverResourcesChanged()));
+		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 		 
+	} 
 
 	
 }
@@ -295,8 +279,7 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 
 	xmlSnippetFile << snippet;
 	xmlSnippetFile.flush();
-	xmlSnippetFile.close();
-	//writeFileIndex++;
+	xmlSnippetFile.close(); 
 
 }
 
@@ -308,12 +291,7 @@ void pqVRPNStarter::onObjectInspectorWidgetAccept()
 	writeChangeSnippet(snippetStream.str().c_str());
 }
 
-// Listen to proxy creation from pqObjectBuilder
-// TODO: Handle
-// - Undo & Redo
-// - handle python script.
-// - handle self signals.
-// TODO: write file names as constants
+// Listen to proxy creation from pqObjectBuilder 
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
 	if (!isRepeating)
@@ -407,20 +385,7 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 	
 }
  
-// Used as a debugging tool to start and stop timer. TODO: remove
-void pqVRPNStarter::debugToggleVRPNTimer()
-{
-	if (showPartnersView)
-	{
-		showPartnersView = false;
-	}
-	else
-	{
-		showPartnersView = true;
-	}
-	this->VRPNTimer->blockSignals(showPartnersView);
 
-}
 int pqVRPNStarter::incrementDirectoryFile(int origIndex,int sIndex,bool findNextFile)
 {
 	std::string     strFilePath;             // Filepath
@@ -480,142 +445,12 @@ int pqVRPNStarter::incrementDirectoryFile(int origIndex,int sIndex,bool findNext
 	//qWarning("readFileIndex in increment %d", readFileIndex);
 	return origIndex;
 
-}
-void pqVRPNStarter::printSMProperties(vtkSMProxy* smProxy)
-{
-	 vtkSMProxyInternals::PropertyInfoMap::iterator it;
- 
-		  for (it  = smProxy->Internals->Properties.begin();
-		  it != smProxy->Internals->Properties.end();
-		  ++it)
-		  {
-			vtkSMProperty* smProperty = it->second.Property.GetPointer();
+} 
 
-			//qWarning("Printing from Inspector layer 2 %s",smProperty->GetXMLLabel());
-		 
-		 vtkSMDoubleVectorProperty* dvp;
-  vtkSMIntVectorProperty* ivp;
-  vtkSMIdTypeVectorProperty* idvp;
-  vtkSMStringVectorProperty* svp;
-  
-  dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
-  ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
-  idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
-  svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
-  
-  if(dvp)
-    {
-		int num = dvp->GetNumberOfElements();
-		double* test = dvp->GetElements();
-		for (int i =0; i< num; i++)
-		{
-			qWarning(" dvp %f", test[i]);
-		}
-  }
-  else if (ivp)
-  {
-		int num = ivp->GetNumberOfElements();
-		int* test = ivp->GetElements();
-		for (int i =0; i< num; i++)
-		{
-			qWarning(" ivp %d", test[i]);
-		}
-  }
-  else if (svp)
-  {
-	  int num = svp->GetNumberOfElements();
-	   vtkStringList* strList;
-		svp->GetElements(strList);
-		for (int i =0; i< num; i++)
-		{
-			qWarning(" svp %f", strList->GetString(i));
-		}
-  }
-  else if (idvp)
-  {
-	 vtkIdType v;
-	  int num = idvp->GetNumberOfElements();
-	  for (int i =0; i < num; i++)
-	  {
-          #if defined (VTK_USE_64BIT_IDS)
-	 
-		  qWarning(" vtkIdType %l", idvp->GetElement(i));
-#else 
-		  qWarning(" vtkIdType %d",idvp->GetElement(i));
-#endif
-
-			  
-	  }
-  }
-		  }
-}
-// Used as a debugging tool to grab  properties from Object Inspector Widget. TODO: remove
-void pqVRPNStarter::debugGrabProps()
-{
-	//int result = incrementDirectoryFile(1,0,false);
-	qWarning ("Responding!!");
-	respondToOtherAppsChange();
-	//qWarning("Result %d",result);
-	
-	// QObject* mainWindow1 = static_cast<QObject*>( pqCoreUtilities::mainWidget());
-	// pqObjectInspectorWidget*  objectInspector = qobject_cast<pqObjectInspectorWidget*> (mainWindow1->findChild<QObject*>("objectInspector"));
-	// 
-	// QSet<pqProxy*> proxies_to_show;
-
-	//// Iterate through each object panel. From pqObjectInspectorWidget
-	//foreach(pqObjectPanel* panel, objectInspector->PanelStore)
-	//{
-	//	//Source Properties
-	//	pqProxy* refProxy = panel->referenceProxy();
-	//	qWarning("Printing from Inspector Widget %s",refProxy->getProxy()->GetXMLName());
-	//	vtkSMProxy* smProxy = refProxy->getProxy();
-
-	//	printSMProperties(smProxy); 
-	//	//Display Properties
-	//	QList<vtkSMProxy*> helperProxies= panel->referenceProxy()->getHelperProxies();
-
-	//	foreach(vtkSMProxy* helperProxy, helperProxies)
-	//	{
-	//		printSMProperties( helperProxy);
-
-	//	}
-
-	//}
-}
 
 		   
 		 
 		  
-
-void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
-    bool canRedo, QString redoLabel)
-{
-	//Code from VisTrails ParaView Plugin .
-
-	/*if (!this->sensorIndex)
-	{ */
-	std::stringstream newXMLSnippetFile;
-	newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
-	xmlSnippetFile.open(newXMLSnippetFile.str().c_str());
-	std::stringstream xmlStream;
-	std::string xmlString;
-	 
-	vtkUndoSet *uSet = undoStack->getLastUndoSet();
-	if (uSet)
-	{
-	vtkPVXMLElement* xml = uSet->SaveState(NULL);
-
-	xml->PrintXML(xmlStream, vtkIndent());
-	QString xmlStr(xmlStream.str().c_str());
-	qWarning(xmlStr.toAscii().data());
-	xmlSnippetFile <<xmlStream.str().c_str();
-	xmlSnippetFile.flush();
-	xmlSnippetFile.close();
-	fileIndex++;
-	}
-	/*}*/
-
-}
 
   
 void pqVRPNStarter::initializeEyeAngle()
@@ -898,8 +733,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 
 	hFileT = ::FindFirstFile(filenameT.str().c_str(), &FileInformationT);
 	if(hFileT == INVALID_HANDLE_VALUE)
-	{
-		//qWarning ("invalid %s", filenameT.str().c_str());
+	{ 
 		::FindClose(hFileT);
 		VRPNTimer->blockSignals(false);
 		return;
@@ -908,8 +742,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 
 
 	int newReadFileIndex = readFileIndex;
-	bool read = false;
-	//qWarning("start %d end %d",readFileIndex,targetFileIndex);
+	bool read = false; 
 	for (int i =readFileIndex; i <= targetFileIndex; i++)
 	{
 		std::stringstream filename;
@@ -920,47 +753,35 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		::WIN32_FIND_DATA FileInformation; 
 		hFile = ::FindFirstFile(filename.str().c_str(), &FileInformation);
 		if(hFile == INVALID_HANDLE_VALUE)
-		{
-			//qWarning ("invalid %s", filename.str().c_str());
+		{ 
 			::FindClose(hFile);
 			break;
 		}	
 		::FindClose(hFile);	
-		
-		//qWarning(filename.str().c_str());
+		 
 		readFile.open(filename.str().c_str()); 
 
 		if (readFile.good())
 		{
 			read = true;
-			//qWarning("can   read file %s",filename.str().c_str());	
-		/*	if (targetFileIndex > 1)
-				qWarning("Target File Index %d",targetFileIndex);*/
-			//qWarning(filename.str().c_str());
-			//qWarning("good");
+			 
 			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
-			readFile.getline(snippet,SNIPPET_LENGTH);
-			//qWarning(snippet);
-			char* operation = strtok(snippet,","); 
-			//qWarning("operation %s",operation);
+			readFile.getline(snippet,SNIPPET_LENGTH); 
+			char* operation = strtok(snippet,",");  
 
 			if (!strcmp(operation,"Source"))
-			{
-
-				//qWarning("Repeat Source!!");
+			{ 
 				char* groupName = strtok(NULL,",");
 				char* sourceName = strtok(NULL,",");
 				 
 				repeatCreateSource(groupName,sourceName); 
 			}
 			else if (!strcmp(operation,"Apply"))
-			{ 
-				//qWarning("Repeat Apply!!");
+			{  
 				repeatApply(); 
 			}
 			else 
-			{ 
-				//qWarning("Other");
+			{  
 				repeatPlaceHolder(); 
 			}
 			
@@ -978,15 +799,13 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	}
 	
 	if (read)
-	{
-		//qWarning("responding old %d new %d", readFileIndex, newReadFileIndex);
+	{ 
 		if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
 		{		
 			newReadFileIndex++;
 		}
 		readFileIndex = newReadFileIndex;
-	}
-	//qWarning("readFileIndex %d",newReadFileIndex);
+	} 
 	VRPNTimer->blockSignals(false);
 }
 
@@ -1193,6 +1012,156 @@ bool pqVRPNStarter::sharedStateModified()
 
 }
 
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadState()
+{  
+        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
+		this->changeTimeStamp();
+		
+} 
+
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::initialLoadState()
+{
+		//createConeInParaView();
+		if (VORTEX_VISUALIZATION)
+			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
+		else
+			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));
+
+		this->changeTimeStamp();
+}
+
+void pqVRPNStarter::loadState(char* filename)
+{
+	this->VRPNTimer->blockSignals(true); 
+	
+	phantomStyleCamera1->SetShowingTimeline(this->showingTimeline); 
+	pqDeleteReaction::deleteAll();
+    pqLoadStateReaction::loadState(QString(filename));
+	this->changeTimeStamp(); 
+	this->initializeEyeAngle(); 
+
+	this->VRPNTimer->blockSignals(false);
+}
+
+
+//Load Test State
+void  pqVRPNStarter::loadTestState()
+{
+		this->showingTimeline = false; 
+		loadState("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTest.pvsm" ); 
+}
+
+//Load All Data State
+void  pqVRPNStarter::loadAllState()
+{
+		this->showingTimeline = false; 
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESSASSST.pvsm" ); 
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSSTState()
+{
+		this->showingTimeline = false; 
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm" ); 
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSASState()
+{
+		this->showingTimeline = false; 
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSAS.pvsm" ); 
+ 
+}
+
+//Load DES State
+void  pqVRPNStarter::loadDESState()
+{
+		this->showingTimeline = false; 
+	    loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDES.pvsm" ); 
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSSTTimelineState()
+{
+		this->showingTimeline = true; 
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSSTTimeline.pvsm" ); 
+}
+//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
+void  pqVRPNStarter::loadSASTimelineState()
+{
+		this->showingTimeline = true; 
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSASTimeline.pvsm" ); 
+}
+
+//Load DES State
+void  pqVRPNStarter::loadDESTimelineState()
+{ 
+		this->showingTimeline = true; 
+		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESTimeline.pvsm" ); 
+}
+
+
+void pqVRPNStarter::changeTimeStamp()
+{
+	if (!DEBUG) //TODO: Why?
+	{
+		struct stat filestat;
+		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
+		this->last_write = filestat.st_mtime;
+	}
+}
+/*************************************************FOR DEBUGGING PURPOSES ***********************************************/
+// Used as a debugging tool to start and stop timer. TODO: remove
+void pqVRPNStarter::debugToggleVRPNTimer()
+{
+	if (showPartnersView)
+	{
+		showPartnersView = false;
+	}
+	else
+	{
+		showPartnersView = true;
+	}
+	this->VRPNTimer->blockSignals(showPartnersView);
+
+}
+// Used as a debugging tool to grab  properties from Object Inspector Widget. TODO: remove
+void pqVRPNStarter::debugGrabProps()
+{ 
+	qWarning ("Responding!!");
+	respondToOtherAppsChange(); 
+}
+/*************************************************DEPRECATED. TO BE REMOVED ***********************************************/
+
+void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
+    bool canRedo, QString redoLabel)
+{
+	//Code from VisTrails ParaView Plugin .
+
+	/*if (!this->sensorIndex)
+	{ */
+	std::stringstream newXMLSnippetFile;
+	newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
+	xmlSnippetFile.open(newXMLSnippetFile.str().c_str());
+	std::stringstream xmlStream;
+	std::string xmlString;
+	 
+	vtkUndoSet *uSet = undoStack->getLastUndoSet();
+	if (uSet)
+	{
+	vtkPVXMLElement* xml = uSet->SaveState(NULL);
+
+	xml->PrintXML(xmlStream, vtkIndent());
+	QString xmlStr(xmlStream.str().c_str());
+	qWarning(xmlStr.toAscii().data());
+	xmlSnippetFile <<xmlStream.str().c_str();
+	xmlSnippetFile.flush();
+	xmlSnippetFile.close();
+	fileIndex++;
+	}
+	/*}*/
+
+}
+
 bool pqVRPNStarter::changeSnippetModified()
 {
 	struct stat filestat;
@@ -1212,147 +1181,6 @@ bool pqVRPNStarter::changeSnippetModified()
 }
 
 
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadState()
-{  
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
-		this->changeTimeStamp();
-		
-}
-//
-//void pqVRPNStarter::loadXMLSnippet()
-//{
-//	if (this->sensorIndex)
-//	{
-//		VRPNTimer->blockSignals(true);
-//		std::stringstream filename;
-//		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/0xmlsnippets"<<fileStart<<".xml";
-//		qWarning(filename.str().c_str());
-//		vtkPVXMLParser *xmlParser = vtkPVXMLParser::New();
-//		xmlParser->SetFileName(filename.str().c_str());//"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml");
-//		xmlParser->Parse();
-//		vtkPVXMLElement * root= xmlParser->GetRootElement();
-//
-//		if (root)
-//		{
-//			vtkUndoSet* uSet = undoStack->getUndoSetFromXML(root);
-//			if (uSet)
-//				uSet->Redo();
-//			fileStart++;
-//		}
-//		VRPNTimer->blockSignals(false);
-//		//this->changeTimeStamp();
-//	}
-//}
-
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::initialLoadState()
-{
-		//createConeInParaView();
-		if (VORTEX_VISUALIZATION)
-			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
-		else
-			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));
-
-		this->changeTimeStamp();
-
-		/*if (DEBUG_1_USER && this->origSensorIndex)
-			this->changeMySnippetTimeStamp(); */
-}
-
-void pqVRPNStarter::loadState(char* filename)
-{
-	this->VRPNTimer->blockSignals(true); 
-	
-	phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-	/*this->uninitializeDevices();
-	pqCommandLineOptionsBehavior::resetApplication();	*/
-	pqDeleteReaction::deleteAll();
-    pqLoadStateReaction::loadState(QString(filename));
-	this->changeTimeStamp();
-	 ///////////////////////////////////Render///////////////////////////
- 
-	//pqView* view = pqActiveObjects::instance().activeView();//->getItemAtIndex<pqView*>(i);
-	// vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-	// proxy->GetRenderWindow()->Render();
-	this->initializeEyeAngle();
-    /*this->initializeDevices(); */
-
-	this->VRPNTimer->blockSignals(false);
-}
-
-
-//Load Test State
-void  pqVRPNStarter::loadTestState()
-{
-		this->showingTimeline = false;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-		loadState("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTest.pvsm" ); 
-}
-
-//Load All Data State
-void  pqVRPNStarter::loadAllState()
-{
-		this->showingTimeline = false;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESSASSST.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSSTState()
-{
-		this->showingTimeline = false;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);		
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSASState()
-{
-		this->showingTimeline = false;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSAS.pvsm" ); 
- 
-}
-
-//Load DES State
-void  pqVRPNStarter::loadDESState()
-{
-		this->showingTimeline = false;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-	    loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDES.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSSTTimelineState()
-{
-		this->showingTimeline = true;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSSTTimeline.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSASTimelineState()
-{
-		this->showingTimeline = true;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSASTimeline.pvsm" ); 
-}
-
-//Load DES State
-void  pqVRPNStarter::loadDESTimelineState()
-{ 
-		this->showingTimeline = true;
-		//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESTimeline.pvsm" ); 
-}
-
-
-void pqVRPNStarter::changeTimeStamp()
-{
-	if (!DEBUG) //TODO: Why?
-	{
-		struct stat filestat;
-		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
-		this->last_write = filestat.st_mtime;
-	}
-}
 void pqVRPNStarter::changeMySnippetTimeStamp()
 {
 	if (!DEBUG)
