@@ -229,7 +229,8 @@ private:
   void repeatApply(); 
   // Grab properties
   void printSMProperties(vtkSMProxy* proxy);
-  void incrementDirectoryFile();
+  int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
+  void repeatPlaceHolder();
 
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;

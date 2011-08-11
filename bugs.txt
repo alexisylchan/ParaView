@@ -17,4 +17,6 @@ NetworkImageSourceProxy name="NetworkImageSource" class="vtkNetworkImageSource"
 5: For Properties Tab properties - pqPropertyLinks::printSMProperties should not be called until "Apply" is clicked. (The behavior is correct for Display Tab Properties because the property changes are applied immediately).
 
 6: Factorize pqVRPNStarter::incrementDirectoryFile()   and pqPropertyLinks::incrementDirectoryFile() into a single function
+7: Currently concurrentsync operations are conditionalized by sensorIndex. Need to make conditions sensorIndex agnostic in pqPropertyLinks.cxx and pqVRPNStarter.cxx
+8: Repeat Filter creation from User0
  

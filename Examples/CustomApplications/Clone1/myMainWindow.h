@@ -83,11 +83,11 @@ public slots:
    //Change dataset
    void onChangeDataSet(int index );
 
-    //Slot for propagating Object Inspector Accept
-   void onObjectInspectorWidgetAccept();
+   // //Slot for propagating Object Inspector Accept
+   //void onObjectInspectorWidgetAccept();
 
    //Slot to receive ObjectInspectorAcceptTrigger
-   void onTriggerObjectInspectorWidgetAccept();
+   /*void onTriggerObjectInspectorWidgetAccept();*/
 
 signals: 
   /// emitted to request the scene to change it's animation time.
@@ -95,8 +95,8 @@ signals:
   void changeDataSet(int index);
   //void toggleTimelineSummary(); 
   void toggleView();
-  void objectInspectorWidgetAccept();
-  void triggerObjectInspectorAccept();
+ /* void objectInspectorWidgetAccept();
+  void triggerObjectInspectorAccept();*/
   //void toggleView(bool togglePartnersView);
 
 protected slots:

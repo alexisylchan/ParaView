@@ -552,8 +552,11 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       }
 	  
 	qWarning ("Qt Property Changed");
-	incrementDirectoryFile();
-	printSMProperty(this->Internal->Proxy,this->Internal->Property); 
+	if (!this->linkMaster->sensorIndex)
+	{
+		incrementDirectoryFile();
+		printSMProperty(this->Internal->Proxy,this->Internal->Property); 
+	}
 	}
   this->Internal->SettingProperty = NULL;
   emit this->qtWidgetChanged();
@@ -697,10 +700,10 @@ void pqPropertyLinksConnection::incrementDirectoryFile()
 		if (found_file)
 			this->linkMaster->writeFileIndex = index+1;
 
-		// Close handle
-		::FindClose(hFile);
+		
 	}
-
+	// Close handle
+	::FindClose(hFile);
 }
 bool pqPropertyLinksConnection::useUncheckedProperties() const
 {

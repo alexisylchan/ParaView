@@ -126,6 +126,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMIdTypeVectorProperty.h"
 #include  "vtkSMStringVectorProperty.h"
 #include "vtkStringList.h" 
+#include "pqOutputPort.h"
 
 // From Cory Quammen's code
 class sn_user_callback
@@ -238,17 +239,18 @@ void pqVRPNStarter::onStartup()
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
 			this, SLOT(onFilterCreated(pqPipelineSource*)));
 
-			QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
-			this, SLOT(onSourceChanged(pqPipelineSource*)));
- 
-		/*	QObject::connect(mainWindow, SIGNAL(objectInspectorWidgetAccept()),
+		/*	QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
+			this, SLOT(onSourceChanged(pqPipelineSource*))); */
+			 //TODO: check if preaccept causes sync problems
+			QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(preaccept()),
 			this, SLOT(onObjectInspectorWidgetAccept()));
-		//QObject::connect(mainWindow->fin
+
+		 
 		}
 		else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
 		{
 			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
-			mainWindow, SLOT(onTriggerObjectInspectorWidgetAccept()));*/
+			mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
 		}
 		}
 	else
@@ -276,7 +278,10 @@ void pqVRPNStarter::onStartup()
 }
 void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
-	this->incrementDirectoryFile();
+	//qWarning("origWriteFileIndex %d",writeFileIndex);
+	writeFileIndex = this->incrementDirectoryFile(writeFileIndex,this->origSensorIndex,true);
+	//qWarning("newWriteFileIndex %d",writeFileIndex);
+	
 	//save proxy values to file.
 	std::stringstream filename;
 	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<this->origSensorIndex<<"_"<<writeFileIndex<<".xml";
@@ -298,8 +303,8 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
 	std::stringstream snippetStream;
-	snippetStream <<"Apply"<<std::endl;
-	qWarning(snippetStream.str().c_str());
+	snippetStream <<"Apply,"<<std::endl;
+	//qWarning(snippetStream.str().c_str());
 	writeChangeSnippet(snippetStream.str().c_str());
 }
 
@@ -312,123 +317,54 @@ void pqVRPNStarter::onObjectInspectorWidgetAccept()
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
 	if (!isRepeating)
-	{
-		//Check if it is a filter or a source (This check is seen in
-		//pqPipelineSource* createdSource = qobject_cast<pqPipelineSource*>(pqProxyCreated);
-		std::stringstream snippetStream;
-		qWarning("vtk class name %s", createdSource->getProxy()->GetVTKClassName());
-		//TODO: replace vtk class name with prototype name because sometimes a prototype may be using the same vtk class name
-		// but different prototype name for different default properties. see PhantomCursorSource
-		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
-		std::string vtkClassNameStr = std::string(vtkClassName);
-		int classStartIndex = vtkClassNameStr.find("vtkPV");
-		qWarning("find vtkPV %d",classStartIndex);
-		if (classStartIndex ==0)
-		{
-			std::string vtkClassNameStr1 = vtkClassNameStr.substr(5);// 5 = length of vtkPV
-			qWarning(vtkClassNameStr1.c_str());
-			/* int classEndIndex = vtkClassNameStr1.find("Source");
-			qWarning("%d",classEndIndex);
-			std::string vtkClassNameStr2 = vtkClassNameStr1.substr(0,classEndIndex);
-			qWarning(vtkClassNameStr2.c_str());*/
-			snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
-			qWarning(snippetStream.str().c_str());
-			writeChangeSnippet(snippetStream.str().c_str());
-		}
-		else 
-		{
-			int classStartIndex2 = vtkClassNameStr.find("vtk");
-			qWarning("find vtk %d",classStartIndex2);
-			if (classStartIndex2 ==0)
-			{
-				std::string vtkClassNameStr1 = vtkClassNameStr.substr(3);// 5 = length of vtkPV
-				qWarning(vtkClassNameStr1.c_str()); 
-				snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
-				qWarning(snippetStream.str().c_str());
-				writeChangeSnippet(snippetStream.str().c_str());
-			}
-		}
-		/*std::string::compare
-		char vtkClassName1[SNIPPET_LENGTH];
-		strncpy(vtkClassName1,vtkClassName[3],strlen(vtkClassName)-3);
-		char vtkClassName2[SNIPPET_LENGTH];
-		sscanf(vtkClassName1,"Source");*/
-		////int prefixLength = sscanf(vtkClassName,"vtk");
-		//char* vtkClassName1;
-		//memmove(vtkClassName,vtkClassName1,prefixLength
-
+	{ 
+		std::stringstream snippetStream; 
+		 
+		snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<createdSource->getProxy()->GetXMLName()<<std::endl;
+		qWarning(snippetStream.str().c_str());
+		writeChangeSnippet(snippetStream.str().c_str());
 	}
 	else
 	{
 		isRepeating = false;
 		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
-		qWarning("Repeating %s",vtkClassName);
+		qWarning("Repeating creation of %s",vtkClassName);
 	}
 }
 
 void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 {
 	if (!isRepeating)
-	{
-		//Check if it is a filter or a source (This check is seen in
-		//pqPipelineSource* createdSource = qobject_cast<pqPipelineSource*>(pqProxyCreated);
-		std::stringstream snippetStream;
-		qWarning("vtk class name %s", createdFilter->getProxy()->GetVTKClassName());
-		//TODO: replace vtk class name with prototype name because sometimes a prototype may be using the same vtk class name
-		// but different prototype name for different default properties. see PhantomCursorSource
-		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
-		std::string vtkClassNameStr = std::string(vtkClassName);
-		int classStartIndex = vtkClassNameStr.find("vtkPV");
-		qWarning("find vtkPV %d",classStartIndex);
-		if (classStartIndex ==0)
-		{
-			std::string vtkClassNameStr1 = vtkClassNameStr.substr(5);// 5 = length of vtkPV
-			qWarning(vtkClassNameStr1.c_str());
-			/* int classEndIndex = vtkClassNameStr1.find("Source");
-			qWarning("%d",classEndIndex);
-			std::string vtkClassNameStr2 = vtkClassNameStr1.substr(0,classEndIndex);
-			qWarning(vtkClassNameStr2.c_str());*/
-			snippetStream << "Filter,"<<createdFilter->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
-			qWarning(snippetStream.str().c_str());
-			writeChangeSnippet(snippetStream.str().c_str());
-		}
-		else 
-		{
-			int classStartIndex2 = vtkClassNameStr.find("vtk");
-			qWarning("find vtk %d",classStartIndex2);
-			if (classStartIndex2 ==0)
-			{
-				std::string vtkClassNameStr1 = vtkClassNameStr.substr(3);// 5 = length of vtkPV
-				qWarning(vtkClassNameStr1.c_str()); 
-				snippetStream << "Filter,"<<createdFilter->getSMGroup().toAscii().data()<<","<<vtkClassNameStr1.c_str()<<std::endl;
-				qWarning(snippetStream.str().c_str());
-				writeChangeSnippet(snippetStream.str().c_str());
-			}
-		}
-		/*std::string::compare
-		char vtkClassName1[SNIPPET_LENGTH];
-		strncpy(vtkClassName1,vtkClassName[3],strlen(vtkClassName)-3);
-		char vtkClassName2[SNIPPET_LENGTH];
-		sscanf(vtkClassName1,"Source");*/
-		////int prefixLength = sscanf(vtkClassName,"vtk");
-		//char* vtkClassName1;
-		//memmove(vtkClassName,vtkClassName1,prefixLength
-
+	{ 
+		std::stringstream snippetStream; 
+		
+		snippetStream << "Source,"<<createdFilter->getSMGroup().toAscii().data()<<","<<createdFilter->getProxy()->GetXMLName()<<std::endl;
+		qWarning(snippetStream.str().c_str());
+		writeChangeSnippet(snippetStream.str().c_str());
 	}
 	else
 	{
 		isRepeating = false;
 		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
-		qWarning("Repeating %s",vtkClassName);
+		qWarning("Repeating creation of %s",vtkClassName);
 	}
 }
 
 void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 {
-	std::stringstream snippetStream;
-	snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
-	qWarning(snippetStream.str().c_str());
-	writeChangeSnippet(snippetStream.str().c_str());
+	if (!isRepeating)
+	{
+		std::stringstream snippetStream;
+		snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
+		qWarning(snippetStream.str().c_str());
+		//qWarning(snippetStream.str().c_str());
+		writeChangeSnippet(snippetStream.str().c_str());
+	}
+	else
+	{
+		isRepeating = false;
+		qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
+	}
 }
 void pqVRPNStarter::onChangeDataSet(int index)
 {
@@ -485,7 +421,7 @@ void pqVRPNStarter::debugToggleVRPNTimer()
 	this->VRPNTimer->blockSignals(showPartnersView);
 
 }
-void pqVRPNStarter::incrementDirectoryFile()
+int pqVRPNStarter::incrementDirectoryFile(int origIndex,int sIndex,bool findNextFile)
 {
 	std::string     strFilePath;             // Filepath
 	std::string     strPattern;              // Pattern
@@ -497,36 +433,52 @@ void pqVRPNStarter::incrementDirectoryFile()
 	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
 	if(hFile != INVALID_HANDLE_VALUE)
 	{ 
-		int index = 0;
+		int index = origIndex; 
 		bool found_file = false;
 		do
 		{
+		  //qWarning("FileInformation %s",FileInformation.cFileName);
 		  if(FileInformation.cFileName[0] != '.')
 		  {
 			strFilePath.erase();
 			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
+			//qWarning("strFilePath %s",strFilePath.c_str());
 			int file_index_start =  strFilePath.find("snippet")+ 7;
 			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
 			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
-			
+			//qWarning ("file_substring %s",file_substring.c_str());
 			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
-			if (atoi(path_parsed) == this->origSensorIndex)
+			//qWarning ("path_parsed %s",path_parsed);
+			if (atoi(path_parsed) == sIndex)
 			{
 			path_parsed = strtok(NULL,"_");
 			int curr_index = atoi(path_parsed);
-			if (curr_index > index)
+			
+			if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
+			{
+				//qWarning("curr_index %d, index %d",curr_index,index);
 				index = curr_index;
-			found_file = true;
+				found_file = true;
+			}
+			//qWarning("found file %d",(found_file?1:0));
 			}
 			 
 		  }
-		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
+		} while(::FindNextFile(hFile, &FileInformation));
 		if (found_file)
-			this->writeFileIndex = index+1;
-
-		// Close handle
-		::FindClose(hFile);
+		{
+			if (findNextFile)		
+				origIndex = index+1;
+			else
+				origIndex = index;
+			//qWarning("origIndex %d",origIndex);
+		}
+		
 	}
+	// Close handle
+	::FindClose(hFile);
+	//qWarning("readFileIndex in increment %d", readFileIndex);
+	return origIndex;
 
 }
 void pqVRPNStarter::printSMProperties(vtkSMProxy* smProxy)
@@ -539,7 +491,7 @@ void pqVRPNStarter::printSMProperties(vtkSMProxy* smProxy)
 		  {
 			vtkSMProperty* smProperty = it->second.Property.GetPointer();
 
-			qWarning("Printing from Inspector layer 2 %s",smProperty->GetXMLLabel());
+			//qWarning("Printing from Inspector layer 2 %s",smProperty->GetXMLLabel());
 		 
 		 vtkSMDoubleVectorProperty* dvp;
   vtkSMIntVectorProperty* ivp;
@@ -600,30 +552,35 @@ void pqVRPNStarter::printSMProperties(vtkSMProxy* smProxy)
 // Used as a debugging tool to grab  properties from Object Inspector Widget. TODO: remove
 void pqVRPNStarter::debugGrabProps()
 {
-	 QObject* mainWindow1 = static_cast<QObject*>( pqCoreUtilities::mainWidget());
-	 pqObjectInspectorWidget*  objectInspector = qobject_cast<pqObjectInspectorWidget*> (mainWindow1->findChild<QObject*>("objectInspector"));
-	 
-	 QSet<pqProxy*> proxies_to_show;
+	//int result = incrementDirectoryFile(1,0,false);
+	qWarning ("Responding!!");
+	respondToOtherAppsChange();
+	//qWarning("Result %d",result);
+	
+	// QObject* mainWindow1 = static_cast<QObject*>( pqCoreUtilities::mainWidget());
+	// pqObjectInspectorWidget*  objectInspector = qobject_cast<pqObjectInspectorWidget*> (mainWindow1->findChild<QObject*>("objectInspector"));
+	// 
+	// QSet<pqProxy*> proxies_to_show;
 
-	// Iterate through each object panel. From pqObjectInspectorWidget
-	foreach(pqObjectPanel* panel, objectInspector->PanelStore)
-	{
-		//Source Properties
-		pqProxy* refProxy = panel->referenceProxy();
-		qWarning("Printing from Inspector Widget %s",refProxy->getProxy()->GetXMLName());
-		vtkSMProxy* smProxy = refProxy->getProxy();
+	//// Iterate through each object panel. From pqObjectInspectorWidget
+	//foreach(pqObjectPanel* panel, objectInspector->PanelStore)
+	//{
+	//	//Source Properties
+	//	pqProxy* refProxy = panel->referenceProxy();
+	//	qWarning("Printing from Inspector Widget %s",refProxy->getProxy()->GetXMLName());
+	//	vtkSMProxy* smProxy = refProxy->getProxy();
 
-		printSMProperties(smProxy); 
-		//Display Properties
-		QList<vtkSMProxy*> helperProxies= panel->referenceProxy()->getHelperProxies();
+	//	printSMProperties(smProxy); 
+	//	//Display Properties
+	//	QList<vtkSMProxy*> helperProxies= panel->referenceProxy()->getHelperProxies();
 
-		foreach(vtkSMProxy* helperProxy, helperProxies)
-		{
-			printSMProperties( helperProxy);
+	//	foreach(vtkSMProxy* helperProxy, helperProxies)
+	//	{
+	//		printSMProperties( helperProxy);
 
-		}
+	//	}
 
-	}
+	//}
 }
 
 		   
@@ -907,8 +864,8 @@ void pqVRPNStarter::repeatCreateSource(char* groupName,char* sourceName )
 	//disconnect signals to avoid infinite loop of creation between apps
 	//QObject::disconnect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
 	// this, SLOT(onSourceCreated(pqPipelineSource*)));
-	qWarning("group name %s",groupName);
-	qWarning("source name %s",sourceName); 
+	//qWarning("group name %s",groupName);
+	//qWarning("source name %s",sourceName); 
 	pqApplicationCore::instance()->getObjectBuilder()->createSource(QString(groupName),QString(sourceName),pqActiveObjects::instance().activeServer());
 	//TODO: do I have to block until source is created?
 	//QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
@@ -920,82 +877,117 @@ void pqVRPNStarter::repeatApply()
 	isRepeating = true;
 	emit this->triggerObjectInspectorWidgetAccept();
 }
+void pqVRPNStarter::repeatPlaceHolder()
+{
+	isRepeating = true;
+}
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 
 void pqVRPNStarter::respondToOtherAppsChange()
 {
+	VRPNTimer->blockSignals(true);
+	int targetFileIndex = incrementDirectoryFile(readFileIndex,(this->origSensorIndex+1)%2,false);
+	//Check if target file exists.
+	::HANDLE hFileT;         
+	::WIN32_FIND_DATA FileInformationT; 
+	std::stringstream filenameT;
+	filenameT << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
+		<<(this->origSensorIndex+1)%2<<"_"<<targetFileIndex<<".xml";
 
-    VRPNTimer->blockSignals(true);
-	//TODO:Do we really want to open a directory?
+	hFileT = ::FindFirstFile(filenameT.str().c_str(), &FileInformationT);
+	if(hFileT == INVALID_HANDLE_VALUE)
+	{
+		//qWarning ("invalid %s", filenameT.str().c_str());
+		::FindClose(hFileT);
+		VRPNTimer->blockSignals(false);
+		return;
+	}
+	::FindClose(hFileT);	
 
-	/*while(true)
-	{*/
-	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
-	<<(this->origSensorIndex+1)%2<<"_"<<readFileIndex<<".xml";
-	qWarning(filename.str().c_str());
-	//readFile.open(filename.str().c_str());
-	//char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
 
-	//readFile.getline(snippet,SNIPPET_LENGTH);
+	int newReadFileIndex = readFileIndex;
+	bool read = false;
+	//qWarning("start %d end %d",readFileIndex,targetFileIndex);
+	for (int i =readFileIndex; i <= targetFileIndex; i++)
+	{
+		std::stringstream filename;
+		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
+		<<(this->origSensorIndex+1)%2<<"_"<<i<<".xml";
+		        
+		::HANDLE hFile;         
+		::WIN32_FIND_DATA FileInformation; 
+		hFile = ::FindFirstFile(filename.str().c_str(), &FileInformation);
+		if(hFile == INVALID_HANDLE_VALUE)
+		{
+			//qWarning ("invalid %s", filename.str().c_str());
+			::FindClose(hFile);
+			break;
+		}	
+		::FindClose(hFile);	
+		
+		//qWarning(filename.str().c_str());
+		readFile.open(filename.str().c_str()); 
 
-	//if (readFile.good())
-	//{
-	//qWarning(snippet);
-	//char* operation = strtok(snippet,",");
+		if (readFile.good())
+		{
+			read = true;
+			//qWarning("can   read file %s",filename.str().c_str());	
+		/*	if (targetFileIndex > 1)
+				qWarning("Target File Index %d",targetFileIndex);*/
+			//qWarning(filename.str().c_str());
+			//qWarning("good");
+			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
+			readFile.getline(snippet,SNIPPET_LENGTH);
+			//qWarning(snippet);
+			char* operation = strtok(snippet,","); 
+			//qWarning("operation %s",operation);
 
- //
-	//if (!strcmp(operation,"Source"))
-	//{
+			if (!strcmp(operation,"Source"))
+			{
 
-	//	qWarning("Repeat Source!!");
-	//	char* groupName = strtok(NULL,",");
-	//	char* sourceName = strtok(NULL,",");
-	//	repeatCreateSource(groupName,sourceName);
-	//}
-	//else if (!strcmp(operation,"Apply"))
-	//{
-	//	qWarning("Repeat Apply!!");
-	//	repeatApply();
-	//}
-	//else
-	//{
-	//	qWarning("New operation!!!");
-	//	qWarning(operation);
-	//}
-	// 
-	//}
-
-	//readFile.close();
-
-	//if (!IGNORE_FILE_ACC) //TODO: turn this off in order to debug "remove snippet files that are accumulating"
-	//{
-	//	if (remove(filename.str().c_str()))
-	//	{ 
-	//		qWarning("File successfully removed");
-	//	}
-	//	else
-	//	{
-	//		qWarning("File NOT removed"); // File always not removed if it is not created by current fstream.
-	//		//TEST
-
-	//		std::stringstream filename2;
-	//		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/test.xml";
-	//		ifstream testRemove;
-	//		testRemove.open(filename2.str().c_str());
-	//		testRemove.close();
-	//		if (remove(filename2.str().c_str()))
-	//			qWarning("TEST File successfully removed");
-	//		else
-	//			qWarning("TEST File NOT removed");
-	//	}
-	//}
-	readFileIndex++;
-	/*} */
+				//qWarning("Repeat Source!!");
+				char* groupName = strtok(NULL,",");
+				char* sourceName = strtok(NULL,",");
+				 
+				repeatCreateSource(groupName,sourceName); 
+			}
+			else if (!strcmp(operation,"Apply"))
+			{ 
+				//qWarning("Repeat Apply!!");
+				repeatApply(); 
+			}
+			else 
+			{ 
+				//qWarning("Other");
+				repeatPlaceHolder(); 
+			}
+			
+			 
+			if (i> readFileIndex)
+			{	newReadFileIndex = i; 
+			}
+		} 
+		else
+		{
+			qWarning("can't read file %s",filename.str().c_str());			 
+		}
+		readFile.close();
+		
+	}
+	
+	if (read)
+	{
+		//qWarning("responding old %d new %d", readFileIndex, newReadFileIndex);
+		if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
+		{		
+			newReadFileIndex++;
+		}
+		readFileIndex = newReadFileIndex;
+	}
+	//qWarning("readFileIndex %d",newReadFileIndex);
 	VRPNTimer->blockSignals(false);
-	//this->changeTimeStamp();
 }
 
 void pqVRPNStarter::timerCallback()
@@ -1010,7 +1002,7 @@ void pqVRPNStarter::timerCallback()
 		this->initializeEyeAngle();
 		this->initializeDevices();
 	} 
-	else if (DEBUG_1_USER && this->origSensorIndex && this->changeSnippetModified())
+	else if (DEBUG_1_USER && this->origSensorIndex)// && this->changeSnippetModified())
 	{
 		respondToOtherAppsChange();
 	}
@@ -1205,17 +1197,16 @@ bool pqVRPNStarter::changeSnippetModified()
 {
 	struct stat filestat;
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<(this->origSensorIndex+1)%2<<"_"<<readFileIndex<<".xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<(this->origSensorIndex+1)%2<<"_"<<readFileIndex + 1<<".xml";
 	if (stat(filename.str().c_str(),&filestat) != -1)
 	{
-		if (last_write)
+		/*if (last_write)
 		{
 			if (filestat.st_mtime != this->last_write)
-			{
-				qWarning("Changed!!! %d",readFileIndex);
+			{	*/			 
 				return true;
-			}
-		}
+			/*}
+		}*/
 	}
 	return false;
 }
@@ -1265,8 +1256,8 @@ void  pqVRPNStarter::initialLoadState()
 
 		this->changeTimeStamp();
 
-		if (DEBUG_1_USER && this->origSensorIndex)
-			this->changeMySnippetTimeStamp(); 
+		/*if (DEBUG_1_USER && this->origSensorIndex)
+			this->changeMySnippetTimeStamp(); */
 }
 
 void pqVRPNStarter::loadState(char* filename)
