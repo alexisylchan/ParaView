@@ -226,6 +226,7 @@ private:
   bool changeSnippetModified();
   void respondToOtherAppsChange();
   void repeatCreateSource(char* groupName,char* sourceName );
+  void repeatCreateFilter(char* groupName,char* sourceName );
   void repeatApply(); 
   // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);

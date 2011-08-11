@@ -239,10 +239,10 @@ void pqVRPNStarter::onStartup()
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
 			this, SLOT(onFilterCreated(pqPipelineSource*)));
 
-		/*	QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
-			this, SLOT(onSourceChanged(pqPipelineSource*))); */
+		 	/*QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
+			this, SLOT(onSourceChanged(pqPipelineSource*)));  */
 			 //TODO: check if preaccept causes sync problems
-			QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(preaccept()),
+			QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
 			this, SLOT(onObjectInspectorWidgetAccept()));
 
 		 
@@ -315,8 +315,17 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 	if (!isRepeating)
 	{ 
 		std::stringstream snippetStream; 
+		QString groupName;
 		
-		snippetStream << "Source,"<<createdFilter->getSMGroup().toAscii().data()<<","<<createdFilter->getProxy()->GetXMLName()<<std::endl;
+		pqPipelineFilter* actualCreatedFilter = qobject_cast<pqPipelineFilter*> (createdFilter);
+		if (actualCreatedFilter)
+			groupName = actualCreatedFilter->getSMGroup().toAscii().data();
+		else
+			groupName = createdFilter->getSMGroup().toAscii().data();
+		if (!strcmp(groupName.toAscii().data(),"sources"))
+			groupName = QString("filters");
+
+		snippetStream << "Filter,"<<groupName.toAscii().data()<<","<<createdFilter->getProxy()->GetXMLName()<<std::endl;
 		qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
 	}
@@ -695,17 +704,46 @@ void pqVRPNStarter::onShutdown()
 void pqVRPNStarter::repeatCreateSource(char* groupName,char* sourceName )
 {
 
-	isRepeating = true;
-	//disconnect signals to avoid infinite loop of creation between apps
-	//QObject::disconnect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-	// this, SLOT(onSourceCreated(pqPipelineSource*)));
-	//qWarning("group name %s",groupName);
-	//qWarning("source name %s",sourceName); 
+	isRepeating = true; 
 	pqApplicationCore::instance()->getObjectBuilder()->createSource(QString(groupName),QString(sourceName),pqActiveObjects::instance().activeServer());
-	//TODO: do I have to block until source is created?
-	//QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-	// this, SLOT(onSourceCreated(pqPipelineSource*)));
+}
+//-----------------------------------------------------------------------------
+void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
+{
 
+	isRepeating = true; 
+	// Todo: combine with  vtkVRPNPhantomStyleCamera::CreateParaViewObject(i
+	vtkSMProxy* prototype = vtkSMProxyManager::GetProxyManager()->GetPrototypeProxy("filters",sourceName);
+	QList<pqOutputPort*> outputPorts;
+	
+	//Get Current Active Source - this depends on synchronization of selection between users. 
+	//Tracked as bug 10: Repeat source selections for filters with multiple inputs
+    //See ParaView/bugs.txt
+	
+	pqPipelineSource* item = pqActiveObjects::instance().activeSource();
+
+	pqOutputPort* opPort = qobject_cast<pqOutputPort*>(item);
+	pqPipelineSource* source = qobject_cast<pqPipelineSource*>(item);
+
+	if (source)
+	  {
+	  outputPorts.push_back(source->getOutputPort(0));
+	  //qWarning("source %d",source->getNumberOfOutputPorts());
+	  }
+	else if (opPort)
+	  {
+		outputPorts.push_back(opPort);
+		//qWarning("opPort %s",opPort->getPortName().toStdString()); 
+	  } 
+
+	QMap<QString, QList<pqOutputPort*> > namedInputs;
+	QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
+	namedInputs[inputPortNames[0]] = outputPorts;
+
+
+	pqApplicationCore::instance()->getObjectBuilder()->createFilter(
+		QString(groupName),QString(sourceName),namedInputs,
+		pqActiveObjects::instance().activeServer());
 }
 void pqVRPNStarter::repeatApply()
 {
@@ -775,6 +813,13 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				char* sourceName = strtok(NULL,",");
 				 
 				repeatCreateSource(groupName,sourceName); 
+			}
+			if (!strcmp(operation,"Filter"))
+			{ 
+				char* groupName = strtok(NULL,",");
+				char* sourceName = strtok(NULL,",");
+				 
+				repeatCreateFilter(groupName,sourceName); 
 			}
 			else if (!strcmp(operation,"Apply"))
 			{  
