@@ -835,8 +835,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
 
 
-				char snippet[SNIPPET_LENGTH];
-				//readFile.clear();
+				char snippet[SNIPPET_LENGTH]; 
 				while (!readFile.getline(snippet,SNIPPET_LENGTH).eof() )
 				{
 					char* propertyName = strtok(snippet,",");
@@ -853,18 +852,6 @@ void pqVRPNStarter::respondToOtherAppsChange()
 					readFile.close();
 				}
 				readFile.clear();
-				/*else
-				{
-					qWarning("readfile bad");
-				}*/
-				//char* nextLine = strtok(NULL,"");
-				//qWarning("Next line %s",nextLine);
-				//while (nextLine != NULL)
-				//{
-				//	qWarning("Next line %s",nextLine);
-				//	nextLine = strtok(NULL,",");
-				//}
-				//
 
 			}
 			
@@ -896,6 +883,38 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,char* propertyName,ch
 {
 
 	isRepeating = true;
+	//vtkSMProperty* smProperty = pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName);
+	 
+		
+	//Set using vtkSMPropertyHelper or set using Set?
+	
+	//vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(
+	QVariant newProp;
+	if (!strcmp(propertyType,"dvp"))
+	{
+		double value = atof(propertyValue);
+		qWarning("value %f",value);	
+		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+	}
+	else if (!strcmp(propertyType,"ivp"))
+	{
+		int value = atoi(propertyValue);
+		qWarning("value %d",value);	
+		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+	}
+	else if(!strcmp(propertyType,"idvp"))
+	{
+		int value = atoi(propertyValue);
+		qWarning("value %d",value);	
+		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+	}
+	else if (!strcmp(propertyType,"svp"))
+	{
+		qWarning("value %s",propertyValue);	
+		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(propertyValue);
+	}
+	pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
+//	pqActiveObjects::instance().activeSource()->setProperty(propertyName,
 }
 void pqVRPNStarter::timerCallback()
 {
