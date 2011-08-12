@@ -6,9 +6,9 @@ Unfixed:
 4: Temporarily comment out Phantom-scaling by frustum. Heap-reallocation problem.
 
 7: Currently concurrentsync operations are conditionalized by sensorIndex. Need to make conditions sensorIndex agnostic in pqPropertyLinks.cxx and pqVRPNStarter.cxx
-9: Source Selection (onSourceChange) in pqVRPNStarter results in rewriting the directory read/write properties because all subsequent files cannot be read.
 10: Repeat source selections for filters with multiple inputs
- 
+12: Handle propagation of properties when there is mis-sync due to different Sources/Filters being clicked on in the Pipeline Browser
+13: Color Properties not propagated. 
 
 Fixed:
 ========  
@@ -21,6 +21,8 @@ Fixed:
 No Longer an Issue:
 ========  
 5: For Properties Tab properties - pqPropertyLinks::printSMProperties should not be called until "Apply" is clicked. (The behavior is correct for Display Tab Properties because the property changes are applied immediately).
+
+9: (Switched to bug 12)Source Selection (onSourceChange) in pqVRPNStarter results in rewriting the directory read/write properties because all subsequent files cannot be read.
 
 
 =================================================================

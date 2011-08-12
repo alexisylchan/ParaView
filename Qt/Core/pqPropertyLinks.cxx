@@ -551,7 +551,7 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       break;
       }
 	  
-	qWarning ("Qt Property Changed");
+	//qWarning ("Qt Property Changed");
 	if (!this->linkMaster->sensorIndex)
 	{
 		incrementDirectoryFile();
@@ -566,7 +566,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	std::stringstream snippetStream; 
 	QString str; 
 
-	qWarning("%s",smProxy->GetXMLName());
+	//qWarning("%s",smProxy->GetXMLName());
 	//snippetStream <<pqActiveObjects::instance().activeSource()->getSMName().toAscii().data()<<",";
 	snippetStream <<smProxy->GetXMLName()<<",";
 	//str = QString(snippetStream.str().c_str());
@@ -587,7 +587,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		double* test = dvp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
+			//qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
 			snippetStream <<smProperty->GetXMLName()<<","<<"dvp,"<<test[i]<<std::endl;
 			//str.append(snippetStream.str().c_str());
 		}
@@ -598,7 +598,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		int* test = ivp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
+			//qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
 			snippetStream <<smProperty->GetXMLName()<<","<<"ivp,"<<test[i]<<std::endl;
 			//str.append(snippetStream.str().c_str());
 		}
@@ -610,11 +610,11 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		svp->GetElements(strList);
 		if (strList)
 		{
-			//qWarning("strList");
+			////qWarning("strList");
 		for (int i =0; i< num; i++)
 		{
 			QString qStr = QString(  strList->GetString(i)) ;
-			qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
+			//qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
 			
 			snippetStream <<smProperty->GetXMLName()<<","<<"svp,"<<qStr.toAscii().data()<<std::endl;
 			//str.append(snippetStream.str().c_str());
@@ -629,12 +629,12 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	  {
 		  #if defined (VTK_USE_64BIT_IDS)
 		  {
-			  qWarning(" vtkIdType %l", idvp->GetElement(i));
+			  //qWarning(" vtkIdType %l", idvp->GetElement(i));
 			snippetStream <<"vtkIdType "<<","<<ltoa(idvp->GetElement(i))<<std::endl;
 			//str.append(snippetStream.str().c_str());
 		  }
 	#else 
-		  qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
+		  //qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
 		  snippetStream <<"vtkIdType "<<","<<"idvp,"<<idvp->GetElement(i)<<std::endl;
 			//str.append(snippetStream.str().c_str());
 	#endif

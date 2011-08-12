@@ -884,11 +884,19 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				qWarning("operation %s", operation);
 
 				QList<QList<char*>> propertyStringList;
-
+				bool doneOnce = false;
 				do
 				{
 				QList<char*> list1 = QList<char*>();
-				char* propertyName = strtok(NULL,",");
+				char* propertyName;
+				if (!doneOnce) 
+				{	doneOnce = true;
+					propertyName = strtok(NULL,",");
+				}
+				else
+				{
+					propertyName = strtok(snippet,",");
+				}
 				char* propertyType = strtok(NULL,",");
 				char* propertyValue = strtok(NULL,",");
 				qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
@@ -962,22 +970,22 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 	{
 		if (!strcmp(propertyType,"dvp"))
 		{
-			double value = atof(propertyValue);
+			double value = atof(propertyStringList.at(i).at(2));
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"ivp"))
 		{
-			int value = atoi(propertyValue); 
+			int value = atoi(propertyStringList.at(i).at(2)); 
 			valueList.append(QVariant(value)); 
 		}
 		else if(!strcmp(propertyType,"idvp"))
 		{
-			int value = atoi(propertyValue); 
+			int value = atoi(propertyStringList.at(i).at(2)); 
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"svp"))
 		{ 
-			valueList.append(QVariant(propertyValue)); 
+			valueList.append(QVariant(propertyStringList.at(i).at(2))); 
 		}
 		else
 		{
@@ -1006,114 +1014,6 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 		pqSMAdaptor::setMultipleElementProperty(pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName),valueList);
 		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
 	}
-
-					
-
-	//if (propertyStringList.size() == 1)
-	//{ 
-	//		char* propertyName = propertyStringList.at(0).at(0);
-	//		char* propertyType = propertyStringList.at(0).at(1);
-	//		char* propertyValue = propertyStringList.at(0).at(2);
-	//		
-	//	if (partnersTabInDisplay)
-	//	{
-
-	//		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
-	//		pqPipelineSource* source = pqActiveObjects::instance().activeSource();
-	//		for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
-	//		{
-
-	//			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-	//				source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
-	//				if (!repr || !repr->getView())
-	//				{
-	//					//qWarning("!repr");
-	//					continue;
-	//				}
-	//				pqView* cur_view = repr->getView();
-	//				
-	//				//Change property
-	//				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
-	//				
-	//				
-	//				if (!strcmp(propertyType,"dvp"))
-	//				{
-	//					double value = atof(propertyValue);
-	//					qWarning("value %f",value);	
-	//					QVariant qVariant = QVariant(value);
-	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
-	//				}
-	//				else if (!strcmp(propertyType,"ivp"))
-	//				{
-	//					int value = atoi(propertyValue);
-	//					qWarning("value %d",value);	
-	//					
-	//					QVariant qVariant = QVariant(value);
-	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
-	//				}
-	//				else if(!strcmp(propertyType,"idvp"))
-	//				{
-	//					int value = atoi(propertyValue);
-	//					qWarning("value %d",value);	
-	//					
-	//					QVariant qVariant = QVariant(value);
-	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
-	//				}
-	//				else if (!strcmp(propertyType,"svp"))
-	//				{
-	//					qWarning("value %s",propertyValue);	
-	//					
-	//					QVariant qVariant = QVariant(propertyValue);
-	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(propertyValue);
-	//				}
-	//				else
-	//				{
-	//					qWarning("property Type unhandled! %s",propertyType);
-	//				}
-	//				displayRepresentation->getProxy()->UpdateVTKObjects(); 
-
-	//		}
-	//	}
-	//	else
-	//	{   
-	//		char* propertyName = propertyStringList.at(0).at(0);
-	//		char* propertyType = propertyStringList.at(0).at(1);
-	//		char* propertyValue = propertyStringList.at(0).at(2);
-	//		if (!strcmp(propertyType,"dvp"))
-	//		{
-	//			double value = atof(propertyValue);
-	//			qWarning("value %f",value);	
-	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
-	//		}
-	//		else if (!strcmp(propertyType,"ivp"))
-	//		{
-	//			int value = atoi(propertyValue);
-	//			qWarning("value %d",value);	
-	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
-	//		}
-	//		else if(!strcmp(propertyType,"idvp"))
-	//		{
-	//			int value = atoi(propertyValue);
-	//			qWarning("value %d",value);	
-	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
-	//		}
-	//		else if (!strcmp(propertyType,"svp"))
-	//		{
-	//			qWarning("value %s",propertyValue);	
-	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(propertyValue);
-	//		}
-	//		else
-	//		{
-	//			qWarning("property Type unhandled! %s",propertyType);
-	//		}
-	//		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();	 
-	//	}
-	//}
-
 	  
 }
 void pqVRPNStarter::timerCallback()
