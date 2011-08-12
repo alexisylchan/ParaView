@@ -164,8 +164,7 @@ void pqPropertyLinksConnection::clearOutOfSync() const
 }
 
 void pqPropertyLinksConnection::triggerDelayedSMLinkedPropertyChanged()
-{
-	qWarning("Updating %d",(this->Internal->Updating ? 1:0));
+{ 
     if(this->Internal->Updating == false)
     {
     QTimer::singleShot(0, this, SLOT(smLinkedPropertyChanged()));
@@ -553,11 +552,12 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       }
 	  
 	//qWarning ("Qt Property Changed");
-	/*if (!this->linkMaster->sensorIndex)
-	{*/
+	if ((DEBUG_1_USER && !this->linkMaster->sensorIndex) || (!DEBUG_1_USER))
+	{
 		incrementDirectoryFile();
 		printSMProperty(this->Internal->Proxy,this->Internal->Property); 
-	/*}*/
+	 
+	}
 	}
   this->Internal->SettingProperty = NULL;
   emit this->qtWidgetChanged();
@@ -656,6 +656,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		qWarning ("File not opened!!!");
 		qWarning(filename.str().c_str());
 	}
+
 	this->linkMaster->xmlSnippetFile << snippetStream.str().c_str();//str.toAscii().data();
 	this->linkMaster->xmlSnippetFile.close();
 	//this->linkMaster->writeFileIndex = this->linkMaster->writeFileIndex+1;

@@ -233,6 +233,7 @@ private:
   void repeatCreateFilter(char* groupName,char* sourceName );
   void repeatApply(); 
   void respondToTabChange(char* tabName);
+  void repeatSelectionChange(char* sourceName);
   // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
   void repeatPlaceHolder();
@@ -243,6 +244,10 @@ private:
   
 
   bool partnersTabInDisplay; 
+  // pqActiveObjects::sourceChanged is emitted when a Source or Filter is created. 
+  // We do not need to propagate that but do need to propagate source selection in
+  // GUI 
+  bool doNotPropagateSourceSelection;
 };
 
 #endif

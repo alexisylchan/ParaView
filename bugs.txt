@@ -18,6 +18,7 @@ Unfixed:
 10: Repeat source selections for filters with multiple inputs
 12: Handle propagation of properties when there is mis-sync due to different Sources/Filters being clicked on in the Pipeline Browser
 13: Color Properties not propagated. 
+14: Handle the fact that the source name may be edited by user (for source selection to fix bug 12
 
 Fixed:
 ========  

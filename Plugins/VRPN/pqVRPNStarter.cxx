@@ -174,6 +174,7 @@ void pqVRPNStarter::onStartup()
 {
 	fileIndex = 0;
 	partnersTabInDisplay = false;
+	doNotPropagateSourceSelection = false;
 	this->showingTimeline = false;
 	//Log file to log test data (Vortex Visualization)
 	if(VORTEX_VISUALIZATION)
@@ -230,15 +231,20 @@ void pqVRPNStarter::onStartup()
 		readFileIndex = 0;
 		writeFileIndex = 0;
 		isRepeating = false;
-		//if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
-		//|| (!DEBUG_1_USER))
-		//{
+		if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
+		|| (!DEBUG_1_USER))
+		{
 
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
 			this, SLOT(onSourceCreated(pqPipelineSource*)));
 
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
 			this, SLOT(onFilterCreated(pqPipelineSource*))); 
+
+			
+			QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
+			this, SLOT(onSourceChanged(pqPipelineSource*)));
+
 			 
 			QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
 			this, SLOT(onObjectInspectorWidgetAccept()));
@@ -247,12 +253,12 @@ void pqVRPNStarter::onStartup()
 							  this, SLOT(onProxyTabWidgetChanged(int )));
 
 		 
-		/*}
+		}
 		else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
-		{*/
+		{
 			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
 			mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
-		/*}*/
+		}
 		}
 	else
 	{
@@ -337,6 +343,7 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
 	if (!isRepeating)
 	{ 
+		doNotPropagateSourceSelection = true;
 		std::stringstream snippetStream; 
 		 
 		snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<createdSource->getProxy()->GetXMLName()<<std::endl;
@@ -355,6 +362,7 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 {
 	if (!isRepeating)
 	{ 
+		doNotPropagateSourceSelection = true;
 		std::stringstream snippetStream; 
 		QString groupName;
 		
@@ -382,11 +390,20 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 {
 	if (!isRepeating)
 	{
-		std::stringstream snippetStream;
-		snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
-		//qWarning(snippetStream.str().c_str());
+		if (doNotPropagateSourceSelection)
+		{
+			qWarning("do not propagate!");
+			doNotPropagateSourceSelection = false;
+			return;
+		}
+		else
+		{
+			std::stringstream snippetStream;
+			snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
+			qWarning(snippetStream.str().c_str());
+		    writeChangeSnippet(snippetStream.str().c_str());
+		}
 		////qWarning(snippetStream.str().c_str());
-		writeChangeSnippet(snippetStream.str().c_str());
 	}
 	else
 	{
@@ -779,7 +796,30 @@ void pqVRPNStarter::respondToTabChange(char* tabName)
 	else
 		partnersTabInDisplay = false;
 }
+void pqVRPNStarter::repeatSelectionChange(char* sourceName)
+{
+	isRepeating = true; 
+	pqPipelineSource* selectedSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(sourceName);
+	if (selectedSource)
+	{
+		qWarning("Found source! %s %s ",selectedSource->getSMName().toAscii().data(),sourceName);
+		pqActiveObjects::instance().setActiveSource(selectedSource);
+	}
+	else
+	{
+		qWarning("Cannot find source! %s ",sourceName);
+		QList<pqPipelineSource*> sources = pqApplicationCore::instance()->getServerManagerModel()->findItems<pqPipelineSource*>();
+		for (int i =0; i < sources.size();i++)
+		{
+			qWarning("Source at %d is %s", i, sources.at(i)->getSMName().toAscii().data());
+		}
 
+	}
+	//if (!strcmp(tabName,"Display"))
+	//	partnersTabInDisplay = true;
+	//else
+	//	partnersTabInDisplay = false;
+}
 void pqVRPNStarter::repeatApply()
 {
 	isRepeating = true;
@@ -864,6 +904,11 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{				 
 				char* tabName = strtok(NULL,",");
 				respondToTabChange(tabName);
+			}
+			else if (!strcmp(operation,"Changed"))
+			{  
+				char* sourceName = strtok(NULL,",");
+				repeatSelectionChange(sourceName); 
 			}
 			else 
 			{  
@@ -1003,7 +1048,7 @@ void pqVRPNStarter::timerCallback()
 		this->initializeEyeAngle();
 		this->initializeDevices();
 	} 
-	else /*if (DEBUG_1_USER && this->origSensorIndex)*/// && this->changeSnippetModified())
+	else if ((DEBUG_1_USER && this->origSensorIndex) || !DEBUG_1_USER)/// && this->changeSnippetModified())
 	{
 		respondToOtherAppsChange();
 	/*}
@@ -1373,7 +1418,7 @@ void pqVRPNStarter::changeMySnippetTimeStamp()
 		//TODO: DEBUG: REMOVE THIS. LOAD STATE BEFORE CONNECTING TO SOURCECREATED/APPLY
 
 		if (DEBUG_1_USER && this->origSensorIndex)
-		index = (this->origSensorIndex + 1)%2;
+			index = (this->origSensorIndex + 1)%2;
 
 		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<index<<"source1.xml";
 
