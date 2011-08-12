@@ -449,31 +449,25 @@ int pqVRPNStarter::incrementDirectoryFile(int origIndex,int sIndex,bool findNext
 		int index = origIndex; 
 		bool found_file = false;
 		do
-		{
-		  //qWarning("FileInformation %s",FileInformation.cFileName);
+		{ 
 		  if(FileInformation.cFileName[0] != '.')
 		  {
 			strFilePath.erase();
-			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
-			//qWarning("strFilePath %s",strFilePath.c_str());
+			strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
 			int file_index_start =  strFilePath.find("snippet")+ 7;
 			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
-			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
-			//qWarning ("file_substring %s",file_substring.c_str());
-			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
-			//qWarning ("path_parsed %s",path_parsed);
+			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1); 
+			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_"); 
 			if (atoi(path_parsed) == sIndex)
 			{
 			path_parsed = strtok(NULL,"_");
 			int curr_index = atoi(path_parsed);
 			
 			if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
-			{
-				//qWarning("curr_index %d, index %d",curr_index,index);
+			{ 
 				index = curr_index;
 				found_file = true;
-			}
-			//qWarning("found file %d",(found_file?1:0));
+			} 
 			}
 			 
 		  }
@@ -483,14 +477,12 @@ int pqVRPNStarter::incrementDirectoryFile(int origIndex,int sIndex,bool findNext
 			if (findNextFile)		
 				origIndex = index+1;
 			else
-				origIndex = index;
-			//qWarning("origIndex %d",origIndex);
+				origIndex = index; 
 		}
 		
 	}
 	// Close handle
-	::FindClose(hFile);
-	//qWarning("readFileIndex in increment %d", readFileIndex);
+	::FindClose(hFile); 
 	return origIndex;
 
 } 
@@ -766,13 +758,11 @@ void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
 
 	if (source)
 	  {
-	  outputPorts.push_back(source->getOutputPort(0));
-	  //qWarning("source %d",source->getNumberOfOutputPorts());
+	  outputPorts.push_back(source->getOutputPort(0)); 
 	  }
 	else if (opPort)
 	  {
-		outputPorts.push_back(opPort);
-		//qWarning("opPort %s",opPort->getPortName().toStdString()); 
+		outputPorts.push_back(opPort); 
 	  } 
 
 	QMap<QString, QList<pqOutputPort*> > namedInputs;
@@ -903,21 +893,11 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				
 				list1.append(propertyName); list1.append(propertyType); list1.append(propertyValue);
 				propertyStringList.append(list1);
-
-				//repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
-
-			
+ 
 				char snippet[SNIPPET_LENGTH]; 
 				}
 				while (!readFile.getline(snippet,SNIPPET_LENGTH).eof() );
-				/*{
-					char* propertyName = strtok(snippet,",");
-					char* propertyType = strtok(NULL,",");
-					char* propertyValue = strtok(NULL,",");
-					qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
-					
-					repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
-				}*/
+				 
 
 				if (!propertyStringList.empty())
 					repeatPropertiesChange(operation,propertyStringList);
@@ -935,11 +915,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			if (i> readFileIndex)
 			{	newReadFileIndex = i; 
 			}
-		} 
-		/*else
-		{
-			qWarning("can't read file %s",filename.str().c_str());			 
-		}*/
+		}  
 		readFile.close();
 		
 	}
@@ -962,8 +938,7 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 	//Assume property name and type is the same for all
 	char*  propertyName = propertyStringList.at(0).at(0);
 	char* propertyType = propertyStringList.at(0).at(1);
-	QList<QVariant> valueList = QList<QVariant>();
-	/*int propertyType = UNDEFINED_T;*/
+	QList<QVariant> valueList = QList<QVariant>(); 
  
 
 	for (int i =0; i < propertyStringList.size(); i++)

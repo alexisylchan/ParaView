@@ -95,15 +95,7 @@ public:
 		BLADE_STREAMTRACER,
 		CORE_STREAMTRACER
     };
-
-	/*enum PROPERTY_TYPE
-	{
-		DOUBLE_T,
-		INT_T,
-		ID_T,
-		STR_T,
-		UNDEFINED_T
-	}*/
+ 
 
   pqVRPNStarter(QObject* p=0);
   ~pqVRPNStarter();

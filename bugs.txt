@@ -1,3 +1,13 @@
+=================================================================
+FEATURES
+=================================================================
+1: Propagate properties from User1 to User0
+2: Asynchronous collaboration
+3: Test sync with VRPN Devices plugged in.
+4: Fix color/mouse-clicks(?) propagation
+
+
+=================================================================
 BUGS
 =================================================================
 Unfixed:
@@ -26,7 +36,7 @@ No Longer an Issue:
 
 
 =================================================================
-TODO:
+CODE-CLEANING TODO:
 =================================================================
 1: Combine FilterCreation and Source Creation functions in vtkVRPNPhantomStyleCamera and pqVRPNStarter
 2: Factorize pqVRPNStarter::incrementDirectoryFile()   and pqPropertyLinks::incrementDirectoryFile() into a single function
