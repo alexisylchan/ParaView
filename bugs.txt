@@ -15,7 +15,6 @@ Unfixed:
 1: Toggle Switch View has same icon as Push To Shared State
 4: Temporarily comment out Phantom-scaling by frustum. Heap-reallocation problem.
 
-7: Currently concurrentsync operations are conditionalized by sensorIndex. Need to make conditions sensorIndex agnostic in pqPropertyLinks.cxx and pqVRPNStarter.cxx
 10: Repeat source selections for filters with multiple inputs
 12: Handle propagation of properties when there is mis-sync due to different Sources/Filters being clicked on in the Pipeline Browser
 13: Color Properties not propagated. 
@@ -26,6 +25,7 @@ Fixed:
 3: Delete xml snippets when plugin is shutting down. Hack: Fixed by deleting all files in the directory via the batch script used for starting a new instance of the Collaborative Scientific Visualization Workbench.
 8: Repeat Filter creation from User0
 11: In text files, separate representation properties from other properties because they will be set using a separate mechanism (not vtkSMPropertyHelper)
+7: Currently concurrentsync operations are conditionalized by sensorIndex. Need to make conditions sensorIndex agnostic in pqPropertyLinks.cxx and pqVRPNStarter.cxx
 
 
 No Longer an Issue:

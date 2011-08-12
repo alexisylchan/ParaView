@@ -225,25 +225,20 @@ void pqVRPNStarter::onStartup()
 	}
 
 	if (DEBUG)
-	{
-		//QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugToggleVRPNTimer()));
+	{ 
 		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugGrabProps()));
 		readFileIndex = 0;
 		writeFileIndex = 0;
 		isRepeating = false;
-		if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
-		|| (!DEBUG_1_USER))
-		{
+		//if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
+		//|| (!DEBUG_1_USER))
+		//{
 
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
 			this, SLOT(onSourceCreated(pqPipelineSource*)));
 
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
-			this, SLOT(onFilterCreated(pqPipelineSource*)));
-
-		 	/*QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
-			this, SLOT(onSourceChanged(pqPipelineSource*)));  */
-			 //TODO: check if preaccept causes sync problems
+			this, SLOT(onFilterCreated(pqPipelineSource*))); 
 			 
 			QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
 			this, SLOT(onObjectInspectorWidgetAccept()));
@@ -252,12 +247,12 @@ void pqVRPNStarter::onStartup()
 							  this, SLOT(onProxyTabWidgetChanged(int )));
 
 		 
-		}
+		/*}
 		else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
-		{
+		{*/
 			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
 			mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
-		}
+		/*}*/
 		}
 	else
 	{
@@ -268,9 +263,9 @@ void pqVRPNStarter::onStartup()
 }
 void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
-	//qWarning("origWriteFileIndex %d",writeFileIndex);
+	////qWarning("origWriteFileIndex %d",writeFileIndex);
 	writeFileIndex = this->incrementDirectoryFile(writeFileIndex,this->origSensorIndex,true);
-	//qWarning("newWriteFileIndex %d",writeFileIndex);
+	////qWarning("newWriteFileIndex %d",writeFileIndex);
 	
 	//save proxy values to file.
 	std::stringstream filename;
@@ -279,8 +274,8 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 	//TODO: rename xmlSnippetFile
 	xmlSnippetFile.open(filename.str().c_str());
 	if (!xmlSnippetFile)
-	{ qWarning ("File not opened!!!");
-	qWarning(filename.str().c_str());
+	{ //qWarning ("File not opened!!!");
+	//qWarning(filename.str().c_str());
 	}
 
 	xmlSnippetFile << snippet;
@@ -291,15 +286,22 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 
 void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
-	std::stringstream snippetStream;
-	snippetStream <<"Apply,"<<std::endl;
-	//qWarning(snippetStream.str().c_str());
-	writeChangeSnippet(snippetStream.str().c_str());
+	if (!isRepeating)
+	{ 
+		std::stringstream snippetStream;
+		snippetStream <<"Apply,"<<std::endl;
+		////qWarning(snippetStream.str().c_str());
+		writeChangeSnippet(snippetStream.str().c_str());
+	}
+	else
+	{
+		isRepeating = false; 
+	}
 }
 
 void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 {
-	qWarning ("Tab changed!");
+	//qWarning ("Tab changed!");
 	if (!isRepeating)
 	{ 
 		QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
@@ -327,7 +329,7 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 	else
 	{
 		isRepeating = false; 
-		qWarning("Repeating tab change");
+		//qWarning("Repeating tab change");
 	}
 }
 // Listen to proxy creation from pqObjectBuilder 
@@ -338,14 +340,14 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 		std::stringstream snippetStream; 
 		 
 		snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<createdSource->getProxy()->GetXMLName()<<std::endl;
-		qWarning(snippetStream.str().c_str());
+		//qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
 	}
 	else
 	{
 		isRepeating = false;
 		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
-		qWarning("Repeating creation of %s",vtkClassName);
+		//qWarning("Repeating creation of %s",vtkClassName);
 	}
 }
 
@@ -365,14 +367,14 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 			groupName = QString("filters");
 
 		snippetStream << "Filter,"<<groupName.toAscii().data()<<","<<createdFilter->getProxy()->GetXMLName()<<std::endl;
-		qWarning(snippetStream.str().c_str());
+		//qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
 	}
 	else
 	{
 		isRepeating = false;
 		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
-		qWarning("Repeating creation of %s",vtkClassName);
+		//qWarning("Repeating creation of %s",vtkClassName);
 	}
 }
 
@@ -382,14 +384,14 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 	{
 		std::stringstream snippetStream;
 		snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
-		qWarning(snippetStream.str().c_str());
 		//qWarning(snippetStream.str().c_str());
+		////qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
 	}
 	else
 	{
 		isRepeating = false;
-		qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
+		//qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
 	}
 }
 void pqVRPNStarter::onChangeDataSet(int index)
@@ -486,12 +488,6 @@ int pqVRPNStarter::incrementDirectoryFile(int origIndex,int sIndex,bool findNext
 	return origIndex;
 
 } 
-
-
-		   
-		 
-		  
-
   
 void pqVRPNStarter::initializeEyeAngle()
 {
@@ -566,7 +562,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		double O2Left   = - DisplayOrigin[0];
 		double O2Top    =   DisplayY[1];
 		double O2Bottom = - DisplayX[1];
-		//qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
+		////qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
 		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0,1.0,SurfaceRot);
 			
 	}
@@ -682,7 +678,7 @@ void pqVRPNStarter::initializeDevices()
 		spaceNavigator1 = new vrpn_Analog_Remote(this->spacenavigatorAddress);
 		AC1 = new sn_user_callback;
 		strncpy(AC1->sn_name,this->spacenavigatorAddress,sizeof(AC1->sn_name));
-		AC1->sensorIndex = this->sensorIndex; 
+		AC1->sensorIndex = this->sensorIndex;  //TODO: Should this be origSensorIndex? How often do we reinitialize device 
 		spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
 	
 	}
@@ -692,7 +688,7 @@ void pqVRPNStarter::initializeDevices()
 		//const char * TngAddress = "tng3name@localhost";
 		tng1 = new vrpn_Analog_Remote(this->tngAddress);
 		TNGC1 = new tng_user_callback;
-		TNGC1->channelIndex = this->sensorIndex;
+		TNGC1->channelIndex = this->sensorIndex; //TODO: Should this be origSensorIndex? How often do we reinitialize device 
 		TNGC1->initialValue = 0;
 		strncpy(TNGC1->tng_name,this->tngAddress,sizeof(TNGC1->tng_name));
 		tng1->register_change_handler(TNGC1,handleTNG);
@@ -727,7 +723,7 @@ void pqVRPNStarter::uninitializeDevices()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
-  //qWarning() << "Message from pqVRPNStarter: Application Shutting down";
+  ////qWarning() << "Message from pqVRPNStarter: Application Shutting down";
  // fclose(vrpnpluginlog);
 }
 
@@ -871,7 +867,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			}
 			else 
 			{  
-				qWarning("operation %s", operation);
+				//qWarning("operation %s", operation);
 
 				QList<QList<char*>> propertyStringList;
 				bool doneOnce = false;
@@ -889,7 +885,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				}
 				char* propertyType = strtok(NULL,",");
 				char* propertyValue = strtok(NULL,",");
-				qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
+				//qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
 				
 				list1.append(propertyName); list1.append(propertyType); list1.append(propertyValue);
 				propertyStringList.append(list1);
@@ -904,7 +900,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				
 				if (readFile.bad())
 				{
-					qWarning("readfile bad");
+					//qWarning("readfile bad");
 					readFile.close();
 				}
 				readFile.clear();
@@ -964,7 +960,7 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 		}
 		else
 		{
-			qWarning("property Type unhandled! %s",propertyType);
+			//qWarning("property Type unhandled! %s",propertyType);
 		}
 	}
 	if (partnersTabInDisplay)
@@ -980,13 +976,17 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 					continue; 
 				pqView* cur_view = repr->getView(); 
 				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
+				displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
 				pqSMAdaptor::setMultipleElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),valueList);
+				displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 				displayRepresentation->getProxy()->UpdateVTKObjects();
 			}
 	}
 	else
 	{
+		pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
 		pqSMAdaptor::setMultipleElementProperty(pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName),valueList);
+		pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
 	}
 	  
@@ -1003,12 +1003,12 @@ void pqVRPNStarter::timerCallback()
 		this->initializeEyeAngle();
 		this->initializeDevices();
 	} 
-	else if (DEBUG_1_USER && this->origSensorIndex)// && this->changeSnippetModified())
+	else /*if (DEBUG_1_USER && this->origSensorIndex)*/// && this->changeSnippetModified())
 	{
 		respondToOtherAppsChange();
-	}
+	/*}
 	else
-	{
+	{*/
 		if (this->useSpaceNavigator)
 			this->spaceNavigator1->mainloop();
 		if (this->useTNG)
@@ -1309,7 +1309,7 @@ void pqVRPNStarter::debugToggleVRPNTimer()
 // Used as a debugging tool to grab  properties from Object Inspector Widget. TODO: remove
 void pqVRPNStarter::debugGrabProps()
 { 
-	qWarning ("Responding!!");
+	//qWarning ("Responding!!");
 	respondToOtherAppsChange(); 
 }
 /*************************************************DEPRECATED. TO BE REMOVED ***********************************************/
@@ -1334,7 +1334,7 @@ void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
 
 	xml->PrintXML(xmlStream, vtkIndent());
 	QString xmlStr(xmlStream.str().c_str());
-	qWarning(xmlStr.toAscii().data());
+	//qWarning(xmlStr.toAscii().data());
 	xmlSnippetFile <<xmlStream.str().c_str();
 	xmlSnippetFile.flush();
 	xmlSnippetFile.close();

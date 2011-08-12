@@ -165,7 +165,8 @@ void pqPropertyLinksConnection::clearOutOfSync() const
 
 void pqPropertyLinksConnection::triggerDelayedSMLinkedPropertyChanged()
 {
-  if(this->Internal->Updating == false)
+	qWarning("Updating %d",(this->Internal->Updating ? 1:0));
+    if(this->Internal->Updating == false)
     {
     QTimer::singleShot(0, this, SLOT(smLinkedPropertyChanged()));
     this->Internal->Updating = true;
@@ -552,11 +553,11 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       }
 	  
 	//qWarning ("Qt Property Changed");
-	if (!this->linkMaster->sensorIndex)
-	{
+	/*if (!this->linkMaster->sensorIndex)
+	{*/
 		incrementDirectoryFile();
 		printSMProperty(this->Internal->Proxy,this->Internal->Property); 
-	}
+	/*}*/
 	}
   this->Internal->SettingProperty = NULL;
   emit this->qtWidgetChanged();

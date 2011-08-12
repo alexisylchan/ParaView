@@ -146,6 +146,7 @@ private slots:
 
 protected:
 	pqPropertyLinks* linkMaster;
+	bool isRepeating;
 private:
   void incrementDirectoryFile();
   class pqInternal;

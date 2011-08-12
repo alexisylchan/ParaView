@@ -263,7 +263,13 @@ public:
   // sub-proxy (and not the outer container proxy).
   vtkSMProxy* GetParent()
     { return this->Proxy; }
-
+  // Description:
+  // For Collaborative Scientific Visualization Workbench Plugin. Alexis YL Chan. 08/11/11. Block/unblock modified events, returns the current state of the block flag.
+  bool VRPNSetBlockModifiedEvents(bool block)
+    { 
+		this->BlockModifiedEvents = block; 
+		return true;
+    }
 protected:
   vtkSMProperty();
   ~vtkSMProperty();
