@@ -127,7 +127,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include  "vtkSMStringVectorProperty.h"
 #include "vtkStringList.h" 
 #include "pqOutputPort.h"
-
+#include "pqProxyTabWidget.h"
+#include "pqRepresentation.h"
 // From Cory Quammen's code
 class sn_user_callback
 {
@@ -172,6 +173,7 @@ pqVRPNStarter::~pqVRPNStarter()
 void pqVRPNStarter::onStartup()
 {
 	fileIndex = 0;
+	partnersTabInDisplay = false;
 	this->showingTimeline = false;
 	//Log file to log test data (Vortex Visualization)
 	if(VORTEX_VISUALIZATION)
@@ -242,8 +244,12 @@ void pqVRPNStarter::onStartup()
 		 	/*QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
 			this, SLOT(onSourceChanged(pqPipelineSource*)));  */
 			 //TODO: check if preaccept causes sync problems
+			 
 			QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
 			this, SLOT(onObjectInspectorWidgetAccept()));
+
+			QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
+							  this, SLOT(onProxyTabWidgetChanged(int )));
 
 		 
 		}
@@ -291,6 +297,39 @@ void pqVRPNStarter::onObjectInspectorWidgetAccept()
 	writeChangeSnippet(snippetStream.str().c_str());
 }
 
+void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
+{
+	qWarning ("Tab changed!");
+	if (!isRepeating)
+	{ 
+		QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
+		pqProxyTabWidget* proxyTabWidget = qobject_cast<pqProxyTabWidget*>(mainWindow->findChild<QObject*>("proxyTabWidget"));	
+		
+		std::stringstream snippetStream;
+		if (proxyTabWidget->currentIndex() == pqProxyTabWidget::DISPLAY) // If current tab is display
+		{
+			snippetStream <<"Tab,Display"<<std::endl;
+		}
+		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::PROPERTIES)  // If current tab is display
+		{		
+			snippetStream <<"Tab,Properties"<<std::endl; 
+		}
+		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::INFORMATION)  // If current tab is display
+		{		
+			snippetStream <<"Tab,Information"<<std::endl; 
+		}
+		else
+		{
+			return;
+		}
+		writeChangeSnippet(snippetStream.str().c_str());
+	}
+	else
+	{
+		isRepeating = false; 
+		qWarning("Repeating tab change");
+	}
+}
 // Listen to proxy creation from pqObjectBuilder 
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
@@ -745,6 +784,16 @@ void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
 		QString(groupName),QString(sourceName),namedInputs,
 		pqActiveObjects::instance().activeServer());
 }
+
+void pqVRPNStarter::respondToTabChange(char* tabName)
+{
+	isRepeating = true; 
+	if (!strcmp(tabName,"Display"))
+		partnersTabInDisplay = true;
+	else
+		partnersTabInDisplay = false;
+}
+
 void pqVRPNStarter::repeatApply()
 {
 	isRepeating = true;
@@ -825,6 +874,11 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{  
 				repeatApply(); 
 			}
+			else if (!strcmp(operation,"Tab"))
+			{				 
+				char* tabName = strtok(NULL,",");
+				respondToTabChange(tabName);
+			}
 			else 
 			{  
 				qWarning("operation %s", operation);
@@ -883,38 +937,109 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,char* propertyName,ch
 {
 
 	isRepeating = true;
-	//vtkSMProperty* smProperty = pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName);
-	 
-		
-	//Set using vtkSMPropertyHelper or set using Set?
-	
-	//vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(
-	QVariant newProp;
-	if (!strcmp(propertyType,"dvp"))
+	if (partnersTabInDisplay)
 	{
-		double value = atof(propertyValue);
-		qWarning("value %f",value);	
-		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+
+		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+		pqPipelineSource* source = pqActiveObjects::instance().activeSource();
+		for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
+		{
+
+			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+				source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
+				if (!repr || !repr->getView())
+				{
+					//qWarning("!repr");
+					continue;
+				}
+				pqView* cur_view = repr->getView();
+				
+				//Change property
+				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
+				
+				
+				if (!strcmp(propertyType,"dvp"))
+				{
+					double value = atof(propertyValue);
+					qWarning("value %f",value);	
+					QVariant qVariant = QVariant(value);
+					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
+				}
+				else if (!strcmp(propertyType,"ivp"))
+				{
+					int value = atoi(propertyValue);
+					qWarning("value %d",value);	
+					
+					QVariant qVariant = QVariant(value);
+					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
+				}
+				else if(!strcmp(propertyType,"idvp"))
+				{
+					int value = atoi(propertyValue);
+					qWarning("value %d",value);	
+					
+					QVariant qVariant = QVariant(value);
+					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
+				}
+				else if (!strcmp(propertyType,"svp"))
+				{
+					qWarning("value %s",propertyValue);	
+					
+					QVariant qVariant = QVariant(propertyValue);
+					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(propertyValue);
+				}
+				else
+				{
+					qWarning("property Type unhandled! %s",propertyType);
+				}
+				displayRepresentation->getProxy()->UpdateVTKObjects();
+
+				//displayRepresentation->colorByArray("Velocity",vtkDataObject::FIELD_ASSOCIATION_POINTS);
+			/*	pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(source);
+				if (filter)
+				{
+					filter->hideInputIfRequired(cur_view);
+				}
+
+				repr->setVisible(true);*/
+
+		}
+
 	}
-	else if (!strcmp(propertyType,"ivp"))
-	{
-		int value = atoi(propertyValue);
-		qWarning("value %d",value);	
-		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
-	}
-	else if(!strcmp(propertyType,"idvp"))
-	{
-		int value = atoi(propertyValue);
-		qWarning("value %d",value);	
-		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
-	}
-	else if (!strcmp(propertyType,"svp"))
-	{
-		qWarning("value %s",propertyValue);	
-		vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(propertyValue);
-	}
-	pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
-//	pqActiveObjects::instance().activeSource()->setProperty(propertyName,
+	else{  
+		if (!strcmp(propertyType,"dvp"))
+		{
+			double value = atof(propertyValue);
+			qWarning("value %f",value);	
+			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+		}
+		else if (!strcmp(propertyType,"ivp"))
+		{
+			int value = atoi(propertyValue);
+			qWarning("value %d",value);	
+			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+		}
+		else if(!strcmp(propertyType,"idvp"))
+		{
+			int value = atoi(propertyValue);
+			qWarning("value %d",value);	
+			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+		}
+		else if (!strcmp(propertyType,"svp"))
+		{
+			qWarning("value %s",propertyValue);	
+			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(propertyValue);
+		}
+		else
+		{
+			qWarning("property Type unhandled! %s",propertyType);
+		}
+		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
+	} 
 }
 void pqVRPNStarter::timerCallback()
 {

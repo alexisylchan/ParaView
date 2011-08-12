@@ -137,8 +137,11 @@ public slots:
 
 	void onSourceChanged(pqPipelineSource* changedSource);
 
-	//Listen to accept from pqObjectInspectorWidget via QMainWindow (paraview_revised project)
+	//Listen to accept from pqObjectInspectorWidget  
 	void onObjectInspectorWidgetAccept();
+
+	//Listen to Proxy Tab Widget selection change to enable propagation of Representation properties (see bug 11)
+	 void onProxyTabWidgetChanged(int tabIndex);
 protected:
 	//
     QTimer *VRPNTimer;
@@ -228,6 +231,7 @@ private:
   void repeatCreateSource(char* groupName,char* sourceName );
   void repeatCreateFilter(char* groupName,char* sourceName );
   void repeatApply(); 
+  void respondToTabChange(char* tabName);
   // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
   void repeatPlaceHolder();
@@ -235,7 +239,9 @@ private:
 
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
+  
 
+  bool partnersTabInDisplay; 
 };
 
 #endif

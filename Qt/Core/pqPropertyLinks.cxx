@@ -65,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
 #include <conio.h>
-#include <windows.h> 
+#include <windows.h>  
 class pqPropertyLinksConnection::pqInternal
 {
 public:
