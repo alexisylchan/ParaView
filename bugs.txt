@@ -8,24 +8,15 @@ Unfixed:
 7: Currently concurrentsync operations are conditionalized by sensorIndex. Need to make conditions sensorIndex agnostic in pqPropertyLinks.cxx and pqVRPNStarter.cxx
 9: Source Selection (onSourceChange) in pqVRPNStarter results in rewriting the directory read/write properties because all subsequent files cannot be read.
 10: Repeat source selections for filters with multiple inputs
-11: In text files, separate representation properties from other properties because they will be set using a separate mechanism (not vtkSMPropertyHelper)
-Error messages:
-operation GeometryRepresentation
-Name Visibility Type ivp Value 1
-value 1
-Generic Warning: In ..\..\..\ParaView\Servers\ServerManager\vtkSMPropertyHelper.cxx, line 82
-Failed to locate property: Visibility
-
-
-Generic Warning: In ..\..\..\ParaView\Servers\ServerManager\vtkSMPropertyHelper.cxx, line 184
-Call not supported for the current property type.
-
+ 
 
 Fixed:
 ========  
 2: line 306: Source creation: VTK Class Name is different from Source Name, even after stripping of "vtk" and "vtkPV"  ------------------->> Hack:Fixed by making vtkSMProperty::GetXMLName public. 
 3: Delete xml snippets when plugin is shutting down. Hack: Fixed by deleting all files in the directory via the batch script used for starting a new instance of the Collaborative Scientific Visualization Workbench.
 8: Repeat Filter creation from User0
+11: In text files, separate representation properties from other properties because they will be set using a separate mechanism (not vtkSMPropertyHelper)
+
 
 No Longer an Issue:
 ========  

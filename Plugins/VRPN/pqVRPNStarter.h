@@ -96,6 +96,15 @@ public:
 		CORE_STREAMTRACER
     };
 
+	/*enum PROPERTY_TYPE
+	{
+		DOUBLE_T,
+		INT_T,
+		ID_T,
+		STR_T,
+		UNDEFINED_T
+	}*/
+
   pqVRPNStarter(QObject* p=0);
   ~pqVRPNStarter();
 
@@ -235,7 +244,7 @@ private:
   // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
   void repeatPlaceHolder();
-  void repeatPropertiesChange(char* panelType,char* propertyName,char* propertyType,char* propertyValue);
+  void repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList);
 
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;

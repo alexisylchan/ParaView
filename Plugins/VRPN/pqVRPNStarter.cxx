@@ -882,23 +882,37 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			else 
 			{  
 				qWarning("operation %s", operation);
+
+				QList<QList<char*>> propertyStringList;
+
+				do
+				{
+				QList<char*> list1 = QList<char*>();
 				char* propertyName = strtok(NULL,",");
 				char* propertyType = strtok(NULL,",");
 				char* propertyValue = strtok(NULL,",");
 				qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
-				repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
+				
+				list1.append(propertyName); list1.append(propertyType); list1.append(propertyValue);
+				propertyStringList.append(list1);
 
+				//repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
 
+			
 				char snippet[SNIPPET_LENGTH]; 
-				while (!readFile.getline(snippet,SNIPPET_LENGTH).eof() )
-				{
+				}
+				while (!readFile.getline(snippet,SNIPPET_LENGTH).eof() );
+				/*{
 					char* propertyName = strtok(snippet,",");
 					char* propertyType = strtok(NULL,",");
 					char* propertyValue = strtok(NULL,",");
 					qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
 					
 					repeatPropertiesChange(operation, propertyName, propertyType, propertyValue);
-				}
+				}*/
+
+				if (!propertyStringList.empty())
+					repeatPropertiesChange(operation,propertyStringList);
 				
 				if (readFile.bad())
 				{
@@ -933,113 +947,174 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	VRPNTimer->blockSignals(false);
 }
 
-void pqVRPNStarter::repeatPropertiesChange(char* panelType,char* propertyName,char* propertyType,char* propertyValue)
+void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList)
 {
 
 	isRepeating = true;
-	if (partnersTabInDisplay)
+	//Assume property name and type is the same for all
+	char*  propertyName = propertyStringList.at(0).at(0);
+	char* propertyType = propertyStringList.at(0).at(1);
+	QList<QVariant> valueList = QList<QVariant>();
+	/*int propertyType = UNDEFINED_T;*/
+ 
+
+	for (int i =0; i < propertyStringList.size(); i++)
 	{
-
-		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
-		pqPipelineSource* source = pqActiveObjects::instance().activeSource();
-		for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
-		{
-
-			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-				source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
-				if (!repr || !repr->getView())
-				{
-					//qWarning("!repr");
-					continue;
-				}
-				pqView* cur_view = repr->getView();
-				
-				//Change property
-				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
-				
-				
-				if (!strcmp(propertyType,"dvp"))
-				{
-					double value = atof(propertyValue);
-					qWarning("value %f",value);	
-					QVariant qVariant = QVariant(value);
-					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
-				}
-				else if (!strcmp(propertyType,"ivp"))
-				{
-					int value = atoi(propertyValue);
-					qWarning("value %d",value);	
-					
-					QVariant qVariant = QVariant(value);
-					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
-				}
-				else if(!strcmp(propertyType,"idvp"))
-				{
-					int value = atoi(propertyValue);
-					qWarning("value %d",value);	
-					
-					QVariant qVariant = QVariant(value);
-					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
-				}
-				else if (!strcmp(propertyType,"svp"))
-				{
-					qWarning("value %s",propertyValue);	
-					
-					QVariant qVariant = QVariant(propertyValue);
-					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
-					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(propertyValue);
-				}
-				else
-				{
-					qWarning("property Type unhandled! %s",propertyType);
-				}
-				displayRepresentation->getProxy()->UpdateVTKObjects();
-
-				//displayRepresentation->colorByArray("Velocity",vtkDataObject::FIELD_ASSOCIATION_POINTS);
-			/*	pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(source);
-				if (filter)
-				{
-					filter->hideInputIfRequired(cur_view);
-				}
-
-				repr->setVisible(true);*/
-
-		}
-
-	}
-	else{  
 		if (!strcmp(propertyType,"dvp"))
 		{
 			double value = atof(propertyValue);
-			qWarning("value %f",value);	
-			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"ivp"))
 		{
-			int value = atoi(propertyValue);
-			qWarning("value %d",value);	
-			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+			int value = atoi(propertyValue); 
+			valueList.append(QVariant(value)); 
 		}
 		else if(!strcmp(propertyType,"idvp"))
 		{
-			int value = atoi(propertyValue);
-			qWarning("value %d",value);	
-			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+			int value = atoi(propertyValue); 
+			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"svp"))
-		{
-			qWarning("value %s",propertyValue);	
-			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(propertyValue);
+		{ 
+			valueList.append(QVariant(propertyValue)); 
 		}
 		else
 		{
 			qWarning("property Type unhandled! %s",propertyType);
 		}
+	}
+	if (partnersTabInDisplay)
+	{
+
+			pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+			pqPipelineSource* source = pqActiveObjects::instance().activeSource();
+			for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
+			{
+				pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+					source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
+				if (!repr || !repr->getView()) 
+					continue; 
+				pqView* cur_view = repr->getView(); 
+				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
+				pqSMAdaptor::setMultipleElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),valueList);
+				displayRepresentation->getProxy()->UpdateVTKObjects();
+			}
+	}
+	else
+	{
+		pqSMAdaptor::setMultipleElementProperty(pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName),valueList);
 		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
-	} 
+	}
+
+					
+
+	//if (propertyStringList.size() == 1)
+	//{ 
+	//		char* propertyName = propertyStringList.at(0).at(0);
+	//		char* propertyType = propertyStringList.at(0).at(1);
+	//		char* propertyValue = propertyStringList.at(0).at(2);
+	//		
+	//	if (partnersTabInDisplay)
+	//	{
+
+	//		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+	//		pqPipelineSource* source = pqActiveObjects::instance().activeSource();
+	//		for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
+	//		{
+
+	//			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+	//				source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
+	//				if (!repr || !repr->getView())
+	//				{
+	//					//qWarning("!repr");
+	//					continue;
+	//				}
+	//				pqView* cur_view = repr->getView();
+	//				
+	//				//Change property
+	//				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
+	//				
+	//				
+	//				if (!strcmp(propertyType,"dvp"))
+	//				{
+	//					double value = atof(propertyValue);
+	//					qWarning("value %f",value);	
+	//					QVariant qVariant = QVariant(value);
+	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
+	//				}
+	//				else if (!strcmp(propertyType,"ivp"))
+	//				{
+	//					int value = atoi(propertyValue);
+	//					qWarning("value %d",value);	
+	//					
+	//					QVariant qVariant = QVariant(value);
+	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
+	//				}
+	//				else if(!strcmp(propertyType,"idvp"))
+	//				{
+	//					int value = atoi(propertyValue);
+	//					qWarning("value %d",value);	
+	//					
+	//					QVariant qVariant = QVariant(value);
+	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(value);
+	//				}
+	//				else if (!strcmp(propertyType,"svp"))
+	//				{
+	//					qWarning("value %s",propertyValue);	
+	//					
+	//					QVariant qVariant = QVariant(propertyValue);
+	//					pqSMAdaptor::setElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),qVariant);
+	//					//vtkSMPropertyHelper(displayRepresentation->getProxy(),propertyName).Set(propertyValue);
+	//				}
+	//				else
+	//				{
+	//					qWarning("property Type unhandled! %s",propertyType);
+	//				}
+	//				displayRepresentation->getProxy()->UpdateVTKObjects(); 
+
+	//		}
+	//	}
+	//	else
+	//	{   
+	//		char* propertyName = propertyStringList.at(0).at(0);
+	//		char* propertyType = propertyStringList.at(0).at(1);
+	//		char* propertyValue = propertyStringList.at(0).at(2);
+	//		if (!strcmp(propertyType,"dvp"))
+	//		{
+	//			double value = atof(propertyValue);
+	//			qWarning("value %f",value);	
+	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+	//		}
+	//		else if (!strcmp(propertyType,"ivp"))
+	//		{
+	//			int value = atoi(propertyValue);
+	//			qWarning("value %d",value);	
+	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+	//		}
+	//		else if(!strcmp(propertyType,"idvp"))
+	//		{
+	//			int value = atoi(propertyValue);
+	//			qWarning("value %d",value);	
+	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(value);
+	//		}
+	//		else if (!strcmp(propertyType,"svp"))
+	//		{
+	//			qWarning("value %s",propertyValue);	
+	//			vtkSMPropertyHelper(pqActiveObjects::instance().activeSource()->getProxy(),propertyName).Set(propertyValue);
+	//		}
+	//		else
+	//		{
+	//			qWarning("property Type unhandled! %s",propertyType);
+	//		}
+	//		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();	 
+	//	}
+	//}
+
+	  
 }
 void pqVRPNStarter::timerCallback()
 {
