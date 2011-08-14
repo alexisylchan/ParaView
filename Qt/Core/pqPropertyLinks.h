@@ -41,7 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class vtkObject;
 class vtkSMProxy; 
 class vtkSMProperty; 
-#define DEBUG_1_USER 1
+#define DEBUG_1_USER 0
 /// provides direct links between Qt widgets and server manager properties
 /// changing the value of a widget automatically updates the server manager
 /// a change in the server manager automatically updates the widget

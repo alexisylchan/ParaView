@@ -231,8 +231,7 @@ void pqVRPNStarter::onStartup()
 		readFileIndex = 0;
 		writeFileIndex = 0;
 		isRepeating = false;
-		if ((DEBUG_1_USER && (this->sensorIndex == 0)) // Only enable for User0 if Debug 1 User
-		|| (!DEBUG_1_USER))
+		if (!DEBUG_1_USER)
 		{
 
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
@@ -251,15 +250,44 @@ void pqVRPNStarter::onStartup()
 
 			QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
 							  this, SLOT(onProxyTabWidgetChanged(int )));
-
-		 
-		}
-		else if ( (DEBUG_1_USER && (this->sensorIndex == 1))|| (!DEBUG_1_USER))
-		{
+			
+			//qWarning("object inspector widget %s",mainWindow->findChild<QObject*>("objectInspector")->objectName().toAscii().data());
 			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
 			mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
+
 		}
+		else
+		{
+			if ( this->sensorIndex == 0) // Only enable for User0 if Debug 1 User
+			{
+
+				QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+				this, SLOT(onSourceCreated(pqPipelineSource*)));
+
+				QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
+				this, SLOT(onFilterCreated(pqPipelineSource*))); 
+
+				
+				QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
+				this, SLOT(onSourceChanged(pqPipelineSource*)));
+
+				 
+				QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
+				this, SLOT(onObjectInspectorWidgetAccept()));
+
+				QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
+								  this, SLOT(onProxyTabWidgetChanged(int )));
+
+			 
+			}
+			else if ( this->sensorIndex == 1)
+			{
+				qWarning("object inspector widget %s",mainWindow->findChild<QObject*>("objectInspector")->objectName().toAscii().data());
+				QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
+				mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
+			}
 		}
+	}
 	else
 	{
 		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 		 
@@ -286,6 +314,8 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 
 	xmlSnippetFile << snippet;
 	xmlSnippetFile.flush();
+	if (xmlSnippetFile.bad())
+		qWarning("File writing bad!!");
 	xmlSnippetFile.close(); 
 
 }
@@ -341,6 +371,8 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 // Listen to proxy creation from pqObjectBuilder 
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
+	qWarning("onSourceCreated isRepeating %d",(isRepeating? 1:0));
+	qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
 	if (!isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
@@ -352,7 +384,8 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 	}
 	else
 	{
-		isRepeating = false;
+		// Upon receiving source creation signal, wait for source change signal before disabling isRepeating signal
+		//isRepeating = false;  
 		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
 		//qWarning("Repeating creation of %s",vtkClassName);
 	}
@@ -360,6 +393,8 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 
 void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 {
+	qWarning("onFilterCreated isRepeating %d",(isRepeating? 1:0));
+	qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
 	if (!isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
@@ -380,7 +415,8 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 	}
 	else
 	{
-		isRepeating = false;
+		// Upon receiving source creation signal, wait for source change signal before disabling isRepeating signal
+		//isRepeating = false;
 		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
 		//qWarning("Repeating creation of %s",vtkClassName);
 	}
@@ -388,6 +424,8 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 
 void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 {
+	qWarning("onSourceChanged isRepeating %d",(isRepeating? 1:0));
+	qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
 	if (!isRepeating)
 	{
 		if (doNotPropagateSourceSelection)
@@ -408,7 +446,7 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 	else
 	{
 		isRepeating = false;
-		//qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
+		qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
 	}
 }
 void pqVRPNStarter::onChangeDataSet(int index)
@@ -823,6 +861,7 @@ void pqVRPNStarter::repeatSelectionChange(char* sourceName)
 void pqVRPNStarter::repeatApply()
 {
 	isRepeating = true;
+	qWarning("Repeat Accept!");
 	emit this->triggerObjectInspectorWidgetAccept();
 }
 void pqVRPNStarter::repeatPlaceHolder()
@@ -848,6 +887,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	if(hFileT == INVALID_HANDLE_VALUE)
 	{ 
 		::FindClose(hFileT);
+		//qWarning("invalid file %s",filenameT.str().c_str());
 		VRPNTimer->blockSignals(false);
 		return;
 	}
@@ -868,16 +908,18 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		if(hFile == INVALID_HANDLE_VALUE)
 		{ 
 			::FindClose(hFile);
+			//qWarning("invalid file %s",filename.str().c_str());
 			break;
 		}	
 		::FindClose(hFile);	
-		 
+		
+		readFile.clear();
 		readFile.open(filename.str().c_str()); 
 
 		if (readFile.good())
 		{
 			read = true;
-			 
+			qWarning("good file %s",filename.str().c_str());
 			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
 			readFile.getline(snippet,SNIPPET_LENGTH);  
 			char* operation = strtok(snippet,",");  
@@ -915,6 +957,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				//qWarning("operation %s", operation);
 
 				QList<QList<char*>> propertyStringList;
+				char newLine[SNIPPET_LENGTH]; 
 				bool doneOnce = false;
 				do
 				{
@@ -926,7 +969,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				}
 				else
 				{
-					propertyName = strtok(snippet,",");
+					propertyName = strtok(newLine,",");
 				}
 				char* propertyType = strtok(NULL,",");
 				char* propertyValue = strtok(NULL,",");
@@ -935,9 +978,9 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				list1.append(propertyName); list1.append(propertyType); list1.append(propertyValue);
 				propertyStringList.append(list1);
  
-				char snippet[SNIPPET_LENGTH]; 
+				
 				}
-				while (!readFile.getline(snippet,SNIPPET_LENGTH).eof() );
+				while (!readFile.getline(newLine,SNIPPET_LENGTH).eof() );
 				 
 
 				if (!propertyStringList.empty())
@@ -957,6 +1000,10 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{	newReadFileIndex = i; 
 			}
 		}  
+		else
+		{
+			qWarning("bad file %s",filename.str().c_str());
+		}
 		readFile.close();
 		
 	}
@@ -973,8 +1020,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 }
 
 void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList)
-{
-
+{  
 	isRepeating = true;
 	//Assume property name and type is the same for all
 	char*  propertyName = propertyStringList.at(0).at(0);

@@ -59,7 +59,7 @@ class vtkSMProxy;
 class pqPipelineFilter;
 
 #define DEBUG 1
-#define DEBUG_1_USER 1
+#define DEBUG_1_USER 0
 #define SNIPPET_LENGTH 50
 #define IGNORE_FILE_ACC 1
 //TODO: Make this a user-input option (vortex visualization workbench)
