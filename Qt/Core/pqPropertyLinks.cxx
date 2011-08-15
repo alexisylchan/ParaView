@@ -552,7 +552,8 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       break;
       }
 	  
-	//qWarning ("Qt Property Changed");
+	if(VERBOSE)
+		qWarning ("Qt Property Changed");
 	if ((DEBUG_1_USER && !this->linkMaster->sensorIndex) || (!DEBUG_1_USER))
 	{
 		if (!pqApplicationCore::instance()->isRepeating)
@@ -560,11 +561,7 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 		qWarning("qt link changed");
 		incrementDirectoryFile();
 		printSMProperty(this->Internal->Proxy,this->Internal->Property); 
-		} 
-		//else
-		//{
-		//	pqApplicationCore::instance()->isRepeating = false;
-		//}
+		}  
 	}
 	}
   this->Internal->SettingProperty = NULL;
@@ -575,10 +572,9 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	std::stringstream snippetStream; 
 	QString str; 
 
-	//qWarning("%s",smProperty->GetXMLName());
-	//snippetStream <<pqActiveObjects::instance().activeSource()->getSMName().toAscii().data()<<",";
-	snippetStream <<smProxy->GetXMLName()<<",";
-	//str = QString(snippetStream.str().c_str());
+	if(VERBOSE)
+		qWarning("%s",smProperty->GetXMLName()); 
+	snippetStream <<smProxy->GetXMLName()<<","; 
 
 	vtkSMDoubleVectorProperty* dvp;
 	vtkSMIntVectorProperty* ivp;
@@ -596,9 +592,9 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		double* test = dvp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
-			snippetStream <<smProperty->GetXMLName()<<","<<"dvp,"<<test[i]<<std::endl;
-			//str.append(snippetStream.str().c_str());
+			if(VERBOSE)
+				qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
+			snippetStream <<smProperty->GetXMLName()<<","<<"dvp,"<<test[i]<<std::endl; 
 		}
 	}
 	else if (ivp)
@@ -607,9 +603,9 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		int* test = ivp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
-			snippetStream <<smProperty->GetXMLName()<<","<<"ivp,"<<test[i]<<std::endl;
-			//str.append(snippetStream.str().c_str());
+			if(VERBOSE)
+				qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
+			snippetStream <<smProperty->GetXMLName()<<","<<"ivp,"<<test[i]<<std::endl; 
 		}
 	}
 	else if (svp)
@@ -618,15 +614,14 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	  vtkStringList* strList = vtkStringList::New();
 		svp->GetElements(strList);
 		if (strList)
-		{
-			////qWarning("strList");
+		{ 
 		for (int i =0; i< num; i++)
 		{
 			QString qStr = QString(  strList->GetString(i)) ;
-			qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
+			if(VERBOSE)
+				qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
 			
-			snippetStream <<smProperty->GetXMLName()<<","<<"svp,"<<qStr.toAscii().data()<<std::endl;
-			//str.append(snippetStream.str().c_str());
+			snippetStream <<smProperty->GetXMLName()<<","<<"svp,"<<qStr.toAscii().data()<<std::endl; 
 		}
 		}
 	}
@@ -638,14 +633,14 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	  {
 		  #if defined (VTK_USE_64BIT_IDS)
 		  {
-			  //qWarning(" vtkIdType %l", idvp->GetElement(i));
-			snippetStream <<"vtkIdType "<<","<<ltoa(idvp->GetElement(i))<<std::endl;
-			//str.append(snippetStream.str().c_str());
+			  if(VERBOSE)
+				qWarning(" vtkIdType %l", idvp->GetElement(i));
+			snippetStream <<"vtkIdType "<<","<<ltoa(idvp->GetElement(i))<<std::endl; 
 		  }
 	#else 
-		  qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
-		  snippetStream <<"vtkIdType "<<","<<"idvp,"<<idvp->GetElement(i)<<std::endl;
-			//str.append(snippetStream.str().c_str());
+		  if(VERBOSE)
+			qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
+		  snippetStream <<"vtkIdType "<<","<<"idvp,"<<idvp->GetElement(i)<<std::endl; 
 	#endif
 
 			  
@@ -661,13 +656,15 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	this->linkMaster->xmlSnippetFile.open(filename.str().c_str());
 	if (!this->linkMaster->xmlSnippetFile)
 	{
-		qWarning ("File not opened!!!");
-		qWarning(filename.str().c_str());
+		if(VERBOSE)
+		{
+			qWarning ("File not opened!!!");
+			qWarning(filename.str().c_str());
+		}
 	}
 
-	this->linkMaster->xmlSnippetFile << snippetStream.str().c_str();//str.toAscii().data();
-	this->linkMaster->xmlSnippetFile.close();
-	//this->linkMaster->writeFileIndex = this->linkMaster->writeFileIndex+1;
+	this->linkMaster->xmlSnippetFile << snippetStream.str().c_str(); 
+	this->linkMaster->xmlSnippetFile.close(); 
 }
 
 // Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
@@ -843,31 +840,37 @@ void pqPropertyLinks::reset()
 //-----------------------------------------------------------------------------
 void pqPropertyLinks::accept()
 {
-  bool old = this->useUncheckedProperties();
-  bool oldauto = this->autoUpdateVTKObjects();
+	if ((DEBUG_1_USER && !this->sensorIndex) || (!DEBUG_1_USER))
+	{
+		if (!pqApplicationCore::instance()->isRepeating)
+		{
+		  bool old = this->useUncheckedProperties();
+		  bool oldauto = this->autoUpdateVTKObjects();
 
-  QSet<vtkSMProxy*> ChangedProxies;
+		  QSet<vtkSMProxy*> ChangedProxies;
 
-  foreach(pqPropertyLinksConnection* conn, this->Internal->Links)
-    {
-    if (!conn || !conn->getOutOfSync())
-      {
-      continue;
-      }
-    conn->setUseUncheckedProperties(false);
-    conn->setAutoUpdateVTKObjects(false);
-    conn->qtLinkedPropertyChanged();
-    conn->setAutoUpdateVTKObjects(oldauto);
-    conn->setUseUncheckedProperties(old);
-    conn->clearOutOfSync();
+		  foreach(pqPropertyLinksConnection* conn, this->Internal->Links)
+			{
+			if (!conn || !conn->getOutOfSync())
+			  {
+			  continue;
+			  }
+			conn->setUseUncheckedProperties(false);
+			conn->setAutoUpdateVTKObjects(false);
+			conn->qtLinkedPropertyChanged();
+			conn->setAutoUpdateVTKObjects(oldauto);
+			conn->setUseUncheckedProperties(old);
+			conn->clearOutOfSync();
 
-    ChangedProxies.insert(conn->Internal->Proxy);
-    }
+			ChangedProxies.insert(conn->Internal->Proxy);
+			}
 
-  foreach(vtkSMProxy* p, ChangedProxies)
-    {
-    p->UpdateVTKObjects();
-    }
+		  foreach(vtkSMProxy* p, ChangedProxies)
+			{
+			p->UpdateVTKObjects();
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------

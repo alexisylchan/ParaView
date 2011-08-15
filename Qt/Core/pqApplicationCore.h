@@ -63,6 +63,8 @@ class vtkPVXMLElement;
 class vtkSMGlobalPropertiesManager;
 class vtkSMProxyLocator;
 
+#define VERBOSE 1
+
 /// This class is the crux of the ParaView application. It creates
 /// and manages various managers which are necessary for the ParaView-based
 /// client to work with the ServerManager.

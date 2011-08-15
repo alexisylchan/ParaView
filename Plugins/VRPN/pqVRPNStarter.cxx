@@ -252,7 +252,6 @@ void pqVRPNStarter::onStartup()
 			QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
 							  this, SLOT(onProxyTabWidgetChanged(int )));
 			
-			//qWarning("object inspector widget %s",mainWindow->findChild<QObject*>("objectInspector")->objectName().toAscii().data());
 			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
 			mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
 
@@ -283,7 +282,6 @@ void pqVRPNStarter::onStartup()
 			}
 			else if ( this->sensorIndex == 1)
 			{
-				qWarning("object inspector widget %s",mainWindow->findChild<QObject*>("objectInspector")->objectName().toAscii().data());
 				QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
 				mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
 			}
@@ -298,9 +296,7 @@ void pqVRPNStarter::onStartup()
 }
 void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
-	////qWarning("origWriteFileIndex %d",writeFileIndex);
 	writeFileIndex = this->incrementDirectoryFile(writeFileIndex,this->origSensorIndex,true);
-	////qWarning("newWriteFileIndex %d",writeFileIndex);
 	
 	//save proxy values to file.
 	std::stringstream filename;
@@ -309,8 +305,8 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 	//TODO: rename xmlSnippetFile
 	xmlSnippetFile.open(filename.str().c_str());
 	if (!xmlSnippetFile)
-	{ //qWarning ("File not opened!!!");
-	//qWarning(filename.str().c_str());
+	{ 
+		qWarning ("File not opened!!! %s",filename.str().c_str());
 	}
 
 	xmlSnippetFile << snippet;
@@ -327,18 +323,14 @@ void pqVRPNStarter::onObjectInspectorWidgetAccept()
 	{ 
 		std::stringstream snippetStream;
 		snippetStream <<"Apply,"<<std::endl;
-		////qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
 	}
-	/*else
-	{
-		pqApplicationCore::instance()->isRepeating = false; 
-	}*/
 }
 
 void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 {
-	//qWarning ("Tab changed!");
+	if(VERBOSE)
+		qWarning ("Tab changed!");
 	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
@@ -362,41 +354,33 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 			return;
 		}
 		writeChangeSnippet(snippetStream.str().c_str());
-	}
-	//else
-	//{
-	//	pqApplicationCore::instance()->isRepeating = false; 
-	//	//qWarning("Repeating tab change");
-	//}
+	} 
 }
 // Listen to proxy creation from pqObjectBuilder 
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
-	qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
-	qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+	if(VERBOSE)
+	{
+		qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
+		qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+	}
 	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
 		std::stringstream snippetStream; 
 		 
 		snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<createdSource->getProxy()->GetXMLName()<<std::endl;
-		//qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
-	}
-	else
-	{
-		// Upon receiving source creation signal, wait for source change signal before disabling pqApplicationCore::instance()->isRepeating signal
-		//pqApplicationCore::instance()->isRepeating = false; 
-		//onSourceChangeAfterRepeatingCreation = true;
-		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
-		//qWarning("Repeating creation of %s",vtkClassName);
-	}
+	}	
 }
 
 void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 {
-	qWarning("onFilterCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
-	qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+	if(VERBOSE)
+	{
+		qWarning("onFilterCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
+		qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+	}
 	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
@@ -412,28 +396,21 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 			groupName = QString("filters");
 
 		snippetStream << "Filter,"<<groupName.toAscii().data()<<","<<createdFilter->getProxy()->GetXMLName()<<std::endl;
-		//qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
-	}
-	else
-	{
-		// Upon receiving source creation signal, wait for source change signal before disabling pqApplicationCore::instance()->isRepeating signal
-		//pqApplicationCore::instance()->isRepeating = false;
-		//onSourceChangeAfterRepeatingCreation = true;
-		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
-		//qWarning("Repeating creation of %s",vtkClassName);
-	}
+	} 
 }
 
 void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 {
-	qWarning("onSourceChanged pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
-	qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+	if(VERBOSE)
+	{
+		qWarning("onSourceChanged pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
+		qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+	}
 	if (!pqApplicationCore::instance()->isRepeating)
 	{
 		if (doNotPropagateSourceSelection)
-		{
-			//qWarning("do not propagate!");
+		{ 
 			doNotPropagateSourceSelection = false;
 			return;
 		}
@@ -441,21 +418,9 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 		{
 			std::stringstream snippetStream;
 			snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
-			//qWarning(snippetStream.str().c_str());
-		    writeChangeSnippet(snippetStream.str().c_str());
-		}
-		////qWarning(snippetStream.str().c_str());
-	}
-	//else
-	//{
-	//	if (onSourceChangeAfterRepeatingCreation)
-	//	{
-	//		onSourceChangeAfterRepeatingCreation = false;		
-	//		return;
-	//	}
-	//	pqApplicationCore::instance()->isRepeating = false;
-	//	//qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
-	//}
+			writeChangeSnippet(snippetStream.str().c_str());
+		}		 
+	} 
 }
 void pqVRPNStarter::onChangeDataSet(int index)
 {
@@ -843,12 +808,14 @@ void pqVRPNStarter::respondToTabChange(char* tabName)
 		partnersTabInDisplay = false;
 }
 void pqVRPNStarter::repeatSelectionChange(char* sourceName)
-{
-	//pqApplicationCore::instance()->isRepeating = true; 
+{ 
 	pqPipelineSource* selectedSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(sourceName);
 	if (selectedSource)
 	{
-		//qWarning("Found source! %s %s ",selectedSource->getSMName().toAscii().data(),sourceName);
+		if(VERBOSE)
+		{
+			qWarning("Found source! %s %s ",selectedSource->getSMName().toAscii().data(),sourceName);
+		}
 		pqActiveObjects::instance().setActiveSource(selectedSource);
 	}
 	else
@@ -857,24 +824,20 @@ void pqVRPNStarter::repeatSelectionChange(char* sourceName)
 		QList<pqPipelineSource*> sources = pqApplicationCore::instance()->getServerManagerModel()->findItems<pqPipelineSource*>();
 		for (int i =0; i < sources.size();i++)
 		{
-			//qWarning("Source at %d is %s", i, sources.at(i)->getSMName().toAscii().data());
+			if(VERBOSE)
+			{
+				qWarning("Source at %d is %s", i, sources.at(i)->getSMName().toAscii().data());
+			}
 		}
 
-	}
-	//if (!strcmp(tabName,"Display"))
-	//	partnersTabInDisplay = true;
-	//else
-	//	partnersTabInDisplay = false;
+	} 
 }
 void pqVRPNStarter::repeatApply()
-{
-	//pqApplicationCore::instance()->isRepeating = true;
-	//qWarning("Repeat Accept!");
+{ 
 	emit this->triggerObjectInspectorWidgetAccept();
 }
 void pqVRPNStarter::repeatPlaceHolder()
-{
-	//pqApplicationCore::instance()->isRepeating = true;
+{ 
 }
 //-----------------------------------------------------------------------------
 
@@ -895,8 +858,10 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	if(hFileT == INVALID_HANDLE_VALUE)
 	{ 
 		::FindClose(hFileT);
-		//qWarning("invalid file %s",filenameT.str().c_str());
-		
+		/*if(VERBOSE)
+		{
+			qWarning("invalid file %s",filenameT.str().c_str());
+		}*/
 		pqApplicationCore::instance()->isRepeating = false;
 		VRPNTimer->blockSignals(false);
 		return;
@@ -919,7 +884,10 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		if(hFile == INVALID_HANDLE_VALUE)
 		{ 
 			::FindClose(hFile);
-			//qWarning("invalid file %s",filename.str().c_str());
+			/*if(VERBOSE)
+			{
+				qWarning("invalid file %s",filename.str().c_str());
+			}*/
 			break;
 		}	
 		::FindClose(hFile);	
@@ -930,7 +898,10 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		if (readFile.good())
 		{
 			read = true;
-			//qWarning("good file %s",filename.str().c_str());
+			/*if(VERBOSE)
+			{
+				qWarning("good file %s",filename.str().c_str());
+			}*/
 			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
 			readFile.getline(snippet,SNIPPET_LENGTH);  
 			char* operation = strtok(snippet,",");  
@@ -965,8 +936,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			}
 			else 
 			{  
-				//qWarning("operation %s", operation);
-
+				if(VERBOSE)
+					qWarning("operation %s", operation);			
 				QList<QList<char*>> propertyStringList;
 				char newLine[SNIPPET_LENGTH]; 
 				bool doneOnce = false;
@@ -984,7 +955,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				}
 				char* propertyType = strtok(NULL,",");
 				char* propertyValue = strtok(NULL,",");
-				//qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);
+				/*if(VERBOSE) 
+					qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);*/
 				
 				list1.append(propertyName); list1.append(propertyType); list1.append(propertyValue);
 				propertyStringList.append(list1);
@@ -999,7 +971,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				
 				if (readFile.bad())
 				{
-					//qWarning("readfile bad");
+					/*if(VERBOSE) 
+						qWarning("readfile bad");*/
 					readFile.close();
 				}
 				readFile.clear();
@@ -1013,7 +986,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		}  
 		else
 		{
-			qWarning("bad file %s",filename.str().c_str());
+			/*if(VERBOSE)
+				qWarning("bad file %s",filename.str().c_str());*/
 		}
 		readFile.close();
 		
@@ -1034,7 +1008,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 
 void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList)
 {  
-	qWarning("Repeating properties change!!!");
+	if(VERBOSE)
+		qWarning("Repeating properties change!!!");
 	//pqApplicationCore::instance()->isRepeating = true;
 	//Assume property name and type is the same for all
 	char*  propertyName = propertyStringList.at(0).at(0);
@@ -1047,21 +1022,25 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 		if (!strcmp(propertyType,"dvp"))
 		{
 			double value = atof(propertyStringList.at(i).at(2));
+			qWarning("propertyname %s propertyvalue %f",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"ivp"))
 		{
 			int value = atoi(propertyStringList.at(i).at(2)); 
+			qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if(!strcmp(propertyType,"idvp"))
 		{
 			int value = atoi(propertyStringList.at(i).at(2)); 
+			qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"svp"))
 		{ 
 			valueList.append(QVariant(propertyStringList.at(i).at(2))); 
+			qWarning("propertyname %s propertyvalue %s",propertyName,propertyStringList.at(i).at(2));
 		}
 		else
 		{
@@ -1083,6 +1062,7 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
 				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
 				pqSMAdaptor::setMultipleElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),valueList);
+				qWarning("Proxy Property Name %s",displayRepresentation->getProxy()->GetProperty(propertyName)->GetXMLName());
 				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 				displayRepresentation->getProxy()->UpdateVTKObjects();
 			}
@@ -1091,6 +1071,7 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 	{
 		//pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
 		pqSMAdaptor::setMultipleElementProperty(pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName),valueList);
+				qWarning("Proxy Property Name %s",pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->GetXMLName());
 		//pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
 	}
