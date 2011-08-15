@@ -180,6 +180,7 @@ void pqApplicationCore::constructor()
   this->LinksModel = new pqLinksModel(this);
 
   this->LoadingState = false;
+  this->isRepeating = false;
   QObject::connect(this->ServerManagerObserver,
     SIGNAL(stateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)),
     this, SLOT(onStateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)));
@@ -259,6 +260,7 @@ pqApplicationCore::~pqApplicationCore()
   this->OutputWindow = NULL;
   this->OutputWindowAdapter->Delete();
   this->OutputWindowAdapter= 0;
+
 }
 
 //-----------------------------------------------------------------------------

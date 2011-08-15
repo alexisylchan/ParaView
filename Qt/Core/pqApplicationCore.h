@@ -75,6 +75,8 @@ class PQCORE_EXPORT pqApplicationCore : public QObject
 {
   Q_OBJECT
 public:
+  //Alexis YL Chan 08/14/11 
+  bool isRepeating;
   // Get the global instace for the pqApplicationCore.
   static pqApplicationCore* instance();
 

@@ -175,6 +175,7 @@ void pqVRPNStarter::onStartup()
 	fileIndex = 0;
 	partnersTabInDisplay = false;
 	doNotPropagateSourceSelection = false;
+	onSourceChangeAfterRepeatingCreation = false;
 	this->showingTimeline = false;
 	//Log file to log test data (Vortex Visualization)
 	if(VORTEX_VISUALIZATION)
@@ -230,7 +231,7 @@ void pqVRPNStarter::onStartup()
 		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugGrabProps()));
 		readFileIndex = 0;
 		writeFileIndex = 0;
-		isRepeating = false;
+		//isRepeating = false;
 		if (!DEBUG_1_USER)
 		{
 
@@ -322,23 +323,23 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 
 void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
-	if (!isRepeating)
+	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		std::stringstream snippetStream;
 		snippetStream <<"Apply,"<<std::endl;
 		////qWarning(snippetStream.str().c_str());
 		writeChangeSnippet(snippetStream.str().c_str());
 	}
-	else
+	/*else
 	{
-		isRepeating = false; 
-	}
+		pqApplicationCore::instance()->isRepeating = false; 
+	}*/
 }
 
 void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 {
 	//qWarning ("Tab changed!");
-	if (!isRepeating)
+	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
 		pqProxyTabWidget* proxyTabWidget = qobject_cast<pqProxyTabWidget*>(mainWindow->findChild<QObject*>("proxyTabWidget"));	
@@ -362,18 +363,18 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 		}
 		writeChangeSnippet(snippetStream.str().c_str());
 	}
-	else
-	{
-		isRepeating = false; 
-		//qWarning("Repeating tab change");
-	}
+	//else
+	//{
+	//	pqApplicationCore::instance()->isRepeating = false; 
+	//	//qWarning("Repeating tab change");
+	//}
 }
 // Listen to proxy creation from pqObjectBuilder 
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
-	qWarning("onSourceCreated isRepeating %d",(isRepeating? 1:0));
+	qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 	qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-	if (!isRepeating)
+	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
 		std::stringstream snippetStream; 
@@ -384,8 +385,9 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 	}
 	else
 	{
-		// Upon receiving source creation signal, wait for source change signal before disabling isRepeating signal
-		//isRepeating = false;  
+		// Upon receiving source creation signal, wait for source change signal before disabling pqApplicationCore::instance()->isRepeating signal
+		//pqApplicationCore::instance()->isRepeating = false; 
+		//onSourceChangeAfterRepeatingCreation = true;
 		char* vtkClassName = createdSource->getProxy()->GetVTKClassName();
 		//qWarning("Repeating creation of %s",vtkClassName);
 	}
@@ -393,9 +395,9 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 
 void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 {
-	qWarning("onFilterCreated isRepeating %d",(isRepeating? 1:0));
+	qWarning("onFilterCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 	qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-	if (!isRepeating)
+	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
 		std::stringstream snippetStream; 
@@ -415,8 +417,9 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 	}
 	else
 	{
-		// Upon receiving source creation signal, wait for source change signal before disabling isRepeating signal
-		//isRepeating = false;
+		// Upon receiving source creation signal, wait for source change signal before disabling pqApplicationCore::instance()->isRepeating signal
+		//pqApplicationCore::instance()->isRepeating = false;
+		//onSourceChangeAfterRepeatingCreation = true;
 		char* vtkClassName = createdFilter->getProxy()->GetVTKClassName();
 		//qWarning("Repeating creation of %s",vtkClassName);
 	}
@@ -424,13 +427,13 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 
 void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 {
-	qWarning("onSourceChanged isRepeating %d",(isRepeating? 1:0));
+	qWarning("onSourceChanged pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 	qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-	if (!isRepeating)
+	if (!pqApplicationCore::instance()->isRepeating)
 	{
 		if (doNotPropagateSourceSelection)
 		{
-			qWarning("do not propagate!");
+			//qWarning("do not propagate!");
 			doNotPropagateSourceSelection = false;
 			return;
 		}
@@ -438,16 +441,21 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 		{
 			std::stringstream snippetStream;
 			snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
-			qWarning(snippetStream.str().c_str());
+			//qWarning(snippetStream.str().c_str());
 		    writeChangeSnippet(snippetStream.str().c_str());
 		}
 		////qWarning(snippetStream.str().c_str());
 	}
-	else
-	{
-		isRepeating = false;
-		qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
-	}
+	//else
+	//{
+	//	if (onSourceChangeAfterRepeatingCreation)
+	//	{
+	//		onSourceChangeAfterRepeatingCreation = false;		
+	//		return;
+	//	}
+	//	pqApplicationCore::instance()->isRepeating = false;
+	//	//qWarning("Repeating selection of %s",createdSource->getProxy()->GetVTKClassName());
+	//}
 }
 void pqVRPNStarter::onChangeDataSet(int index)
 {
@@ -786,14 +794,14 @@ void pqVRPNStarter::onShutdown()
 void pqVRPNStarter::repeatCreateSource(char* groupName,char* sourceName )
 {
 
-	isRepeating = true; 
+	//pqApplicationCore::instance()->isRepeating = true; 
 	pqApplicationCore::instance()->getObjectBuilder()->createSource(QString(groupName),QString(sourceName),pqActiveObjects::instance().activeServer());
 }
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
 {
 
-	isRepeating = true; 
+	//pqApplicationCore::instance()->isRepeating = true; 
 	// Todo: combine with  vtkVRPNPhantomStyleCamera::CreateParaViewObject(i
 	vtkSMProxy* prototype = vtkSMProxyManager::GetProxyManager()->GetPrototypeProxy("filters",sourceName);
 	QList<pqOutputPort*> outputPorts;
@@ -828,7 +836,7 @@ void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
 
 void pqVRPNStarter::respondToTabChange(char* tabName)
 {
-	isRepeating = true; 
+	//pqApplicationCore::instance()->isRepeating = true; 
 	if (!strcmp(tabName,"Display"))
 		partnersTabInDisplay = true;
 	else
@@ -836,20 +844,20 @@ void pqVRPNStarter::respondToTabChange(char* tabName)
 }
 void pqVRPNStarter::repeatSelectionChange(char* sourceName)
 {
-	isRepeating = true; 
+	//pqApplicationCore::instance()->isRepeating = true; 
 	pqPipelineSource* selectedSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(sourceName);
 	if (selectedSource)
 	{
-		qWarning("Found source! %s %s ",selectedSource->getSMName().toAscii().data(),sourceName);
+		//qWarning("Found source! %s %s ",selectedSource->getSMName().toAscii().data(),sourceName);
 		pqActiveObjects::instance().setActiveSource(selectedSource);
 	}
 	else
 	{
-		qWarning("Cannot find source! %s ",sourceName);
+		//qWarning("Cannot find source! %s ",sourceName);
 		QList<pqPipelineSource*> sources = pqApplicationCore::instance()->getServerManagerModel()->findItems<pqPipelineSource*>();
 		for (int i =0; i < sources.size();i++)
 		{
-			qWarning("Source at %d is %s", i, sources.at(i)->getSMName().toAscii().data());
+			//qWarning("Source at %d is %s", i, sources.at(i)->getSMName().toAscii().data());
 		}
 
 	}
@@ -860,13 +868,13 @@ void pqVRPNStarter::repeatSelectionChange(char* sourceName)
 }
 void pqVRPNStarter::repeatApply()
 {
-	isRepeating = true;
-	qWarning("Repeat Accept!");
+	//pqApplicationCore::instance()->isRepeating = true;
+	//qWarning("Repeat Accept!");
 	emit this->triggerObjectInspectorWidgetAccept();
 }
 void pqVRPNStarter::repeatPlaceHolder()
 {
-	isRepeating = true;
+	//pqApplicationCore::instance()->isRepeating = true;
 }
 //-----------------------------------------------------------------------------
 
@@ -888,6 +896,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	{ 
 		::FindClose(hFileT);
 		//qWarning("invalid file %s",filenameT.str().c_str());
+		
+		pqApplicationCore::instance()->isRepeating = false;
 		VRPNTimer->blockSignals(false);
 		return;
 	}
@@ -898,6 +908,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	bool read = false; 
 	for (int i =readFileIndex; i <= targetFileIndex; i++)
 	{
+		pqApplicationCore::instance()->isRepeating = true;
 		std::stringstream filename;
 		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
 		<<(this->origSensorIndex+1)%2<<"_"<<i<<".xml";
@@ -919,7 +930,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		if (readFile.good())
 		{
 			read = true;
-			qWarning("good file %s",filename.str().c_str());
+			//qWarning("good file %s",filename.str().c_str());
 			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
 			readFile.getline(snippet,SNIPPET_LENGTH);  
 			char* operation = strtok(snippet,",");  
@@ -1016,12 +1027,15 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		}
 		readFileIndex = newReadFileIndex;
 	} 
+	
+	pqApplicationCore::instance()->isRepeating = false;
 	VRPNTimer->blockSignals(false);
 }
 
 void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList)
 {  
-	isRepeating = true;
+	qWarning("Repeating properties change!!!");
+	//pqApplicationCore::instance()->isRepeating = true;
 	//Assume property name and type is the same for all
 	char*  propertyName = propertyStringList.at(0).at(0);
 	char* propertyType = propertyStringList.at(0).at(1);
@@ -1067,17 +1081,17 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 					continue; 
 				pqView* cur_view = repr->getView(); 
 				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
-				displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
+				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
 				pqSMAdaptor::setMultipleElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),valueList);
-				displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
+				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 				displayRepresentation->getProxy()->UpdateVTKObjects();
 			}
 	}
 	else
 	{
-		pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
+		//pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
 		pqSMAdaptor::setMultipleElementProperty(pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName),valueList);
-		pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
+		//pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
 	}
 	  

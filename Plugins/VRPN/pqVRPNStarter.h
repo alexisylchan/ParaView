@@ -224,7 +224,7 @@ private:
   int readFileIndex;
   int writeFileIndex;
   ifstream readFile;
-  bool isRepeating;
+ // bool isRepeating;
   void writeChangeSnippet(const char* snippet);
   void changeMySnippetTimeStamp();
   bool changeSnippetModified();
@@ -248,6 +248,9 @@ private:
   // We do not need to propagate that but do need to propagate source selection in
   // GUI 
   bool doNotPropagateSourceSelection;
+  // on source change after creation , we need to _not_ change isRepeating so that the pqpropertylinks
+  // changes will not be repeated infinitely.
+  bool onSourceChangeAfterRepeatingCreation;
 };
 
 #endif

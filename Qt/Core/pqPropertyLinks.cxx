@@ -66,6 +66,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVOptions.h"
 #include <conio.h>
 #include <windows.h>  
+#include "pqApplicationCore.h"
 class pqPropertyLinksConnection::pqInternal
 {
 public:
@@ -554,9 +555,16 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 	//qWarning ("Qt Property Changed");
 	if ((DEBUG_1_USER && !this->linkMaster->sensorIndex) || (!DEBUG_1_USER))
 	{
+		if (!pqApplicationCore::instance()->isRepeating)
+		{
+		qWarning("qt link changed");
 		incrementDirectoryFile();
 		printSMProperty(this->Internal->Proxy,this->Internal->Property); 
-	 
+		} 
+		//else
+		//{
+		//	pqApplicationCore::instance()->isRepeating = false;
+		//}
 	}
 	}
   this->Internal->SettingProperty = NULL;
@@ -567,7 +575,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 	std::stringstream snippetStream; 
 	QString str; 
 
-	//qWarning("%s",smProxy->GetXMLName());
+	//qWarning("%s",smProperty->GetXMLName());
 	//snippetStream <<pqActiveObjects::instance().activeSource()->getSMName().toAscii().data()<<",";
 	snippetStream <<smProxy->GetXMLName()<<",";
 	//str = QString(snippetStream.str().c_str());
@@ -588,7 +596,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		double* test = dvp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			//qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
+			qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
 			snippetStream <<smProperty->GetXMLName()<<","<<"dvp,"<<test[i]<<std::endl;
 			//str.append(snippetStream.str().c_str());
 		}
@@ -599,7 +607,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		int* test = ivp->GetElements();
 		for (int i =0; i< num; i++)
 		{
-			//qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
+			qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
 			snippetStream <<smProperty->GetXMLName()<<","<<"ivp,"<<test[i]<<std::endl;
 			//str.append(snippetStream.str().c_str());
 		}
@@ -615,7 +623,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 		for (int i =0; i< num; i++)
 		{
 			QString qStr = QString(  strList->GetString(i)) ;
-			//qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
+			qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
 			
 			snippetStream <<smProperty->GetXMLName()<<","<<"svp,"<<qStr.toAscii().data()<<std::endl;
 			//str.append(snippetStream.str().c_str());
@@ -635,7 +643,7 @@ void pqPropertyLinksConnection::printSMProperty(vtkSMProxy* smProxy,vtkSMPropert
 			//str.append(snippetStream.str().c_str());
 		  }
 	#else 
-		  //qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
+		  qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
 		  snippetStream <<"vtkIdType "<<","<<"idvp,"<<idvp->GetElement(i)<<std::endl;
 			//str.append(snippetStream.str().c_str());
 	#endif
