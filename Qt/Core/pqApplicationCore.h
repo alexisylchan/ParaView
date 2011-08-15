@@ -35,6 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqCoreExport.h"
 #include <QObject>
 #include <QPointer>
+#include <iostream>
+#include <fstream>
 
 class pq3DWidgetFactory;
 class pqDisplayPolicy;
@@ -62,8 +64,11 @@ class QStringList;
 class vtkPVXMLElement;
 class vtkSMGlobalPropertiesManager;
 class vtkSMProxyLocator;
+class vtkSMProxy;
+class vtkSMProperty;
 
 #define VERBOSE 1
+#define DEBUG_1_USER 0
 
 /// This class is the crux of the ParaView application. It creates
 /// and manages various managers which are necessary for the ParaView-based
@@ -78,9 +83,17 @@ class PQCORE_EXPORT pqApplicationCore : public QObject
   Q_OBJECT
 public:
   //Alexis YL Chan 08/14/11 
-  bool isRepeating;
+  bool isRepeating;  
+  int sensorIndex;
+  int writeFileIndex;
+  std::ofstream xmlSnippetFile;
+
   // Get the global instace for the pqApplicationCore.
   static pqApplicationCore* instance();
+
+  void printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
+  void incrementDirectoryFile();
+
 
   /// Preferred constructor. Initializes the server-manager engine and sets up
   /// the core functionality. If application supports special command line

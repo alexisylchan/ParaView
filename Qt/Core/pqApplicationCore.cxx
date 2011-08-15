@@ -95,6 +95,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMRenderViewProxy.h"
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
+
+//Scientific Visualization Workbench. Alexis YL Chan. 08/07/11
+#include "vtkSMProxyInternals.h"
+#include "vtkSMDoubleVectorProperty.h"
+#include "vtkSMIntVectorProperty.h"
+#include "vtkSMIdTypeVectorProperty.h"
+#include  "vtkSMStringVectorProperty.h"
+#include "vtkStringList.h"
+#include <sstream>
+#include <fstream>
+#include "vtkProcessModule.h"
+#include "vtkPVOptions.h"
+#include <conio.h>
+#include <windows.h>  
+#include "pqApplicationCore.h"
+
 //-----------------------------------------------------------------------------
 class pqApplicationCore::pqInternals
 {
@@ -112,6 +128,151 @@ pqApplicationCore* pqApplicationCore::instance()
   return pqApplicationCore::Instance;
 }
 
+void pqApplicationCore::printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
+{
+	std::stringstream snippetStream; 
+	QString str; 
+
+	if(VERBOSE)
+		qWarning("%s",smProperty->GetXMLName()); 
+	snippetStream <<smProxy->GetXMLName()<<","; 
+
+	vtkSMDoubleVectorProperty* dvp;
+	vtkSMIntVectorProperty* ivp;
+	vtkSMIdTypeVectorProperty* idvp;
+	vtkSMStringVectorProperty* svp;
+
+	dvp = vtkSMDoubleVectorProperty::SafeDownCast(smProperty);
+	ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
+	idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
+	svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
+
+	if(dvp)
+	{
+		int num = dvp->GetNumberOfElements();
+		double* test = dvp->GetElements();
+		for (int i =0; i< num; i++)
+		{
+			if(VERBOSE)
+				qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
+			snippetStream <<smProperty->GetXMLName()<<","<<"dvp,"<<test[i]<<std::endl; 
+		}
+	}
+	else if (ivp)
+	{
+		int num = ivp->GetNumberOfElements();
+		int* test = ivp->GetElements();
+		for (int i =0; i< num; i++)
+		{
+			if(VERBOSE)
+				qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
+			snippetStream <<smProperty->GetXMLName()<<","<<"ivp,"<<test[i]<<std::endl; 
+		}
+	}
+	else if (svp)
+	{
+	  int num = svp->GetNumberOfElements();
+	  vtkStringList* strList = vtkStringList::New();
+		svp->GetElements(strList);
+		if (strList)
+		{ 
+		for (int i =0; i< num; i++)
+		{
+			QString qStr = QString(  strList->GetString(i)) ;
+			if(VERBOSE)
+				qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
+			
+			snippetStream <<smProperty->GetXMLName()<<","<<"svp,"<<qStr.toAscii().data()<<std::endl; 
+		}
+		}
+	}
+	else if (idvp)
+	{
+	 vtkIdType v;
+	  int num = idvp->GetNumberOfElements();
+	  for (int i =0; i < num; i++)
+	  {
+		  #if defined (VTK_USE_64BIT_IDS)
+		  {
+			  if(VERBOSE)
+				qWarning(" vtkIdType %l", idvp->GetElement(i));
+			snippetStream <<"vtkIdType "<<","<<ltoa(idvp->GetElement(i))<<std::endl; 
+		  }
+	#else 
+		  if(VERBOSE)
+			qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
+		  snippetStream <<"vtkIdType "<<","<<"idvp,"<<idvp->GetElement(i)<<std::endl; 
+	#endif
+
+			  
+	  }
+	 
+	}
+
+	std::stringstream filename;
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"
+		<<"snippet"
+		<<this->sensorIndex<<"_"
+		<<this->writeFileIndex<<".xml";
+	this->xmlSnippetFile.open(filename.str().c_str());
+	if (!this->xmlSnippetFile)
+	{
+		if(VERBOSE)
+		{
+			qWarning ("File not opened!!!");
+			qWarning(filename.str().c_str());
+		}
+	}
+
+	this->xmlSnippetFile << snippetStream.str().c_str(); 
+	this->xmlSnippetFile.close(); 
+}
+
+// Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
+void pqApplicationCore::incrementDirectoryFile()
+{
+	std::string     strFilePath;             // Filepath
+	std::string     strPattern;              // Pattern
+	std::string     strExtension;            // Extension
+	::HANDLE          hFile;                   // Handle to file
+	::WIN32_FIND_DATA FileInformation;         // File information
+	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
+	strFilePath = strPattern + "\\snippet*";
+	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
+	if(hFile != INVALID_HANDLE_VALUE)
+	{ 
+		int index = 0;
+		bool found_file = false;
+		do
+		{
+		  if(FileInformation.cFileName[0] != '.')
+		  {
+			strFilePath.erase();
+			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
+			int file_index_start =  strFilePath.find("snippet")+ 7;
+			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
+			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
+			
+			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
+			if (atoi(path_parsed) == this->sensorIndex)
+			{
+			path_parsed = strtok(NULL,"_");
+			int curr_index = atoi(path_parsed);
+			if (curr_index > index)
+				index = curr_index;
+			found_file = true;
+			}
+			 
+		  }
+		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
+		if (found_file)
+			this->writeFileIndex = index+1;
+
+		
+	}
+	// Close handle
+	::FindClose(hFile);
+}
 //-----------------------------------------------------------------------------
 pqApplicationCore::pqApplicationCore(int& argc, char** argv, pqOptions* options,
   QObject* parentObject)
@@ -190,6 +351,10 @@ void pqApplicationCore::constructor()
   QObject::connect(this->ServerManagerObserver,
     SIGNAL(stateFileClosed()),
     this, SLOT(onStateFileClosed()));
+  vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+  vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
+  this->sensorIndex = options->GetTrackerSensor(); 
+  this->writeFileIndex = 0;
 }
 
 //-----------------------------------------------------------------------------

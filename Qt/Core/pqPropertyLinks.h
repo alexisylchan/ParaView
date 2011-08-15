@@ -35,13 +35,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqCoreExport.h"
 #include <QObject>
-#include <iostream>
-#include <fstream>
 
 class vtkObject;
 class vtkSMProxy; 
 class vtkSMProperty; 
-#define DEBUG_1_USER 0
 /// provides direct links between Qt widgets and server manager properties
 /// changing the value of a widget automatically updates the server manager
 /// a change in the server manager automatically updates the widget
@@ -100,10 +97,6 @@ public:
   /// get whether UpdateVTKObjects is called automatically when needed
   bool autoUpdateVTKObjects();
 
-  int sensorIndex;
-  int writeFileIndex;
-  std::ofstream xmlSnippetFile;
-
 protected:
   
   class pqInternal;
@@ -141,14 +134,11 @@ private slots:
 
   void smLinkedPropertyChanged();
   void qtLinkedPropertyChanged(); 
-  void printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
- 
-
+  
 protected:
-	pqPropertyLinks* linkMaster;
+	//pqPropertyLinks* linkMaster;
 	//bool isRepeating;
 private:
-  void incrementDirectoryFile();
   class pqInternal;
   pqInternal* Internal;
 };
