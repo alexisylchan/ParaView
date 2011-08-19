@@ -342,6 +342,7 @@ void pqApplicationCore::constructor()
 
   this->LoadingState = false;
   this->isRepeating = false;
+  this->isRepeatingDisplay = false;
   QObject::connect(this->ServerManagerObserver,
     SIGNAL(stateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)),
     this, SLOT(onStateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)));

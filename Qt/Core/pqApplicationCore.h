@@ -84,6 +84,7 @@ class PQCORE_EXPORT pqApplicationCore : public QObject
 public:
   //Alexis YL Chan 08/14/11 
   bool isRepeating;  
+  bool isRepeatingDisplay;
   int sensorIndex;
   int writeFileIndex;
   std::ofstream xmlSnippetFile;

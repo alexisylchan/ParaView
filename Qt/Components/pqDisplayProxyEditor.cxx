@@ -980,8 +980,9 @@ void pqDisplayProxyEditor::updateMaterial(int vtkNotUsed(idx))
 //-----------------------------------------------------------------------------
 void pqDisplayProxyEditor::cubeAxesVisibilityChanged()
 {
-	if (!pqApplicationCore::instance()->isRepeating)
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
+		qWarning("In Display Proxy!");
 		vtkSMProxy* reprProxy = (this->Internal->Representation)? this->Internal->Representation->getProxy() : NULL;
 		vtkSMProperty* prop = 0;
 
@@ -990,10 +991,14 @@ void pqDisplayProxyEditor::cubeAxesVisibilityChanged()
 		{
 			pqSMAdaptor::setElementProperty(prop, this->Internal->ShowCubeAxes->isChecked());
 			reprProxy->UpdateVTKObjects();
-			pqApplicationCore::instance()->incrementDirectoryFile();
-			pqApplicationCore::instance()->printSMProperty(prop);
+			//pqApplicationCore::instance()->incrementDirectoryFile();
+			//pqApplicationCore::instance()->printSMProperty(prop);
 		}
 		this->updateAllViews();
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = false;
 	}
 }
 //-----------------------------------------------------------------------------

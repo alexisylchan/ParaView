@@ -1003,6 +1003,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	} 
 	
 	pqApplicationCore::instance()->isRepeating = false;
+	qWarning("Exiting isRepeating");
 	VRPNTimer->blockSignals(false);
 }
 
@@ -1049,7 +1050,7 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 	}
 	if (partnersTabInDisplay)
 	{
-
+			pqApplicationCore::instance()->isRepeatingDisplay = true;
 			pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
 			pqPipelineSource* source = pqActiveObjects::instance().activeSource();
 			for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
