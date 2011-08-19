@@ -91,7 +91,7 @@ public:
   // Get the global instace for the pqApplicationCore.
   static pqApplicationCore* instance();
 
-  void printSMProperty(vtkSMProperty* smProperty);
+  void printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty);
   void incrementDirectoryFile();
 
 
