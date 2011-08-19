@@ -560,7 +560,7 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 		{
 		qWarning("qt link changed");
 		pqApplicationCore::instance()->incrementDirectoryFile();
-		pqApplicationCore::instance()->printSMProperty(this->Internal->Proxy,this->Internal->Property); 
+		pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
 		}  
 	}
 	}

@@ -128,14 +128,14 @@ pqApplicationCore* pqApplicationCore::instance()
   return pqApplicationCore::Instance;
 }
 
-void pqApplicationCore::printSMProperty(vtkSMProxy* smProxy,vtkSMProperty* smProperty)
+void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 {
 	std::stringstream snippetStream; 
 	QString str; 
 
 	if(VERBOSE)
 		qWarning("%s",smProperty->GetXMLName()); 
-	snippetStream <<smProxy->GetXMLName()<<","; 
+	snippetStream <<"Property,"; 
 
 	vtkSMDoubleVectorProperty* dvp;
 	vtkSMIntVectorProperty* ivp;
