@@ -982,7 +982,6 @@ void pqDisplayProxyEditor::cubeAxesVisibilityChanged()
 {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
-		qWarning("In Display Proxy!");
 		vtkSMProxy* reprProxy = (this->Internal->Representation)? this->Internal->Representation->getProxy() : NULL;
 		vtkSMProperty* prop = 0;
 
@@ -990,9 +989,7 @@ void pqDisplayProxyEditor::cubeAxesVisibilityChanged()
 		if ((prop = reprProxy->GetProperty("CubeAxesVisibility")) != 0)
 		{
 			pqSMAdaptor::setElementProperty(prop, this->Internal->ShowCubeAxes->isChecked());
-			reprProxy->UpdateVTKObjects();
-			//pqApplicationCore::instance()->incrementDirectoryFile();
-			//pqApplicationCore::instance()->printSMProperty(prop);
+			reprProxy->UpdateVTKObjects(); 
 		}
 		this->updateAllViews();
 	}
@@ -1019,13 +1016,22 @@ void pqDisplayProxyEditor::sliceDirectionChanged()
 {
   if (this->Internal->Representation)
     {
-    vtkSMProxy* reprProxy = this->Internal->Representation->getProxy();
-    vtkSMProperty* prop = reprProxy->GetProperty("SliceMode");
-    if (prop)
-      {
-      prop->UpdateDependentDomains();
-      }
-    }
+ 
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		vtkSMProxy* reprProxy = this->Internal->Representation->getProxy();
+	    vtkSMProperty* prop = reprProxy->GetProperty("SliceMode");
+		if (prop)
+		{
+		prop->UpdateDependentDomains();
+		}
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = false;
+	}
+
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1055,6 +1061,9 @@ void pqDisplayProxyEditor::volumeBlockSelected()
 // Called when the GUI selection for the solid color changes.
 void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+
   QList<QVariant> val;
   val.push_back(color.red()/255.0);
   val.push_back(color.green()/255.0);
@@ -1065,6 +1074,13 @@ void pqDisplayProxyEditor::setSolidColor(const QColor& color)
   // If specular white is off, then we want to update the specular color as
   // well.
   emit this->specularColorChanged();
+		pqApplicationCore::instance()->incrementDirectoryFile();
+		pqApplicationCore::instance()->printSMProperty(this->Internal->Representation->getProxy()->GetProperty("DiffuseColor")); 
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = false;
+	}
 }
 
 //-----------------------------------------------------------------------------

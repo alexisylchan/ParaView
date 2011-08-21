@@ -938,35 +938,74 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{  
 				if(VERBOSE)
 					qWarning("operation %s", operation);			
-				QList<QList<char*>> propertyStringList;
+				QList<QList<char*>*>* propertyStringList = new QList<QList<char*>*>();
 				char newLine[SNIPPET_LENGTH]; 
+				char newLine2[SNIPPET_LENGTH]; 
 				bool doneOnce = false;
-				do
-				{
-				QList<char*> list1 = QList<char*>();
-				char* propertyName;
-				if (!doneOnce) 
-				{	doneOnce = true;
-					propertyName = strtok(NULL,",");
-				}
-				else
-				{
-					propertyName = strtok(newLine,",");
-				}
-				char* propertyType = strtok(NULL,",");
-				char* propertyValue = strtok(NULL,",");
-				/*if(VERBOSE) 
-					qWarning("Name %s Type %s Value %s",propertyName,propertyType,propertyValue);*/
-				
-				list1.append(propertyName); list1.append(propertyType); list1.append(propertyValue);
-				propertyStringList.append(list1);
  
-				
+				int count = 0;
+				while (true)
+				{ 
+					QList<char*>* list2= new QList<char*>();
+					char* propertyName2;
+					if (count == 0)
+					{
+						propertyName2= strtok(NULL,",");
+						doneOnce = true;
+					}
+					else if (count == 1)
+					{
+						propertyName2= strtok(newLine,",");
+					}
+					else if (count == 2)
+					{
+						propertyName2= strtok(newLine2,",");
+
+					}
+					char* propertyType2 = strtok(NULL,",");
+					char* propertyValue2 = strtok(NULL,",");
+
+					if(VERBOSE) 
+						qWarning("In Respond LALALALAL Name %s Type %s Value %s",propertyName2,propertyType2,propertyValue2);
+					
+					list2->append(propertyName2); 
+					list2->append(propertyType2); 
+					list2->append(propertyValue2);
+					qWarning("In Respond list1 Name %s Type %s Value %s",list2->at(0),list2->at(1),list2->at(2));
+					
+					propertyStringList->append(list2);
+					qWarning("In Respond propertyStringList Name %s Type %s Value %s",
+						propertyStringList->at(propertyStringList->size()-1)->at(0),
+						propertyStringList->at(propertyStringList->size()-1)->at(1),
+						propertyStringList->at(propertyStringList->size()-1)->at(2));
+					
+					if (count == 0)
+					{
+						if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
+							break;
+					}
+					else if (count == 1)
+					{
+						if (readFile.getline(newLine2,SNIPPET_LENGTH).eof())
+							break;
+					}
+					else 
+					{
+						break;
+					}
+					count++;
+				}	
+
+				for (int k =0; k < propertyStringList->size(); k++)
+				{
+					 qWarning("In Respond Final List Name %s Type %s Value %s",
+						propertyStringList->at(k)->at(0),
+						propertyStringList->at(k)->at(1),
+						propertyStringList->at(k)->at(2));
 				}
-				while (!readFile.getline(newLine,SNIPPET_LENGTH).eof() );
 				 
 
-				if (!propertyStringList.empty())
+				if (!propertyStringList->empty())
 					repeatPropertiesChange(operation,propertyStringList);
 				
 				if (readFile.bad())
@@ -1007,41 +1046,41 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	VRPNTimer->blockSignals(false);
 }
 
-void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList)
+void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>*>* propertyStringList)
 {  
 	if(VERBOSE)
 		qWarning("Repeating properties change!!!");
 	//pqApplicationCore::instance()->isRepeating = true;
 	//Assume property name and type is the same for all
-	char*  propertyName = propertyStringList.at(0).at(0);
-	char* propertyType = propertyStringList.at(0).at(1);
+	char*  propertyName = propertyStringList->at(0)->at(0);
+	char* propertyType = propertyStringList->at(0)->at(1);
 	QList<QVariant> valueList = QList<QVariant>(); 
  
 
-	for (int i =0; i < propertyStringList.size(); i++)
+	for (int i =0; i < propertyStringList->size(); i++)
 	{
 		if (!strcmp(propertyType,"dvp"))
 		{
-			double value = atof(propertyStringList.at(i).at(2));
+			double value = atof(propertyStringList->at(i)->at(2));
 			qWarning("propertyname %s propertyvalue %f",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"ivp"))
 		{
-			int value = atoi(propertyStringList.at(i).at(2)); 
+			int value = atoi(propertyStringList->at(i)->at(2)); 
 			qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if(!strcmp(propertyType,"idvp"))
 		{
-			int value = atoi(propertyStringList.at(i).at(2)); 
+			int value = atoi(propertyStringList->at(i)->at(2)); 
 			qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"svp"))
 		{ 
-			valueList.append(QVariant(propertyStringList.at(i).at(2))); 
-			qWarning("propertyname %s propertyvalue %s",propertyName,propertyStringList.at(i).at(2));
+			valueList.append(QVariant(propertyStringList->at(i)->at(2))); 
+			qWarning("propertyname %s propertyvalue %s",propertyName,propertyStringList->at(i)->at(2));
 		}
 		else
 		{

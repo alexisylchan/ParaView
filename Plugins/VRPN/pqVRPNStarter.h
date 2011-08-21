@@ -237,7 +237,7 @@ private:
   // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
   void repeatPlaceHolder();
-  void repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList);
+  void repeatPropertiesChange(char* panelType,QList<QList<char*>*>* propertyStringList);
 
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
