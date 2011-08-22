@@ -938,14 +938,18 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{  
 				if(VERBOSE)
 					qWarning("operation %s", operation);			
-				QList<QList<char*>*>* propertyStringList = new QList<QList<char*>*>();
-				char newLine[SNIPPET_LENGTH]; 
-				char newLine2[SNIPPET_LENGTH]; 
+				QList<QList<char*>*>* propertyStringList = new QList<QList<char*>*>(); 
 				bool doneOnce = false;
  
 				int count = 0;
 				while (true)
 				{ 
+					char* newLine = (char*) malloc(sizeof(char)*50);
+					if (count > 0)
+					{
+						if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
+							break;
+					}
 					QList<char*>* list2= new QList<char*>();
 					char* propertyName2;
 					if (count == 0)
@@ -953,15 +957,10 @@ void pqVRPNStarter::respondToOtherAppsChange()
 						propertyName2= strtok(NULL,",");
 						doneOnce = true;
 					}
-					else if (count == 1)
+					else  
 					{
 						propertyName2= strtok(newLine,",");
-					}
-					else if (count == 2)
-					{
-						propertyName2= strtok(newLine2,",");
-
-					}
+					} 
 					char* propertyType2 = strtok(NULL,",");
 					char* propertyValue2 = strtok(NULL,",");
 
@@ -977,22 +976,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 					qWarning("In Respond propertyStringList Name %s Type %s Value %s",
 						propertyStringList->at(propertyStringList->size()-1)->at(0),
 						propertyStringList->at(propertyStringList->size()-1)->at(1),
-						propertyStringList->at(propertyStringList->size()-1)->at(2));
-					
-					if (count == 0)
-					{
-						if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
-							break;
-					}
-					else if (count == 1)
-					{
-						if (readFile.getline(newLine2,SNIPPET_LENGTH).eof())
-							break;
-					}
-					else 
-					{
-						break;
-					}
+						propertyStringList->at(propertyStringList->size()-1)->at(2));					 
 					count++;
 				}	
 
