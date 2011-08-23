@@ -554,15 +554,18 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 	  
 	if(VERBOSE)
 		qWarning ("Qt Property Changed");
-	if ((DEBUG_1_USER && !pqApplicationCore::instance()->sensorIndex) || (!DEBUG_1_USER))
+	if (DEBUG)
 	{
-		if (!pqApplicationCore::instance()->isRepeating)
+		if ((DEBUG_1_USER && !pqApplicationCore::instance()->sensorIndex) || (!DEBUG_1_USER))
 		{
-		if (VERBOSE)
-			qWarning("qt link changed");
-		pqApplicationCore::instance()->incrementDirectoryFile();
-		pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
-		}  
+			if (!pqApplicationCore::instance()->isRepeating)
+			{
+			if (VERBOSE)
+				qWarning("qt link changed");
+			pqApplicationCore::instance()->incrementDirectoryFile();
+			pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
+			}  
+		}
 	}
 	}
   this->Internal->SettingProperty = NULL;

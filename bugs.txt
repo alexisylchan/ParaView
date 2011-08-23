@@ -3,13 +3,15 @@ FEATURES
 =================================================================
 Unimplemented
 ==============
-3: Test sync with VRPN Devices plugged in.
-4: Fix color/mouse-clicks(?) propagation
+
+
 
 Implemented
 ===========
 1: Propagate properties from User1 to User0
 2: Asynchronous collaboration
+4: Fix color propagation
+3: Synchronous collaboration with VRPN Devices plugged in.
 
 =================================================================
 BUGS
@@ -19,7 +21,7 @@ Unfixed:
 1: Toggle Switch View has same icon as Push To Shared State
 4: Temporarily comment out Phantom-scaling by frustum. Heap-reallocation problem.
 10: Repeat source selections for filters with multiple inputs
-13: Color Properties not propagated. 
+
 14: Handle the fact that the source name may be edited by user (for source selection to fix bug 12
 
 Fixed:
@@ -33,7 +35,7 @@ Fixed:
 12: Handle propagation of properties when there is mis-sync due to different Sources/Filters being clicked on in the Pipeline Browser ------------------->> handled source selection propagation by fixing bug 9.
 
 15: Repeat properties change not working due to changes to implement asynchronous collaboration.
-
+13: Color Properties not propagated. 
 
 
 No Longer an Issue:

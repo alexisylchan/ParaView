@@ -1061,26 +1061,39 @@ void pqDisplayProxyEditor::volumeBlockSelected()
 // Called when the GUI selection for the solid color changes.
 void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 {
-	if (!pqApplicationCore::instance()->isRepeatingDisplay)
-	{ 
+	if (DEBUG)
+	{
+		if (!pqApplicationCore::instance()->isRepeatingDisplay)
+		{ 
+			QList<QVariant> val;
+			val.push_back(color.red()/255.0);
+			val.push_back(color.green()/255.0);
+			val.push_back(color.blue()/255.0);
+			pqSMAdaptor::setMultipleElementProperty(
+			this->Internal->Representation->getProxy()->GetProperty("DiffuseColor"), val);
 
-  QList<QVariant> val;
-  val.push_back(color.red()/255.0);
-  val.push_back(color.green()/255.0);
-  val.push_back(color.blue()/255.0);
-  pqSMAdaptor::setMultipleElementProperty(
-    this->Internal->Representation->getProxy()->GetProperty("DiffuseColor"), val);
-
-  // If specular white is off, then we want to update the specular color as
-  // well.
-  emit this->specularColorChanged();
-		pqApplicationCore::instance()->incrementDirectoryFile();
-		pqApplicationCore::instance()->printSMProperty(this->Internal->Representation->getProxy()->GetProperty("DiffuseColor")); 
+			// If specular white is off, then we want to update the specular color as
+			// well.
+			emit this->specularColorChanged();
+			pqApplicationCore::instance()->incrementDirectoryFile();
+			pqApplicationCore::instance()->printSMProperty(this->Internal->Representation->getProxy()->GetProperty("DiffuseColor")); 
+		}
+		else  
+		{
+			pqApplicationCore::instance()->isRepeatingDisplay = false;
+		}
 	}
 	else
 	{
-		pqApplicationCore::instance()->isRepeatingDisplay = false;
+		QList<QVariant> val;
+		val.push_back(color.red()/255.0);
+		val.push_back(color.green()/255.0);
+		val.push_back(color.blue()/255.0);
+		pqSMAdaptor::setMultipleElementProperty(
+		this->Internal->Representation->getProxy()->GetProperty("DiffuseColor"), val); 
+		emit this->specularColorChanged();
 	}
+	
 }
 
 //-----------------------------------------------------------------------------

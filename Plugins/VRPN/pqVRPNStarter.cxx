@@ -1102,7 +1102,8 @@ void pqVRPNStarter::timerCallback()
 	} 
 	else if ((DEBUG_1_USER && this->origSensorIndex) || !DEBUG_1_USER)/// && this->changeSnippetModified())
 	{
-		respondToOtherAppsChange();
+		if (DEBUG)
+			respondToOtherAppsChange();
 	/*}
 	else
 	{*/
