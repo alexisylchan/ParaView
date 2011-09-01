@@ -61,7 +61,7 @@ class pqPipelineFilter;
 #define SNIPPET_LENGTH 50
 #define IGNORE_FILE_ACC 1
 //TODO: Make this a user-input option (vortex visualization workbench)
-#define VORTEX_VISUALIZATION 0
+#define VORTEX_VISUALIZATION 1
 
 //Timeline
 class vtkVRPNPhantomStyleCamera;

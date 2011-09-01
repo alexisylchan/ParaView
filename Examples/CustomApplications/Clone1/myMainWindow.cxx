@@ -119,7 +119,8 @@ myMainWindow::myMainWindow()
   this->Internals->PushToSharedState->setIconSize(QSize(24,24));
   this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
-
+  if (!PROPAGATE)
+	  this->Internals->PushToSharedState->setEnabled(true);
   this->Internals->ToggleToPartnersView->setIconSize(QSize(24,24));
   this->Internals->ToggleToPartnersView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->ToggleToPartnersView,SIGNAL(clicked()),this,SLOT(onToggleView()));
@@ -208,10 +209,6 @@ myMainWindow::myMainWindow()
   << pqSetName("PushToSharedStateToolbar");
   pushToSharedStateToolbar->layout()->setSpacing(0);
   this->addToolBar(Qt::RightToolBarArea, pushToSharedStateToolbar);*/
-  
- 
-
-
 
   // Setup the View menu. This must be setup after all toolbars and dockwidgets
   // have been created.
@@ -228,16 +225,16 @@ myMainWindow::myMainWindow()
 
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
-  new pqParaViewBehaviors(this, this);
-   this->Internals->MultiViewManager->toggleFullScreen();
-   this->Internals->MultiViewManager->getFrame(this->Internals->MultiViewManager->getActiveView())->setMenuAutoHide(true);
-   pqFixPathsInStateFilesBehavior::blockDialog(true);
-   //this->Internals->proxyTabDock1->showMaximized(); 
-  QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
- QObject::connect(this, SIGNAL(changeSceneTime(double)),
-		Scene, SLOT(setAnimationTime(double)));
- QObject::connect(Scene, SIGNAL(timeStepsChanged()),
-      this, SLOT(onTimeStepsChanged()));
+	new pqParaViewBehaviors(this, this); 
+	this->Internals->MultiViewManager->toggleFullScreen(); 
+	this->Internals->proxyTabDock1->titleBarWidget();//->setWindowFlags(Qt::FramelessWindowHint);
+	pqFixPathsInStateFilesBehavior::blockDialog(true);
+	qobject_cast<QWidget*>(this->Internals->proxyTabDock1)->setWindowFlags(Qt::FramelessWindowHint); 
+	QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
+	QObject::connect(this, SIGNAL(changeSceneTime(double)),
+	Scene, SLOT(setAnimationTime(double)));
+	QObject::connect(Scene, SIGNAL(timeStepsChanged()),
+	this, SLOT(onTimeStepsChanged()));
  this->onTimeStepsChanged();
  this->showContextualFlow = false;
  this->showVortexCore = true;
@@ -568,7 +565,7 @@ void myMainWindow::saveState()
 //-----------------------------------------------------------------------------
 void myMainWindow::onToggleView()
 { 
-	/*if (this->showPartnersView)
+	 /*if (this->showPartnersView)
 		this->showPartnersView = false;
 	else
 		this->showPartnersView = true;*/

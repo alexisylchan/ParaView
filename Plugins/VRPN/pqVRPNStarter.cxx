@@ -225,13 +225,13 @@ void pqVRPNStarter::onStartup()
 	{
 		QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int))); 
 	}
-
-	if (DEBUG)
-	{ 
-		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(debugGrabProps()));
+	
+	showPartnersView = false;
+	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 	
+	if (PROPAGATE)
+	{    
 		readFileIndex = 0;
-		writeFileIndex = 0;
-		//isRepeating = false;
+		writeFileIndex = 0; 
 		if (!DEBUG_1_USER)
 		{
 
@@ -286,10 +286,6 @@ void pqVRPNStarter::onStartup()
 				mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
 			}
 		}
-	}
-	else
-	{
-		QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 		 
 	} 
 
 	
@@ -448,7 +444,8 @@ void pqVRPNStarter::onChangeDataSet(int index)
 
 }
 void pqVRPNStarter::onToggleView()//bool togglePartnersView)
-{
+{ 
+	this->VRPNTimer->blockSignals(true);
 	if (showPartnersView)
 	{
 		showPartnersView = false;
@@ -460,6 +457,7 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 		this->sensorIndex = (this->sensorIndex +1)%2;
 	}
 	this->initializeEyeAngle();
+	this->VRPNTimer->blockSignals(false);
 	
 }
  
@@ -1091,10 +1089,11 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>*>*
 void pqVRPNStarter::timerCallback()
 {
 
-	if (!DEBUG && this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
+	if (!PROPAGATE && this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
 	{
-		this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();		 
+		/*this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();	*/	 
+		pqDeleteReaction::deleteAll(); 
 		this->loadState();
 		this->changeTimeStamp();
 		this->initializeEyeAngle();
@@ -1102,11 +1101,8 @@ void pqVRPNStarter::timerCallback()
 	} 
 	else if ((DEBUG_1_USER && this->origSensorIndex) || !DEBUG_1_USER)/// && this->changeSnippetModified())
 	{
-		if (DEBUG)
-			respondToOtherAppsChange();
-	/*}
-	else
-	{*/
+		if (PROPAGATE)
+			respondToOtherAppsChange(); 
 		if (this->useSpaceNavigator)
 			this->spaceNavigator1->mainloop();
 		if (this->useTNG)
@@ -1382,7 +1378,7 @@ void  pqVRPNStarter::loadDESTimelineState()
 
 void pqVRPNStarter::changeTimeStamp()
 {
-	if (!DEBUG) //TODO: Why?
+	if (!PROPAGATE) //TODO: Why?
 	{
 		struct stat filestat;
 		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
@@ -1393,7 +1389,7 @@ void pqVRPNStarter::changeTimeStamp()
 // Used as a debugging tool to start and stop timer. TODO: remove
 void pqVRPNStarter::debugToggleVRPNTimer()
 {
-	if (showPartnersView)
+	/*if (showPartnersView)
 	{
 		showPartnersView = false;
 	}
@@ -1401,7 +1397,7 @@ void pqVRPNStarter::debugToggleVRPNTimer()
 	{
 		showPartnersView = true;
 	}
-	this->VRPNTimer->blockSignals(showPartnersView);
+	this->VRPNTimer->blockSignals(showPartnersView);*/
 
 }
 // Used as a debugging tool to grab  properties from Object Inspector Widget. TODO: remove
@@ -1463,12 +1459,12 @@ bool pqVRPNStarter::changeSnippetModified()
 
 void pqVRPNStarter::changeMySnippetTimeStamp()
 {
-	if (!DEBUG)
+	if (!PROPAGATE)
 	{
 		struct stat filestat;
 		std::stringstream filename;
 		int index = this->origSensorIndex;
-		//TODO: DEBUG: REMOVE THIS. LOAD STATE BEFORE CONNECTING TO SOURCECREATED/APPLY
+		//TODO: PROPAGATE: REMOVE THIS. LOAD STATE BEFORE CONNECTING TO SOURCECREATED/APPLY
 
 		if (DEBUG_1_USER && this->origSensorIndex)
 			index = (this->origSensorIndex + 1)%2;

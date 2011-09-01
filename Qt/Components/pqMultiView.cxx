@@ -178,6 +178,8 @@ pqMultiView::pqMultiView(QWidget* p)
 //-----------------------------------------------------------------------------
 void pqMultiView::init()
 {
+
+  this->setWindowFlags(Qt::FramelessWindowHint);
   QWidget *w = this->SplitterFrame->layout()->itemAt(0)->widget();
   QSplitter *splitter = qobject_cast<QSplitter *>(w);
   if(splitter)
@@ -723,7 +725,7 @@ void pqMultiView::maximizeWidget(QWidget* maxWidget)
       frame->CloseButton->hide();
       frame->SplitHorizontalButton->hide();
       frame->SplitVerticalButton->hide();
-      frame->RestoreButton->show();
+      //frame->RestoreButton->show();
         
       this->setCurrentWidget(this->MaximizeFrame);
       this->show();
@@ -1063,6 +1065,7 @@ void pqMultiView::toggleFullScreen()
     this->Superclass::removeWidget(cur_widget);
     this->FullScreenWidget = cur_widget;
     this->FullScreenParent = new QWidget(this, Qt::Window);
+	 
     cur_widget->setParent(this->FullScreenParent);
     QVBoxLayout* vbl = new QVBoxLayout(this->FullScreenParent);
     vbl->setMargin(0);
@@ -1075,7 +1078,8 @@ void pqMultiView::toggleFullScreen()
     QShortcut *f11= new QShortcut(Qt::Key_F11, this->FullScreenParent);
     QObject::connect(f11, SIGNAL(activated()), this, SLOT(toggleFullScreen()));
 
-   // this->FullScreenParent->showFullScreen();
+	
+    //this->FullScreenParent->showFullScreen();
 	this->FullScreenParent->showMaximized();
     this->FullScreenParent->show();
     }

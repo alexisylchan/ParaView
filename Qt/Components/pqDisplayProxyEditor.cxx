@@ -1061,7 +1061,7 @@ void pqDisplayProxyEditor::volumeBlockSelected()
 // Called when the GUI selection for the solid color changes.
 void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 {
-	if (DEBUG)
+	if (PROPAGATE)
 	{
 		if (!pqApplicationCore::instance()->isRepeatingDisplay)
 		{ 
