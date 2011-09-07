@@ -116,13 +116,7 @@ public slots:
 	// Switch between three data sets for Special Use Case: Vortex Visualization
 	void onChangeDataSet(int index);
 	// Switch between partner's (other user) view and self
-	void onToggleView();
-	//void onToggleTimelineSummary();
-
-	// Handle stack change on ParaView
-	void handleStackChanged(bool canUndo, QString undoLabel, bool canRedo, QString redoLabel);
-	//// Handle server resources changed
-	//void serverResourcesChanged();
+	void onToggleView();  
 	
 	//For debugging. Turns on and off VRPN Timer
 	void debugToggleVRPNTimer();
@@ -223,9 +217,7 @@ private:
   int writeFileIndex;
   ifstream readFile;
  // bool isRepeating;
-  void writeChangeSnippet(const char* snippet);
-  void changeMySnippetTimeStamp();
-  bool changeSnippetModified();
+  void writeChangeSnippet(const char* snippet); 
   void respondToOtherAppsChange();
   void repeatCreateSource(char* groupName,char* sourceName );
   void repeatCreateFilter(char* groupName,char* sourceName );

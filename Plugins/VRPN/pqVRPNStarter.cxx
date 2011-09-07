@@ -1407,75 +1407,7 @@ void pqVRPNStarter::debugGrabProps()
 	respondToOtherAppsChange(); 
 }
 /*************************************************DEPRECATED. TO BE REMOVED ***********************************************/
-
-void pqVRPNStarter::handleStackChanged(bool canUndo, QString undoLabel,
-    bool canRedo, QString redoLabel)
-{
-	//Code from VisTrails ParaView Plugin .
-
-	/*if (!this->sensorIndex)
-	{ */
-	std::stringstream newXMLSnippetFile;
-	newXMLSnippetFile << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<this->sensorIndex<<"xmlsnippets" <<fileIndex<<".xml";
-	xmlSnippetFile.open(newXMLSnippetFile.str().c_str());
-	std::stringstream xmlStream;
-	std::string xmlString;
-	 
-	vtkUndoSet *uSet = undoStack->getLastUndoSet();
-	if (uSet)
-	{
-	vtkPVXMLElement* xml = uSet->SaveState(NULL);
-
-	xml->PrintXML(xmlStream, vtkIndent());
-	QString xmlStr(xmlStream.str().c_str());
-	//qWarning(xmlStr.toAscii().data());
-	xmlSnippetFile <<xmlStream.str().c_str();
-	xmlSnippetFile.flush();
-	xmlSnippetFile.close();
-	fileIndex++;
-	}
-	/*}*/
-
-}
-
-bool pqVRPNStarter::changeSnippetModified()
-{
-	struct stat filestat;
-	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<(this->origSensorIndex+1)%2<<"_"<<readFileIndex + 1<<".xml";
-	if (stat(filename.str().c_str(),&filestat) != -1)
-	{
-		/*if (last_write)
-		{
-			if (filestat.st_mtime != this->last_write)
-			{	*/			 
-				return true;
-			/*}
-		}*/
-	}
-	return false;
-}
-
-
-void pqVRPNStarter::changeMySnippetTimeStamp()
-{
-	if (!PROPAGATE)
-	{
-		struct stat filestat;
-		std::stringstream filename;
-		int index = this->origSensorIndex;
-		//TODO: PROPAGATE: REMOVE THIS. LOAD STATE BEFORE CONNECTING TO SOURCECREATED/APPLY
-
-		if (DEBUG_1_USER && this->origSensorIndex)
-			index = (this->origSensorIndex + 1)%2;
-
-		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/"<<index<<"source1.xml";
-
-
-		stat(filename.str().c_str(),&filestat);
-		this->last_write = filestat.st_mtime;
-	}
-}
+   
 void pqVRPNStarter::createConeInParaView()
 {
  
