@@ -202,8 +202,8 @@ private:
   //Log file for recording Phantom positions
   ofstream evaluationlog;
 
-  //xml file
-  ofstream xmlSnippetFile;
+  ////xml file
+  //ofstream xmlSnippetFile;
   
   int fileIndex;
   int fileStart;
@@ -227,7 +227,7 @@ private:
   // Grab properties 
   int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
   void repeatPlaceHolder();
-  void repeatPropertiesChange(char* panelType,QList<QList<char*>*>* propertyStringList);
+  void repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList);
 
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;

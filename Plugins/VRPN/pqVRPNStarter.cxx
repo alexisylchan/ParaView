@@ -159,13 +159,13 @@ pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
 //-----------------------------------------------------------------------------
 pqVRPNStarter::~pqVRPNStarter()
 {
-	uninitializeDevices();
+	/*uninitializeDevices();
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
 		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 		camera->SetHeadTracked(false);
-	}
+	}*/
 }
 
 
@@ -297,7 +297,8 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 	//save proxy values to file.
 	std::stringstream filename;
 	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<this->origSensorIndex<<"_"<<writeFileIndex<<".xml";
-
+	  //xml file
+    ofstream xmlSnippetFile;
 	//TODO: rename xmlSnippetFile
 	xmlSnippetFile.open(filename.str().c_str());
 	if (!xmlSnippetFile)
@@ -590,7 +591,8 @@ void pqVRPNStarter::initializeEyeAngle()
 		double O2Bottom = - DisplayX[1];
 		////qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
 		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0,1.0,SurfaceRot);
-			
+		//TODO: Check if this causes problems
+		SurfaceRot->Delete();
 	}
 }
 //-----------------------------------------------------------------------------
@@ -667,6 +669,8 @@ void pqVRPNStarter::initializeDevices()
 		//Register Tracker to Device Interactor
 		inputInteractor->AddInteractionDevice(tracker1);
 		inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
+		tracker1->Delete();
+		trackerStyleCamera1->Delete();
    }  
 	if (this->usePhantom)
 	{
@@ -692,15 +696,14 @@ void pqVRPNStarter::initializeDevices()
 		//Register Phantom to Device Interactor 
 		inputInteractor->AddInteractionDevice(phantom1);
 		inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
-	} 
 
-	//Get vtkRenderWindowInteractors
-	vtkRenderWindowInteractor* interactor1 = vtkRenderWindowInteractor::New();
+		phantom1->Delete();
+		phantomStyleCamera1->Delete();
+	} 
 
 	if (this->useSpaceNavigator)
 	{
-	//Cory Quammen's Code
-		//const char * spaceNavigatorAddress = "device0@localhost";
+	//Cory Quammen's Code 
 		spaceNavigator1 = new vrpn_Analog_Remote(this->spacenavigatorAddress);
 		AC1 = new sn_user_callback;
 		strncpy(AC1->sn_name,this->spacenavigatorAddress,sizeof(AC1->sn_name));
@@ -710,8 +713,7 @@ void pqVRPNStarter::initializeDevices()
 	}
 	if (this->useTNG)
 	{
-		//TNG 
-		//const char * TngAddress = "tng3name@localhost";
+		//TNG  
 		tng1 = new vrpn_Analog_Remote(this->tngAddress);
 		TNGC1 = new tng_user_callback;
 		TNGC1->channelIndex = this->sensorIndex; //TODO: Should this be origSensorIndex? How often do we reinitialize device 
@@ -730,7 +732,7 @@ void pqVRPNStarter::initializeDevices()
 
 void pqVRPNStarter::uninitializeDevices()
 {
-	this->VRPNTimer->stop();
+	this->VRPNTimer->stop(); 
 	delete this->VRPNTimer;
 	
 	if (this->useSpaceNavigator)
@@ -751,6 +753,13 @@ void pqVRPNStarter::onShutdown()
 {
   ////qWarning() << "Message from pqVRPNStarter: Application Shutting down";
  // fclose(vrpnpluginlog);
+	uninitializeDevices();
+	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
+	{
+		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
+		camera->SetHeadTracked(false);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -936,7 +945,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{  
 				if(VERBOSE)
 					qWarning("operation %s", operation);			
-				QList<QList<char*>*>* propertyStringList = new QList<QList<char*>*>(); 
+				QList<QList<char*>> propertyStringList = QList<QList<char*>>(); 
 				bool doneOnce = false;
  
 				int count = 0;
@@ -948,7 +957,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 						if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
 							break;
 					}
-					QList<char*>* list2= new QList<char*>();
+					QList<char*> list2= QList<char*>();
 					char* propertyName2;
 					if (count == 0)
 					{
@@ -961,14 +970,14 @@ void pqVRPNStarter::respondToOtherAppsChange()
 					} 
 					char* propertyType2 = strtok(NULL,",");
 					char* propertyValue2 = strtok(NULL,","); 
-					list2->append(propertyName2); 
-					list2->append(propertyType2); 
-					list2->append(propertyValue2); 
-					propertyStringList->append(list2); 				 
+					list2.append(propertyName2); 
+					list2.append(propertyType2); 
+					list2.append(propertyValue2); 
+					propertyStringList.append(list2); 				 
 					count++;
 				}	 
 				 
-				if (!propertyStringList->empty())
+				if (!propertyStringList.empty())
 					repeatPropertiesChange(operation,propertyStringList);
 				
 				if (readFile.bad())
@@ -1008,46 +1017,46 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	VRPNTimer->blockSignals(false);
 }
 
-void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>*>* propertyStringList)
+void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList)
 {  
 	if(VERBOSE)
 		qWarning("Repeating properties change!!!");
 	//pqApplicationCore::instance()->isRepeating = true;
 	//Assume property name and type is the same for all
-	char*  propertyName = propertyStringList->at(0)->at(0);
-	char* propertyType = propertyStringList->at(0)->at(1);
+	char*  propertyName = propertyStringList.at(0).at(0);
+	char* propertyType = propertyStringList.at(0).at(1);
 	QList<QVariant> valueList = QList<QVariant>(); 
  
 
-	for (int i =0; i < propertyStringList->size(); i++)
+	for (int i =0; i < propertyStringList.size(); i++)
 	{
 		if (!strcmp(propertyType,"dvp"))
 		{
-			double value = atof(propertyStringList->at(i)->at(2));
+			double value = atof(propertyStringList.at(i).at(2));
 			if (VERBOSE)
 				qWarning("propertyname %s propertyvalue %f",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"ivp"))
 		{
-			int value = atoi(propertyStringList->at(i)->at(2)); 
+			int value = atoi(propertyStringList.at(i).at(2)); 
 			if (VERBOSE)
 				qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if(!strcmp(propertyType,"idvp"))
 		{
-			int value = atoi(propertyStringList->at(i)->at(2)); 
+			int value = atoi(propertyStringList.at(i).at(2)); 
 			if (VERBOSE)
 				qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"svp"))
 		{ 
-			valueList.append(QVariant(propertyStringList->at(i)->at(2))); 
+			valueList.append(QVariant(propertyStringList.at(i).at(2))); 
 			
 			if (VERBOSE)
-				qWarning("propertyname %s propertyvalue %s",propertyName,propertyStringList->at(i)->at(2));
+				qWarning("propertyname %s propertyvalue %s",propertyName,propertyStringList.at(i).at(2));
 		}
 		else
 		{
@@ -1227,6 +1236,7 @@ const vrpn_ANALOGCB t)
 				vttrans->Translate(-fp[0],-fp[1],-fp[2]); 
 				vttrans->TransformPoint(camera->GetPosition(),newPosition);
 				camera->SetPosition(newPosition);
+				vttrans->Delete();
 			}
 			else 
 			{				
@@ -1273,7 +1283,7 @@ const vrpn_ANALOGCB t)
 
 bool pqVRPNStarter::sharedStateModified()
 {
-	struct stat filestat;
+	struct stat filestat; //TODO: change this to pointer ? 
 	//if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )
 	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat) != -1) )
 	{   if (last_write)
