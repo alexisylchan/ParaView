@@ -942,12 +942,12 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	for (int i =readFileIndex; i <= targetFileIndex; i++)
 	{
 		pqApplicationCore::instance()->isRepeating = true;
-		std::string filename = std::string("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"+
+		/*std::string filename = std::string("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"+
 									(this->origSensorIndex+1)%2
-									+"_"+i+".xml");
-		/*std::stringstream filename;
+									+"_"+i+".xml");*/
+		std::stringstream filename;
 		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
-		<<(this->origSensorIndex+1)%2<<"_"<<i<<".xml";*/
+		<<(this->origSensorIndex+1)%2<<"_"<<i<<".xml";
 		        
 		::HANDLE hFile;         
 		::WIN32_FIND_DATA FileInformation; 
@@ -964,8 +964,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		::FindClose(hFile);	
 		
 		readFile.clear();
-		//readFile.open(filename.str().c_str()); 
-		readFile.open(filename.c_str());
+		readFile.open(filename.str().c_str()); 
+		//readFile.open(filename.c_str());
 
 		if (readFile.good())
 		{
