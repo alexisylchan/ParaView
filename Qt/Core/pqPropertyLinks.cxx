@@ -562,7 +562,8 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 			{
 			if (VERBOSE)
 				qWarning("qt link changed");
-			pqApplicationCore::instance()->incrementDirectoryFile();
+			pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(
+				pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
 			pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
 			}  
 		}

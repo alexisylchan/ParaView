@@ -214,7 +214,7 @@ private:
 
    //Custom file writing and reading
   int readFileIndex;
-  int writeFileIndex;
+ // int writeFileIndex;
   ifstream readFile;
  // bool isRepeating;
   void writeChangeSnippet(const char* snippet); 
@@ -225,7 +225,7 @@ private:
   void respondToTabChange(char* tabName);
   void repeatSelectionChange(char* sourceName);
   // Grab properties 
-  int incrementDirectoryFile(int origIndex,int sIndex, bool findNextFile);
+  //int incrementDirectoryFile(int trackedIndex,int currentSensorIndex, bool findNextFile);
   void repeatPlaceHolder();
   void repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList);
 

@@ -67,7 +67,7 @@ class vtkSMProxyLocator;
 class vtkSMProxy;
 class vtkSMProperty;
 
-#define VERBOSE 0 
+#define VERBOSE 1 
 #define PROPAGATE 1
 #define DEBUG_1_USER 0
 
@@ -88,13 +88,14 @@ public:
   bool isRepeatingDisplay;
   int sensorIndex;
   int writeFileIndex;
-  std::ofstream xmlSnippetFile;
+ 
 
   // Get the global instace for the pqApplicationCore.
   static pqApplicationCore* instance();
 
   void printSMProperty(vtkSMProperty* smProperty);
-  void incrementDirectoryFile();
+  
+  static int incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile);
 
 
   /// Preferred constructor. Initializes the server-manager engine and sets up

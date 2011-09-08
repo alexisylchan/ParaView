@@ -214,8 +214,9 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		<<"snippet"
 		<<this->sensorIndex<<"_"
 		<<this->writeFileIndex<<".xml";
-	this->xmlSnippetFile.open(filename.str().c_str());
-	if (!this->xmlSnippetFile)
+	std::ofstream xmlSnippetFile;
+	xmlSnippetFile.open(filename.str().c_str());
+	if (!xmlSnippetFile)
 	{
 		if(VERBOSE)
 		{
@@ -224,55 +225,153 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		}
 	}
 
-	this->xmlSnippetFile << snippetStream.str().c_str(); 
-	this->xmlSnippetFile.close(); 
+	xmlSnippetFile << snippetStream.str().c_str(); 
+	xmlSnippetFile.close(); 
 }
-
-// Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
-void pqApplicationCore::incrementDirectoryFile()
+int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile)
 {
 	std::string     strFilePath;             // Filepath
 	std::string     strPattern;              // Pattern
+	std::string     strFileName;
 	std::string     strExtension;            // Extension
 	::HANDLE          hFile;                   // Handle to file
 	::WIN32_FIND_DATA FileInformation;         // File information
-	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
-	strFilePath = strPattern + "\\snippet*";
-	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
+
+	if (currentSensorIndex) // strFileName is needed later for testing for the file name. So separate it from strFilePath
+		strFileName = "snippet1_"; 
+	else
+		strFileName = "snippet0_"; 
+
+	strFilePath = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change\\"; 
+    //Do not include * in the strFilePath/ strFileName as we do not want to accidentally concatenate
+	// it to the full file name.
+	strPattern = strFilePath + strFileName + "*"; 
+	 
+	hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
 	if(hFile != INVALID_HANDLE_VALUE)
 	{ 
-		int index = 0;
+		int index = trackedIndex; 
 		bool found_file = false;
 		do
-		{
+		{ 
 		  if(FileInformation.cFileName[0] != '.')
-		  {
-			strFilePath.erase();
-			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
-			int file_index_start =  strFilePath.find("snippet")+ 7;
-			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
-			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
-			
-			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
-			if (atoi(path_parsed) == this->sensorIndex)
-			{
-			path_parsed = strtok(NULL,"_");
-			int curr_index = atoi(path_parsed);
-			if (curr_index > index)
-				index = curr_index;
-			found_file = true;
-			}
-			 
+		  {  
+			  std::string foundFileName = std::string(FileInformation.cFileName);
+			  int file_start_index = foundFileName.find(strFileName);
+			  if (file_start_index  == std::string::npos || file_start_index == (-1))
+			  {
+				  continue;
+			  }
+			  else
+			  {
+				  file_start_index +=9;
+				  int file_stop_index = foundFileName.find(".xml");
+				  if (file_stop_index  == std::string::npos || file_stop_index == (-1))
+					{ 
+						continue;
+					}
+					else
+					{ 
+						std::string file_substring = foundFileName.substr(file_start_index,file_stop_index-file_start_index);
+						int curr_index = atoi(file_substring.c_str());
+						
+						if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
+						{ 
+							index = curr_index;
+							found_file = true;
+						} 
+					}
+			  }
 		  }
-		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
+			//strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
+			
+			//int file_index_start =  strFilePath.find(strFileName)+ 9;
+			//if (file_index_start == std::string::npos || file_index_start == (-1))
+			//{
+			//	//qWarning(strFilePath.c_str());			
+			//	continue;
+			//}
+			//else
+			//{
+			//	int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
+			//	if (file_index_stop  == std::string::npos || file_index_stop == (-1))
+			//	{
+			//		
+			//		//qWarning(strFilePath.c_str());
+			//		continue;
+			//	}
+			//	else
+			//	{
+			//		std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
+			//		int curr_index = atoi(file_substring.c_str());
+			//		
+			//		if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
+			//		{ 
+			//			index = curr_index;
+			//			found_file = true;
+			//		} 
+			//	}
+			//}
+		  
+		}while(::FindNextFile(hFile, &FileInformation));
 		if (found_file)
-			this->writeFileIndex = index+1;
-
+		{
+			if (findNextFile)		
+				trackedIndex = index+1;
+			else
+				trackedIndex = index; 
+		}
 		
-	}
-	// Close handle
-	::FindClose(hFile);
-}
+	} 
+	::FindClose(hFile); 
+	return trackedIndex;
+
+} 
+//// Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
+//void pqApplicationCore::incrementDirectoryFile()
+//{
+//	std::string     strFilePath;             // Filepath
+//	std::string     strPattern;              // Pattern
+//	std::string     strExtension;            // Extension
+//	::HANDLE          hFile;                   // Handle to file
+//	::WIN32_FIND_DATA FileInformation;         // File information
+//	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
+//	strFilePath = strPattern + "\\snippet*";
+//	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
+//	if(hFile != INVALID_HANDLE_VALUE)
+//	{ 
+//		int index = this->writeFileIndex;
+//		bool found_file = false;
+//		do
+//		{
+//		  if(FileInformation.cFileName[0] != '.')
+//		  {
+//			strFilePath.erase();
+//			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
+//			int file_index_start =  strFilePath.find("snippet")+ 7;
+//			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
+//			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
+//			
+//			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
+//			if (atoi(path_parsed) == this->sensorIndex)
+//			{
+//			path_parsed = strtok(NULL,"_");
+//			int curr_index = atoi(path_parsed);
+//			if (curr_index > index)
+//				index = curr_index;
+//			found_file = true;
+//			}
+//			 
+//		  }
+//		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
+//		if (found_file)
+//			this->writeFileIndex = index+1;
+//
+//		
+//	}
+//	// Close handle
+//	::FindClose(hFile);
+//}
 //-----------------------------------------------------------------------------
 pqApplicationCore::pqApplicationCore(int& argc, char** argv, pqOptions* options,
   QObject* parentObject)

@@ -231,7 +231,7 @@ void pqVRPNStarter::onStartup()
 	if (PROPAGATE)
 	{    
 		readFileIndex = 0;
-		writeFileIndex = 0; 
+		//writeFileIndex = 0; 
 		if (!DEBUG_1_USER)
 		{
 
@@ -292,24 +292,25 @@ void pqVRPNStarter::onStartup()
 }
 void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
-	writeFileIndex = this->incrementDirectoryFile(writeFileIndex,this->origSensorIndex,true);
+	pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,this->origSensorIndex,true);
 	
 	//save proxy values to file.
 	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<this->origSensorIndex<<"_"<<writeFileIndex<<".xml";
+	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<this->origSensorIndex<<"_"<<pqApplicationCore::instance()->writeFileIndex<<".xml";
 	  //xml file
     ofstream xmlSnippetFile;
 	//TODO: rename xmlSnippetFile
 	xmlSnippetFile.open(filename.str().c_str());
 	if (!xmlSnippetFile)
 	{ 
-		qWarning ("File not opened!!! %s",filename.str().c_str());
+		//qWarning ("File not opened!!! %s",filename.str().c_str());
+		return;
 	}
 
 	xmlSnippetFile << snippet;
 	xmlSnippetFile.flush();
-	if (xmlSnippetFile.bad())
-		qWarning("File writing bad!!");
+	/*if (xmlSnippetFile.bad())
+		qWarning("File writing bad!!");*/
 	xmlSnippetFile.close(); 
 
 }
@@ -461,60 +462,120 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 	this->VRPNTimer->blockSignals(false);
 	
 }
- 
-
-int pqVRPNStarter::incrementDirectoryFile(int origIndex,int sIndex,bool findNextFile)
-{
-	std::string     strFilePath;             // Filepath
-	std::string     strPattern;              // Pattern
-	std::string     strExtension;            // Extension
-	::HANDLE          hFile;                   // Handle to file
-	::WIN32_FIND_DATA FileInformation;         // File information
-	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
-	strFilePath = strPattern + "\\snippet*";
-	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
-	if(hFile != INVALID_HANDLE_VALUE)
-	{ 
-		int index = origIndex; 
-		bool found_file = false;
-		do
-		{ 
-		  if(FileInformation.cFileName[0] != '.')
-		  {
-			strFilePath.erase();
-			strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
-			int file_index_start =  strFilePath.find("snippet")+ 7;
-			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
-			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1); 
-			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_"); 
-			if (atoi(path_parsed) == sIndex)
-			{
-			path_parsed = strtok(NULL,"_");
-			int curr_index = atoi(path_parsed);
-			
-			if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
-			{ 
-				index = curr_index;
-				found_file = true;
-			} 
-			}
-			 
-		  }
-		} while(::FindNextFile(hFile, &FileInformation));
-		if (found_file)
-		{
-			if (findNextFile)		
-				origIndex = index+1;
-			else
-				origIndex = index; 
-		}
-		
-	}
-	// Close handle
-	::FindClose(hFile); 
-	return origIndex;
-
-} 
+// 
+//
+//int pqVRPNStarter::incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile)
+//{
+//	std::string     strFilePath;             // Filepath
+//	std::string     strPattern;              // Pattern
+//	std::string     strFileName;
+//	std::string     strExtension;            // Extension
+//	::HANDLE          hFile;                   // Handle to file
+//	::WIN32_FIND_DATA FileInformation;         // File information
+//
+//	if (currentSensorIndex)
+//		strFileName = "snippet1_*"; 
+//	else
+//		strFileName = "snippet0_*"; 
+//	
+//	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change\\"+strFileName;
+//	 
+//	hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
+//	if(hFile != INVALID_HANDLE_VALUE)
+//	{ 
+//		int index = trackedIndex; 
+//		bool found_file = false;
+//		do
+//		{ 
+//		  if(FileInformation.cFileName[0] != '.')
+//		  { 
+//			strFilePath.erase();
+//			strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
+//			
+//			int file_index_start =  strFilePath.find(strFileName)+ 9;
+//			if (file_index_start == std::string::npos || file_index_start == (-1))
+//			{
+//				qWarning(strFilePath.c_str());			
+//				continue;
+//			}
+//			else
+//			{
+//				int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
+//				if (file_index_stop  == std::string::npos || file_index_stop == (-1))
+//				{
+//					
+//					qWarning(strFilePath.c_str());
+//					continue;
+//				}
+//				else
+//				{
+//					std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
+//					int curr_index = atoi(file_substring.c_str());
+//					
+//					if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
+//					{ 
+//						index = curr_index;
+//						found_file = true;
+//					} 
+//				}
+//			}
+//		  }
+//		}while(::FindNextFile(hFile, &FileInformation));
+//		if (found_file)
+//		{
+//			if (findNextFile)		
+//				trackedIndex = index+1;
+//			else
+//				trackedIndex = index; 
+//		}
+//		
+//	}
+//
+//	/*strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
+//	strFilePath = strPattern + "\\snippet*";
+//	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
+//	if(hFile != INVALID_HANDLE_VALUE)
+//	{ 
+//		int index = origIndex; 
+//		bool found_file = false;
+//		do
+//		{ 
+//		  if(FileInformation.cFileName[0] != '.')
+//		  {
+//			strFilePath.erase();
+//			strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
+//			int file_index_start =  strFilePath.find("snippet")+ 7;
+//			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
+//			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1); 
+//			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_"); 
+//			if (atoi(path_parsed) == currentSensorIndex)
+//			{
+//			path_parsed = strtok(NULL,"_");
+//			int curr_index = atoi(path_parsed);
+//			
+//			if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
+//			{ 
+//				index = curr_index;
+//				found_file = true;
+//			} 
+//			}
+//			 
+//		  }
+//		} while(::FindNextFile(hFile, &FileInformation));
+//		if (found_file)
+//		{
+//			if (findNextFile)		
+//				origIndex = index+1;
+//			else
+//				origIndex = index; 
+//		}
+//		
+//	}*/
+//	// Close handle
+//	::FindClose(hFile); 
+//	return trackedIndex;
+//
+//} 
   
 void pqVRPNStarter::initializeEyeAngle()
 {
@@ -852,8 +913,8 @@ void pqVRPNStarter::repeatPlaceHolder()
 
 void pqVRPNStarter::respondToOtherAppsChange()
 {
-	VRPNTimer->blockSignals(true);
-	int targetFileIndex = incrementDirectoryFile(readFileIndex,(this->origSensorIndex+1)%2,false);
+	VRPNTimer->blockSignals(true); 
+	int targetFileIndex = pqApplicationCore::incrementDirectoryFile(readFileIndex,(this->origSensorIndex+1)%2,false);
 	//Check if target file exists.
 	::HANDLE hFileT;         
 	::WIN32_FIND_DATA FileInformationT; 
@@ -881,16 +942,19 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	for (int i =readFileIndex; i <= targetFileIndex; i++)
 	{
 		pqApplicationCore::instance()->isRepeating = true;
-		std::stringstream filename;
+		std::string filename = std::string("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"+
+									(this->origSensorIndex+1)%2
+									+"_"+i+".xml");
+		/*std::stringstream filename;
 		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
-		<<(this->origSensorIndex+1)%2<<"_"<<i<<".xml";
+		<<(this->origSensorIndex+1)%2<<"_"<<i<<".xml";*/
 		        
 		::HANDLE hFile;         
 		::WIN32_FIND_DATA FileInformation; 
 		hFile = ::FindFirstFile(filename.str().c_str(), &FileInformation);
 		if(hFile == INVALID_HANDLE_VALUE)
 		{ 
-			::FindClose(hFile);
+			::FindClose(hFile); 
 			/*if(VERBOSE)
 			{
 				qWarning("invalid file %s",filename.str().c_str());
@@ -900,7 +964,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		::FindClose(hFile);	
 		
 		readFile.clear();
-		readFile.open(filename.str().c_str()); 
+		//readFile.open(filename.str().c_str()); 
+		readFile.open(filename.c_str());
 
 		if (readFile.good())
 		{
