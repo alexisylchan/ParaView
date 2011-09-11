@@ -294,13 +294,12 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 {
 	pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,this->origSensorIndex,true);
 	
-	//save proxy values to file.
-	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"<<this->origSensorIndex<<"_"<<pqApplicationCore::instance()->writeFileIndex<<".xml";
-	  //xml file
+	char* filename = (char*)malloc(sizeof(char)*FILE_PATH_SIZE);
+	sprintf(filename, "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",this->origSensorIndex,pqApplicationCore::instance()->writeFileIndex);
     ofstream xmlSnippetFile;
 	//TODO: rename xmlSnippetFile
-	xmlSnippetFile.open(filename.str().c_str());
+	xmlSnippetFile.open(filename);
+	free(filename);
 	if (!xmlSnippetFile)
 	{ 
 		//qWarning ("File not opened!!! %s",filename.str().c_str());
@@ -308,9 +307,7 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 	}
 
 	xmlSnippetFile << snippet;
-	xmlSnippetFile.flush();
-	/*if (xmlSnippetFile.bad())
-		qWarning("File writing bad!!");*/
+	xmlSnippetFile.flush(); 
 	xmlSnippetFile.close(); 
 
 }
@@ -318,10 +315,8 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
 	if (!pqApplicationCore::instance()->isRepeating)
-	{ 
-		std::stringstream snippetStream;
-		snippetStream <<"Apply,"<<std::endl;
-		writeChangeSnippet(snippetStream.str().c_str());
+	{  
+		writeChangeSnippet("Apply");
 	}
 }
 
@@ -333,25 +328,23 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 	{ 
 		QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
 		pqProxyTabWidget* proxyTabWidget = qobject_cast<pqProxyTabWidget*>(mainWindow->findChild<QObject*>("proxyTabWidget"));	
-		
-		std::stringstream snippetStream;
+		 
 		if (proxyTabWidget->currentIndex() == pqProxyTabWidget::DISPLAY) // If current tab is display
 		{
-			snippetStream <<"Tab,Display"<<std::endl;
+			writeChangeSnippet("Tab,Display");
 		}
 		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::PROPERTIES)  // If current tab is display
 		{		
-			snippetStream <<"Tab,Properties"<<std::endl; 
+			writeChangeSnippet("Tab,Properties");
 		}
 		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::INFORMATION)  // If current tab is display
 		{		
-			snippetStream <<"Tab,Information"<<std::endl; 
+			writeChangeSnippet("Tab,Information");
 		}
 		else
 		{
 			return;
-		}
-		writeChangeSnippet(snippetStream.str().c_str());
+		} 
 	} 
 }
 // Listen to proxy creation from pqObjectBuilder 
@@ -365,10 +358,10 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
-		std::stringstream snippetStream; 
-		 
-		snippetStream << "Source,"<<createdSource->getSMGroup().toAscii().data()<<","<<createdSource->getProxy()->GetXMLName()<<std::endl;
-		writeChangeSnippet(snippetStream.str().c_str());
+		char* sourceStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+		sprintf(sourceStr,"Source,%s,%s",createdSource->getSMGroup().toAscii().data(),createdSource->getProxy()->GetXMLName());
+		writeChangeSnippet(const_cast<const char*>(sourceStr));
+		free(sourceStr); 
 	}	
 }
 
@@ -382,7 +375,7 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 	if (!pqApplicationCore::instance()->isRepeating)
 	{ 
 		doNotPropagateSourceSelection = true;
-		std::stringstream snippetStream; 
+ 
 		QString groupName;
 		
 		pqPipelineFilter* actualCreatedFilter = qobject_cast<pqPipelineFilter*> (createdFilter);
@@ -391,10 +384,12 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 		else
 			groupName = createdFilter->getSMGroup().toAscii().data();
 		if (!strcmp(groupName.toAscii().data(),"sources"))
-			groupName = QString("filters");
-
-		snippetStream << "Filter,"<<groupName.toAscii().data()<<","<<createdFilter->getProxy()->GetXMLName()<<std::endl;
-		writeChangeSnippet(snippetStream.str().c_str());
+			groupName = QString("filters"); 
+		
+		char* filterStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+		sprintf(filterStr,"Filter,%s,%s",groupName.toAscii().data(),createdFilter->getProxy()->GetXMLName());
+		writeChangeSnippet(const_cast<const char*>(filterStr));
+		free(filterStr);  
 	} 
 }
 
@@ -413,10 +408,11 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 			return;
 		}
 		else
-		{
-			std::stringstream snippetStream;
-			snippetStream <<"Changed"<<","<<createdSource->getSMName().toAscii().data();
-			writeChangeSnippet(snippetStream.str().c_str());
+		{ 
+			char* changedStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(changedStr,"Changed,%s",createdSource->getSMName().toAscii().data());
+			writeChangeSnippet(const_cast<const char*>(changedStr));
+			free(changedStr);   
 		}		 
 	} 
 }
@@ -918,18 +914,14 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	//Check if target file exists.
 	::HANDLE hFileT;         
 	::WIN32_FIND_DATA FileInformationT; 
-	std::stringstream filenameT;
-	filenameT << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
-		<<(this->origSensorIndex+1)%2<<"_"<<targetFileIndex<<".xml";
+	char inputStr[FILE_PATH_SIZE]; 
 
-	hFileT = ::FindFirstFile(filenameT.str().c_str(), &FileInformationT);
+	sprintf(inputStr,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
+					((this->origSensorIndex+1)%2),targetFileIndex); 
+	hFileT = ::FindFirstFile(inputStr, &FileInformationT);
 	if(hFileT == INVALID_HANDLE_VALUE)
 	{ 
-		::FindClose(hFileT);
-		/*if(VERBOSE)
-		{
-			qWarning("invalid file %s",filenameT.str().c_str());
-		}*/
+		::FindClose(hFileT); 
 		pqApplicationCore::instance()->isRepeating = false;
 		VRPNTimer->blockSignals(false);
 		return;
@@ -941,39 +933,27 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	bool read = false; 
 	for (int i =readFileIndex; i <= targetFileIndex; i++)
 	{
-		pqApplicationCore::instance()->isRepeating = true;
-		/*std::string filename = std::string("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"+
-									(this->origSensorIndex+1)%2
-									+"_"+i+".xml");*/
-		std::stringstream filename;
-		filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet"
-		<<(this->origSensorIndex+1)%2<<"_"<<i<<".xml";
-		        
+		pqApplicationCore::instance()->isRepeating = true; 
+		char inputStr1[FILE_PATH_SIZE]; 
+
+	    sprintf(inputStr1,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
+					((this->origSensorIndex+1)%2),i);
 		::HANDLE hFile;         
-		::WIN32_FIND_DATA FileInformation; 
-		hFile = ::FindFirstFile(filename.str().c_str(), &FileInformation);
+		::WIN32_FIND_DATA FileInformation;  
+		hFile = ::FindFirstFile(inputStr1, &FileInformation);
 		if(hFile == INVALID_HANDLE_VALUE)
 		{ 
-			::FindClose(hFile); 
-			/*if(VERBOSE)
-			{
-				qWarning("invalid file %s",filename.str().c_str());
-			}*/
+			::FindClose(hFile);  
 			break;
 		}	
 		::FindClose(hFile);	
 		
-		readFile.clear();
-		readFile.open(filename.str().c_str()); 
-		//readFile.open(filename.c_str());
+		readFile.clear(); 
+		readFile.open(inputStr1);  
 
 		if (readFile.good())
 		{
-			read = true;
-			/*if(VERBOSE)
-			{
-				qWarning("good file %s",filename.str().c_str());
-			}*/
+			read = true; 
 			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
 			readFile.getline(snippet,SNIPPET_LENGTH);  
 			char* operation = strtok(snippet,",");  
@@ -1013,14 +993,17 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				QList<QList<char*>> propertyStringList = QList<QList<char*>>(); 
 				bool doneOnce = false;
  
-				int count = 0;
+				int count = 0; 
 				while (true)
 				{ 
 					char* newLine = (char*) malloc(sizeof(char)*50);
 					if (count > 0)
 					{
 						if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
+						{ 
+							//free(newLine);
 							break;
+						}
 					}
 					QList<char*> list2= QList<char*>();
 					char* propertyName2;
@@ -1039,7 +1022,8 @@ void pqVRPNStarter::respondToOtherAppsChange()
 					list2.append(propertyType2); 
 					list2.append(propertyValue2); 
 					propertyStringList.append(list2); 				 
-					count++;
+					count++; 
+					//free(newLine);
 				}	 
 				 
 				if (!propertyStringList.empty())
