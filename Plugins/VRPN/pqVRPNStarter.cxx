@@ -400,13 +400,13 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 		}
 		else
 		{	
-			/*if (createdSource)
-			{*/
+			if (createdSource != NULL)
+			{
 				char* changedStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 				sprintf(changedStr,"Changed,%s",createdSource->getSMName().toAscii().data());
 				writeChangeSnippet(const_cast<const char*>(changedStr));
 				free(changedStr); 
-			/*}*/
+			}
 		}		 
 	} 
 }
