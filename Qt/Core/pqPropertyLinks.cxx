@@ -561,9 +561,7 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 			if (!pqApplicationCore::instance()->isRepeating)
 			{
 			if (VERBOSE)
-				qWarning("qt link changed");
-			pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(
-				pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
+				qWarning("qt link changed"); 
 			pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
 			}  
 		}

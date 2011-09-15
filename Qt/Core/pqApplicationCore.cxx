@@ -130,6 +130,8 @@ pqApplicationCore* pqApplicationCore::instance()
 
 void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 {
+	
+    pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
 	QString str; 
 
 	if(VERBOSE)

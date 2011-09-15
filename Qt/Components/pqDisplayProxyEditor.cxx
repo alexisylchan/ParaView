@@ -1075,7 +1075,6 @@ void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 			// If specular white is off, then we want to update the specular color as
 			// well.
 			emit this->specularColorChanged();
-			pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
 			
 			pqApplicationCore::instance()->printSMProperty(this->Internal->Representation->getProxy()->GetProperty("DiffuseColor")); 
 		}
