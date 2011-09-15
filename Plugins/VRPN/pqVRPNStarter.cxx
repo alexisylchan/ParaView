@@ -305,9 +305,7 @@ void pqVRPNStarter::writeChangeSnippet(const char* snippet)
 		//qWarning ("File not opened!!! %s",filename.str().c_str());
 		return;
 	}
-
-	xmlSnippetFile << snippet;
-	xmlSnippetFile.flush(); 
+	xmlSnippetFile.write(snippet,strlen(snippet)); 
 	xmlSnippetFile.close(); 
 
 }
@@ -408,11 +406,14 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 			return;
 		}
 		else
-		{ 
-			char* changedStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-			sprintf(changedStr,"Changed,%s",createdSource->getSMName().toAscii().data());
-			writeChangeSnippet(const_cast<const char*>(changedStr));
-			free(changedStr);   
+		{	
+			/*if (createdSource)
+			{*/
+				char* changedStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				sprintf(changedStr,"Changed,%s",createdSource->getSMName().toAscii().data());
+				writeChangeSnippet(const_cast<const char*>(changedStr));
+				free(changedStr); 
+			/*}*/
 		}		 
 	} 
 }
@@ -457,122 +458,7 @@ void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 	this->initializeEyeAngle();
 	this->VRPNTimer->blockSignals(false);
 	
-}
-// 
-//
-//int pqVRPNStarter::incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile)
-//{
-//	std::string     strFilePath;             // Filepath
-//	std::string     strPattern;              // Pattern
-//	std::string     strFileName;
-//	std::string     strExtension;            // Extension
-//	::HANDLE          hFile;                   // Handle to file
-//	::WIN32_FIND_DATA FileInformation;         // File information
-//
-//	if (currentSensorIndex)
-//		strFileName = "snippet1_*"; 
-//	else
-//		strFileName = "snippet0_*"; 
-//	
-//	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change\\"+strFileName;
-//	 
-//	hFile = ::FindFirstFile(strPattern.c_str(), &FileInformation);
-//	if(hFile != INVALID_HANDLE_VALUE)
-//	{ 
-//		int index = trackedIndex; 
-//		bool found_file = false;
-//		do
-//		{ 
-//		  if(FileInformation.cFileName[0] != '.')
-//		  { 
-//			strFilePath.erase();
-//			strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
-//			
-//			int file_index_start =  strFilePath.find(strFileName)+ 9;
-//			if (file_index_start == std::string::npos || file_index_start == (-1))
-//			{
-//				qWarning(strFilePath.c_str());			
-//				continue;
-//			}
-//			else
-//			{
-//				int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
-//				if (file_index_stop  == std::string::npos || file_index_stop == (-1))
-//				{
-//					
-//					qWarning(strFilePath.c_str());
-//					continue;
-//				}
-//				else
-//				{
-//					std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
-//					int curr_index = atoi(file_substring.c_str());
-//					
-//					if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
-//					{ 
-//						index = curr_index;
-//						found_file = true;
-//					} 
-//				}
-//			}
-//		  }
-//		}while(::FindNextFile(hFile, &FileInformation));
-//		if (found_file)
-//		{
-//			if (findNextFile)		
-//				trackedIndex = index+1;
-//			else
-//				trackedIndex = index; 
-//		}
-//		
-//	}
-//
-//	/*strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
-//	strFilePath = strPattern + "\\snippet*";
-//	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
-//	if(hFile != INVALID_HANDLE_VALUE)
-//	{ 
-//		int index = origIndex; 
-//		bool found_file = false;
-//		do
-//		{ 
-//		  if(FileInformation.cFileName[0] != '.')
-//		  {
-//			strFilePath.erase();
-//			strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
-//			int file_index_start =  strFilePath.find("snippet")+ 7;
-//			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
-//			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1); 
-//			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_"); 
-//			if (atoi(path_parsed) == currentSensorIndex)
-//			{
-//			path_parsed = strtok(NULL,"_");
-//			int curr_index = atoi(path_parsed);
-//			
-//			if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
-//			{ 
-//				index = curr_index;
-//				found_file = true;
-//			} 
-//			}
-//			 
-//		  }
-//		} while(::FindNextFile(hFile, &FileInformation));
-//		if (found_file)
-//		{
-//			if (findNextFile)		
-//				origIndex = index+1;
-//			else
-//				origIndex = index; 
-//		}
-//		
-//	}*/
-//	// Close handle
-//	::FindClose(hFile); 
-//	return trackedIndex;
-//
-//} 
-  
+} 
 void pqVRPNStarter::initializeEyeAngle()
 {
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
@@ -808,8 +694,7 @@ void pqVRPNStarter::uninitializeDevices()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
-  ////qWarning() << "Message from pqVRPNStarter: Application Shutting down";
- // fclose(vrpnpluginlog);
+   // fclose(vrpnpluginlog);
 	uninitializeDevices();
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
@@ -910,6 +795,7 @@ void pqVRPNStarter::repeatPlaceHolder()
 void pqVRPNStarter::respondToOtherAppsChange()
 {
 	VRPNTimer->blockSignals(true); 
+	ifstream readFile;
 	int targetFileIndex = pqApplicationCore::incrementDirectoryFile(readFileIndex,(this->origSensorIndex+1)%2,false);
 	//Check if target file exists.
 	::HANDLE hFileT;         
@@ -951,13 +837,31 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		readFile.clear(); 
 		readFile.open(inputStr1);  
 
+		char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
 		if (readFile.good())
 		{
-			read = true; 
-			char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
+			
+			read = true; // Only set to true after replication is successful.
 			readFile.getline(snippet,SNIPPET_LENGTH);  
-			char* operation = strtok(snippet,",");  
+			if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
+			{
+				if (read)
+				{ 
+					if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
+					{		
+						newReadFileIndex++;
+					}
+					readFileIndex = newReadFileIndex;
+				} 
+				readFile.clear();
+				readFile.close();
+				pqApplicationCore::instance()->isRepeating = false;
+				VRPNTimer->blockSignals(false);
+				return;
+			}
 
+			char* operation = strtok(snippet,",");  
+			
 			if (!strcmp(operation,"Source"))
 			{ 
 				char* groupName = strtok(NULL,",");
@@ -990,51 +894,25 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{  
 				if(VERBOSE)
 					qWarning("operation %s", operation);			
-				QList<QList<char*>> propertyStringList = QList<QList<char*>>(); 
-				bool doneOnce = false;
- 
-				int count = 0; 
-				while (true)
-				{ 
-					char* newLine = (char*) malloc(sizeof(char)*50);
-					if (count > 0)
-					{
-						if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
-						{ 
-							//free(newLine);
-							break;
-						}
-					}
-					QList<char*> list2= QList<char*>();
-					char* propertyName2;
-					if (count == 0)
-					{
-						propertyName2= strtok(NULL,",");
-						doneOnce = true;
-					}
-					else  
-					{
-						propertyName2= strtok(newLine,",");
+				QList<char*> propertyStringList = QList<char*>();  
+				char* newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				while(true)
+				{
+					if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
+					{ 
+						break;
 					} 
-					char* propertyType2 = strtok(NULL,",");
-					char* propertyValue2 = strtok(NULL,","); 
-					list2.append(propertyName2); 
-					list2.append(propertyType2); 
-					list2.append(propertyValue2); 
-					propertyStringList.append(list2); 				 
-					count++; 
-					//free(newLine);
-				}	 
-				 
+					propertyStringList.append(newLine); 	 
+					newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				} 
 				if (!propertyStringList.empty())
-					repeatPropertiesChange(operation,propertyStringList);
+					repeatPropertiesChange(operation,propertyStringList);			 
 				
 				if (readFile.bad())
 				{ 
 					readFile.close();
 				}
 				readFile.clear();
-
 			}
 			
 			 
@@ -1050,7 +928,9 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		readFile.close();
 		
 	}
-	
+	/**
+		Only increment read file index if read was successful
+	 */
 	if (read)
 	{ 
 		if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
@@ -1066,52 +946,66 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	VRPNTimer->blockSignals(false);
 }
 
-void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList)
+void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> propertyStringList)
 {  
 	if(VERBOSE)
-		qWarning("Repeating properties change!!!");
-	//pqApplicationCore::instance()->isRepeating = true;
-	//Assume property name and type is the same for all
-	char*  propertyName = propertyStringList.at(0).at(0);
-	char* propertyType = propertyStringList.at(0).at(1);
+		qWarning("Repeating properties change!!!");  
+
+	/*char*  propertyName = propertyStringList.at(0).at(0);
+	char* propertyType = propertyStringList.at(0).at(1);*/
 	QList<QVariant> valueList = QList<QVariant>(); 
  
+		
+	char*  propertyName = strtok(propertyStringList.at(0),",");
+	char* propertyType = strtok(NULL,",");
+	char* propertyValue = strtok(NULL,",");
 
 	for (int i =0; i < propertyStringList.size(); i++)
 	{
+		if (i != 0)
+		{/*
+			free(propertyName);
+			free(propertyType);
+			free(propertyValue);*/
+			propertyName = strtok(propertyStringList.at(i),",");
+			propertyType = strtok(NULL,",");
+		    propertyValue = strtok(NULL,",");
+		}
 		if (!strcmp(propertyType,"dvp"))
 		{
-			double value = atof(propertyStringList.at(i).at(2));
+			double value = atof(propertyValue);
 			if (VERBOSE)
 				qWarning("propertyname %s propertyvalue %f",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"ivp"))
 		{
-			int value = atoi(propertyStringList.at(i).at(2)); 
+			int value = atoi(propertyValue); 
 			if (VERBOSE)
 				qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if(!strcmp(propertyType,"idvp"))
 		{
-			int value = atoi(propertyStringList.at(i).at(2)); 
+			int value = atoi(propertyValue); 
 			if (VERBOSE)
 				qWarning("propertyname %s propertyvalue %d",propertyName,value);
 			valueList.append(QVariant(value)); 
 		}
 		else if (!strcmp(propertyType,"svp"))
 		{ 
-			valueList.append(QVariant(propertyStringList.at(i).at(2))); 
+			valueList.append(QVariant(propertyValue)); 
 			
 			if (VERBOSE)
-				qWarning("propertyname %s propertyvalue %s",propertyName,propertyStringList.at(i).at(2));
+				qWarning("propertyname %s propertyvalue %s",propertyName,propertyValue);
 		}
 		else
 		{
 			//qWarning("property Type unhandled! %s",propertyType);
 		}
+ 
 	}
+ 
 	if (partnersTabInDisplay)
 	{
 			pqApplicationCore::instance()->isRepeatingDisplay = true;
@@ -1142,7 +1036,9 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<QList<char*>> p
 		//pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
 	}
-	  
+	//free(propertyName);
+	//free(propertyType);
+	//free(propertyValue);
 }
 void pqVRPNStarter::timerCallback()
 {

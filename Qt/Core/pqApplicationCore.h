@@ -67,10 +67,12 @@ class vtkSMProxyLocator;
 class vtkSMProxy;
 class vtkSMProperty;
 
-#define VERBOSE 1 
+#define VERBOSE 0 
 #define PROPAGATE 1
 #define DEBUG_1_USER 0
-
+#define SNIPPET_LENGTH 50
+#define FILE_PATH_SIZE 200
+#define LONG_SNIPPET_LENGTH 200
 /// This class is the crux of the ParaView application. It creates
 /// and manages various managers which are necessary for the ParaView-based
 /// client to work with the ServerManager.

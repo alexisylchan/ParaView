@@ -58,8 +58,7 @@ class pqPipelineSource;
 class vtkSMProxy;
 class pqPipelineFilter;
 
-#define SNIPPET_LENGTH 50
-#define FILE_PATH_SIZE 200
+
 #define IGNORE_FILE_ACC 1
 //TODO: Make this a user-input option (vortex visualization workbench)
 #define VORTEX_VISUALIZATION 1
@@ -216,7 +215,7 @@ private:
    //Custom file writing and reading
   int readFileIndex;
  // int writeFileIndex;
-  ifstream readFile;
+  //ifstream readFile;
  // bool isRepeating;
   void writeChangeSnippet(const char* snippet); 
   void respondToOtherAppsChange();
@@ -228,7 +227,7 @@ private:
   // Grab properties 
   //int incrementDirectoryFile(int trackedIndex,int currentSensorIndex, bool findNextFile);
   void repeatPlaceHolder();
-  void repeatPropertiesChange(char* panelType,QList<QList<char*>> propertyStringList);
+  void repeatPropertiesChange(char* panelType,QList<char*> propertyStringList);
 
   //Disable phantom when Timelines are being displayed
   vtkVRPNPhantomStyleCamera* phantomStyleCamera1;

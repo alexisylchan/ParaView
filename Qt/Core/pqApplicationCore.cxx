@@ -130,12 +130,10 @@ pqApplicationCore* pqApplicationCore::instance()
 
 void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 {
-	std::stringstream snippetStream; 
 	QString str; 
 
 	if(VERBOSE)
 		qWarning("%s",smProperty->GetXMLName()); 
-	snippetStream <<"Property,"; 
 
 	vtkSMDoubleVectorProperty* dvp;
 	vtkSMIntVectorProperty* ivp;
@@ -146,6 +144,27 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 	ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
 	idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
 	svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
+	char filename[FILE_PATH_SIZE];
+	
+	sprintf(filename,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",this->sensorIndex,this->writeFileIndex);
+	std::ofstream xmlSnippetFile;
+	xmlSnippetFile.open(filename);
+	char* snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+	sprintf(snippet,"Property,\n");
+	xmlSnippetFile.write(snippet,strlen(snippet));
+	free(snippet);
+
+	if (!xmlSnippetFile)
+	{
+		if(VERBOSE)
+		{
+			qWarning ("File not opened!!!");
+			qWarning(filename);
+		}
+		xmlSnippetFile.clear();
+		xmlSnippetFile.close();
+		return;
+	}
 
 	if(dvp)
 	{
@@ -155,7 +174,11 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		{
 			if(VERBOSE)
 				qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
-			snippetStream <<smProperty->GetXMLName()<<","<<"dvp,"<<test[i]<<std::endl; 
+			
+	        snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(snippet,"%s,dvp,%f\n",smProperty->GetXMLName(),test[i]);
+			xmlSnippetFile.write(snippet,strlen(snippet));
+			free(snippet);
 		}
 	}
 	else if (ivp)
@@ -165,8 +188,12 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		for (int i =0; i< num; i++)
 		{
 			if(VERBOSE)
-				qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]);
-			snippetStream <<smProperty->GetXMLName()<<","<<"ivp,"<<test[i]<<std::endl; 
+				qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]); 
+			
+	        snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(snippet,"%s,ivp,%d\n",smProperty->GetXMLName(),test[i]); 
+			xmlSnippetFile.write(snippet,strlen(snippet));
+			free(snippet); 
 		}
 	}
 	else if (svp)
@@ -176,14 +203,15 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		svp->GetElements(strList);
 		if (strList)
 		{ 
-		for (int i =0; i< num; i++)
-		{
-			QString qStr = QString(  strList->GetString(i)) ;
-			if(VERBOSE)
-				qWarning("%s svp %s",smProperty->GetXMLName(),qStr.toAscii().data());
-			
-			snippetStream <<smProperty->GetXMLName()<<","<<"svp,"<<qStr.toAscii().data()<<std::endl; 
-		}
+			for (int i =0; i< num; i++)
+			{
+				if(VERBOSE) 
+					qWarning("list successful %s",strList->GetString(i));
+				snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				sprintf(snippet,"%s,svp,%s\n",smProperty->GetXMLName(),strList->GetString(i)); 
+				xmlSnippetFile.write(snippet,strlen(snippet));
+				free(snippet); 
+			}
 		}
 	}
 	else if (idvp)
@@ -195,39 +223,30 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		  #if defined (VTK_USE_64BIT_IDS)
 		  {
 			  if(VERBOSE)
-				qWarning(" vtkIdType %l", idvp->GetElement(i));
-			snippetStream <<"vtkIdType "<<","<<ltoa(idvp->GetElement(i))<<std::endl; 
+				qWarning(" vtkIdType %l", idvp->GetElement(i)); 
+			snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(snippet,"%s,vtkIdType,%l\n",smProperty->GetXMLName(),idvp->GetElement(i)); 
+			xmlSnippetFile.write(snippet,strlen(snippet));
+			free(snippet); 
 		  }
 	#else 
 		  if(VERBOSE)
-			qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i));
-		  snippetStream <<"vtkIdType "<<","<<"idvp,"<<idvp->GetElement(i)<<std::endl; 
+			qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i)); 
+		snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+		sprintf(snippet,"%s,vtkIdType,%d\n",smProperty->GetXMLName(),idvp->GetElement(i));  
+		xmlSnippetFile.write(snippet,strlen(snippet));
+		free(snippet); 
 	#endif
 
 			  
 	  }
 	 
-	}
-
-	std::stringstream filename;
-	filename << "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/"
-		<<"snippet"
-		<<this->sensorIndex<<"_"
-		<<this->writeFileIndex<<".xml";
-	std::ofstream xmlSnippetFile;
-	xmlSnippetFile.open(filename.str().c_str());
-	if (!xmlSnippetFile)
-	{
-		if(VERBOSE)
-		{
-			qWarning ("File not opened!!!");
-			qWarning(filename.str().c_str());
-		}
-	}
-
-	xmlSnippetFile << snippetStream.str().c_str(); 
-	xmlSnippetFile.close(); 
+	} 
+	xmlSnippetFile.clear();
+	xmlSnippetFile.close();
+	return;
 }
+// Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
 int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile)
 {
 	std::string     strFilePath;             // Filepath
@@ -282,36 +301,7 @@ int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensor
 						} 
 					}
 			  }
-		  }
-			//strFilePath = strPattern +"\\"+ FileInformation.cFileName;  
-			
-			//int file_index_start =  strFilePath.find(strFileName)+ 9;
-			//if (file_index_start == std::string::npos || file_index_start == (-1))
-			//{
-			//	//qWarning(strFilePath.c_str());			
-			//	continue;
-			//}
-			//else
-			//{
-			//	int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
-			//	if (file_index_stop  == std::string::npos || file_index_stop == (-1))
-			//	{
-			//		
-			//		//qWarning(strFilePath.c_str());
-			//		continue;
-			//	}
-			//	else
-			//	{
-			//		std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
-			//		int curr_index = atoi(file_substring.c_str());
-			//		
-			//		if ((findNextFile && (curr_index >= index)) || (!findNextFile && (curr_index > index)))
-			//		{ 
-			//			index = curr_index;
-			//			found_file = true;
-			//		} 
-			//	}
-			//}
+		  } 
 		  
 		}while(::FindNextFile(hFile, &FileInformation));
 		if (found_file)
@@ -326,53 +316,7 @@ int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensor
 	::FindClose(hFile); 
 	return trackedIndex;
 
-} 
-//// Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
-//void pqApplicationCore::incrementDirectoryFile()
-//{
-//	std::string     strFilePath;             // Filepath
-//	std::string     strPattern;              // Pattern
-//	std::string     strExtension;            // Extension
-//	::HANDLE          hFile;                   // Handle to file
-//	::WIN32_FIND_DATA FileInformation;         // File information
-//	strPattern = "C:\\Users\\alexisc\\Documents\\EVE\\CompiledParaView\\bin\\Release\\StateFiles\\Change";
-//	strFilePath = strPattern + "\\snippet*";
-//	hFile = ::FindFirstFile(strFilePath.c_str(), &FileInformation);
-//	if(hFile != INVALID_HANDLE_VALUE)
-//	{ 
-//		int index = this->writeFileIndex;
-//		bool found_file = false;
-//		do
-//		{
-//		  if(FileInformation.cFileName[0] != '.')
-//		  {
-//			strFilePath.erase();
-//			strFilePath = strPattern +"\\"+ FileInformation.cFileName; 
-//			int file_index_start =  strFilePath.find("snippet")+ 7;
-//			int file_index_stop = strFilePath.find(".xml",file_index_start)- 1;
-//			std::string file_substring = strFilePath.substr(file_index_start,file_index_stop-file_index_start+1);
-//			
-//			char* path_parsed = strtok(const_cast<char*>(file_substring.c_str()),"_");
-//			if (atoi(path_parsed) == this->sensorIndex)
-//			{
-//			path_parsed = strtok(NULL,"_");
-//			int curr_index = atoi(path_parsed);
-//			if (curr_index > index)
-//				index = curr_index;
-//			found_file = true;
-//			}
-//			 
-//		  }
-//		} while(::FindNextFile(hFile, &FileInformation) == TRUE);
-//		if (found_file)
-//			this->writeFileIndex = index+1;
-//
-//		
-//	}
-//	// Close handle
-//	::FindClose(hFile);
-//}
-//-----------------------------------------------------------------------------
+}  
 pqApplicationCore::pqApplicationCore(int& argc, char** argv, pqOptions* options,
   QObject* parentObject)
   : QObject(parentObject)
