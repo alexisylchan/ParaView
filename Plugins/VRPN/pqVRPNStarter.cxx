@@ -900,6 +900,10 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				} 
 				if (!propertyStringList.empty())
 					repeatPropertiesChange(operation,propertyStringList);			 
+				for (int j = 0; j<propertyStringList.size(); j++)
+				{
+					free(propertyStringList.at(j));
+				}
 				
 				if (readFile.bad())
 				{ 
