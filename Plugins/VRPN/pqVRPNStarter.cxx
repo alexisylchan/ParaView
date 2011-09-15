@@ -159,13 +159,6 @@ pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
 //-----------------------------------------------------------------------------
 pqVRPNStarter::~pqVRPNStarter()
 {
-	/*uninitializeDevices();
-	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
-	{
-		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
-		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
-		camera->SetHeadTracked(false);
-	}*/
 }
 
 
@@ -353,7 +346,7 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 		qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 		qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
 	}
-	if (!pqApplicationCore::instance()->isRepeating)
+	if (!pqApplicationCore::instance()->isRepeating && (createdSource != NULL))
 	{ 
 		doNotPropagateSourceSelection = true;
 		char* sourceStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
@@ -370,7 +363,7 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 		qWarning("onFilterCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 		qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
 	}
-	if (!pqApplicationCore::instance()->isRepeating)
+	if (!pqApplicationCore::instance()->isRepeating && (createdFilter != NULL))
 	{ 
 		doNotPropagateSourceSelection = true;
  
