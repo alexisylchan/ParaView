@@ -79,6 +79,9 @@
 //Fix Phantom Source creation
 #include "pqUndoStack.h"
 
+// Allow Vortex Vis option
+#include "vtkPVOptions.h"
+#include "vtkProcessModule.h"
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 
@@ -191,8 +194,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
 		repProxy->UpdateVTKObjects();
 	
-	    if (VORTEX_VISUALIZATION)
-
+	    if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
 		{ 
 		//Operate on object
 		// FOR REMOTE DEBUGGING if (first)
@@ -273,8 +275,7 @@ int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputInd
 		vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
 		vtkSMProxy* prototype = pxm->GetPrototypeProxy("filters",name);
 		QList<pqOutputPort*> outputPorts;
-		
-		//pqCoreUtilities::mainWidget()->findChild("
+		 
 		//NOTE: Cannot use AutoAccept because this creates 3 streamtracers everytime a button is clicked (PhantomButton probably is called 3 times due to frequency of Phantom updates)
 		// pqObjectInspectorWidget::setAutoAccept(true);
 	 

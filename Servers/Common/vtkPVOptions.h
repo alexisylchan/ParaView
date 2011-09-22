@@ -72,6 +72,7 @@ public:
   vtkGetMacro(UseTNG, int);
   vtkGetStringMacro(TNGAddress);
   vtkGetMacro(SyncCollab, int);
+  vtkGetMacro(CollabVisDemo,int);
 
   vtkGetMacro(UseVRUI, int);
   vtkGetStringMacro(VRUIAddress);
@@ -236,6 +237,7 @@ private:
   int UsePhantom;
   int UseTNG;
   int SyncCollab;
+  int CollabVisDemo;
  
   int UseVRUI;
   int DisableComposite;

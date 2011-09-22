@@ -100,6 +100,7 @@ vtkPVOptions::vtkPVOptions()
   this->TNGAddress = 0;
   this->SetTNGAddress("tng3name@localhost");
   this->SyncCollab = 1;
+  this->CollabVisDemo = 0;
   
   this->VRUIAddress = 0;
   this->SetVRUIAddress("localhost");
@@ -253,6 +254,9 @@ void vtkPVOptions::Initialize()
                            "Tell the Collaborative Scientific Visualization Workbench to use Synchronous Collaboration.",
                            vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
 
+this->AddBooleanArgument("--vis-demo", 0, &this->CollabVisDemo,
+                           "Set the Collaborative Scientific Visualization Workbench in Demo mode (Vortex Visualization.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
 
   this->AddBooleanArgument("--vrui", 0, &this->UseVRUI,
                            "Tell the application to use VRUI for head tracking",

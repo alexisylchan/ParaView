@@ -171,7 +171,7 @@ void pqVRPNStarter::onStartup()
 	onSourceChangeAfterRepeatingCreation = false;
 	this->showingTimeline = false;
 	//Log file to log test data (Vortex Visualization)
-	if(VORTEX_VISUALIZATION)
+	if(vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
 		evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
    
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
@@ -214,7 +214,7 @@ void pqVRPNStarter::onStartup()
 	//Listen to Custom Application's GUI Qt signals for Vortex Visualization
 	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
 	
-	if (VORTEX_VISUALIZATION)
+	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
 	{
 		QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int))); 
 	}
@@ -1253,7 +1253,7 @@ void  pqVRPNStarter::loadState()
 void  pqVRPNStarter::initialLoadState()
 {
 		//createConeInParaView();
-		if (VORTEX_VISUALIZATION)
+		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
 			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
 		else
 			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));

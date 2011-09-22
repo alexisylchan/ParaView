@@ -59,9 +59,7 @@ class vtkSMProxy;
 class pqPipelineFilter;
 
 
-#define IGNORE_FILE_ACC 1
-//TODO: Make this a user-input option (vortex visualization workbench)
-#define VORTEX_VISUALIZATION 1
+#define IGNORE_FILE_ACC 1 
 
 //Timeline
 class vtkVRPNPhantomStyleCamera;
