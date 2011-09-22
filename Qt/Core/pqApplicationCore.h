@@ -68,7 +68,7 @@ class vtkSMProxy;
 class vtkSMProperty;
 
 #define VERBOSE 0 
-#define PROPAGATE 1
+#define PROPAGATE 0
 #define DEBUG_1_USER 0
 #define SNIPPET_LENGTH 50
 #define FILE_PATH_SIZE 200

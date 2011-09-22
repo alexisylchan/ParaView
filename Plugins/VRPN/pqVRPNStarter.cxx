@@ -605,8 +605,8 @@ void pqVRPNStarter::initializeDevices()
 		//Register Tracker to Device Interactor
 		inputInteractor->AddInteractionDevice(tracker1);
 		inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
-		tracker1->Delete();
-		trackerStyleCamera1->Delete();
+		//tracker1->Delete();
+		//trackerStyleCamera1->Delete();
    }  
 	if (this->usePhantom)
 	{
@@ -633,8 +633,8 @@ void pqVRPNStarter::initializeDevices()
 		inputInteractor->AddInteractionDevice(phantom1);
 		inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
 
-		phantom1->Delete();
-		phantomStyleCamera1->Delete();
+		//phantom1->Delete();
+		//phantomStyleCamera1->Delete();
 	} 
 
 	if (this->useSpaceNavigator)
@@ -1038,17 +1038,20 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 	//free(propertyValue);
 }
 void pqVRPNStarter::timerCallback()
-{
-
-	if (!PROPAGATE && this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
-	{
-		/*this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();	*/	 
+{	
+	 if (!PROPAGATE && this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
+	{ 
+	/*	this->uninitializeDevices();
+		pqCommandLineOptionsBehavior::resetApplication();		
 		pqDeleteReaction::deleteAll(); 
-		this->loadState();
-		this->changeTimeStamp();
+		this->loadState(); 
 		this->initializeEyeAngle();
-		this->initializeDevices();
+		this->initializeDevices();*/
+		this->VRPNTimer->blockSignals(true);	
+		pqDeleteReaction::deleteAll(); 
+		this->loadState();  
+		this->VRPNTimer->blockSignals(false);
+
 	} 
 	else if ((DEBUG_1_USER && this->origSensorIndex) || !DEBUG_1_USER)/// && this->changeSnippetModified())
 	{
@@ -1072,7 +1075,7 @@ void pqVRPNStarter::timerCallback()
 		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
 		proxy->GetRenderWindow()->Render();
-	}
+	} 
 }
 
 // Analog Code adapted from ParaView 3.11.2 https://github.com/Kitware/ParaView/blob/master/Plugins/VRPN/ParaViewVRPN.cxx
@@ -1225,9 +1228,8 @@ const vrpn_ANALOGCB t)
 
 bool pqVRPNStarter::sharedStateModified()
 {
-	struct stat filestat; //TODO: change this to pointer ? 
-	//if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )
-	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat) != -1) )
+	struct stat filestat;  
+	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )//if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat) != -1) )
 	{   if (last_write)
 		{
 			if (filestat.st_mtime != this->last_write)
@@ -1245,7 +1247,6 @@ void  pqVRPNStarter::loadState()
 {  
         pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
 		this->changeTimeStamp();
-		
 } 
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
