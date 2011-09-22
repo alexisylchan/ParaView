@@ -81,6 +81,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqAnimationScene.h"
 #include "pqTimeKeeper.h"
 
+//Synchronous collaboration includes
+#include "vtkPVOptions.h"
+#include "vtkProcessModule.h"
+
 class myMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -119,7 +123,7 @@ myMainWindow::myMainWindow()
   this->Internals->PushToSharedState->setIconSize(QSize(24,24));
   this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
-  if (!PROPAGATE)
+  if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 	  this->Internals->PushToSharedState->setEnabled(true);
   this->Internals->ToggleToPartnersView->setIconSize(QSize(24,24));
   this->Internals->ToggleToPartnersView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));

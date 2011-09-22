@@ -82,6 +82,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqUndoStack.h"
 #include "pqWidgetRangeDomain.h"
 
+// Synchronous Collaboration
+#include "vtkPVOptions.h"
+#include "vtkProcessModule.h"
+
 class pqDisplayProxyEditorInternal : public Ui::pqDisplayProxyEditor
 {
 public:
@@ -1061,7 +1065,7 @@ void pqDisplayProxyEditor::volumeBlockSelected()
 // Called when the GUI selection for the solid color changes.
 void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 {
-	if (PROPAGATE)
+	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 	{
 		if (!pqApplicationCore::instance()->isRepeatingDisplay)
 		{ 

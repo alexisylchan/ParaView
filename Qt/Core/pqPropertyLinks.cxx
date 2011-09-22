@@ -554,7 +554,10 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 	  
 	if(VERBOSE)
 		qWarning ("Qt Property Changed");
-	if (PROPAGATE)
+	/*vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
+    vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();*/
+
+	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 	{
 		if ((DEBUG_1_USER && !pqApplicationCore::instance()->sensorIndex) || (!DEBUG_1_USER))
 		{

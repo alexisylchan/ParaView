@@ -221,7 +221,7 @@ void pqVRPNStarter::onStartup()
 	
 	showPartnersView = false;
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 	
-	if (PROPAGATE)
+	if (options->GetSyncCollab())
 	{    
 		readFileIndex = 0;
 		//writeFileIndex = 0; 
@@ -1039,7 +1039,7 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 }
 void pqVRPNStarter::timerCallback()
 {	
-	 if (!PROPAGATE && this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
+	 if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab() && this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
 	{ 
 	/*	this->uninitializeDevices();
 		pqCommandLineOptionsBehavior::resetApplication();		
@@ -1055,7 +1055,7 @@ void pqVRPNStarter::timerCallback()
 	} 
 	else if ((DEBUG_1_USER && this->origSensorIndex) || !DEBUG_1_USER)/// && this->changeSnippetModified())
 	{
-		if (PROPAGATE)
+		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 			respondToOtherAppsChange(); 
 		if (this->useSpaceNavigator)
 			this->spaceNavigator1->mainloop();
@@ -1331,7 +1331,7 @@ void  pqVRPNStarter::loadDESTimelineState()
 
 void pqVRPNStarter::changeTimeStamp()
 {
-	if (!PROPAGATE) //TODO: Why?
+	if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab()) //TODO: Why?
 	{
 		struct stat filestat;
 		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);

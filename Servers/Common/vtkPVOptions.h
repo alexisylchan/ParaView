@@ -71,10 +71,10 @@ public:
   vtkGetStringMacro(PhantomAddress);
   vtkGetMacro(UseTNG, int);
   vtkGetStringMacro(TNGAddress);
+  vtkGetMacro(SyncCollab, int);
 
   vtkGetMacro(UseVRUI, int);
   vtkGetStringMacro(VRUIAddress);
-
 
   vtkGetMacro(ClientMode, int);
   // Description:
@@ -235,6 +235,7 @@ private:
   int UseSpaceNavigator;
   int UsePhantom;
   int UseTNG;
+  int SyncCollab;
  
   int UseVRUI;
   int DisableComposite;

@@ -99,6 +99,7 @@ vtkPVOptions::vtkPVOptions()
   this->UseTNG = 0; 
   this->TNGAddress = 0;
   this->SetTNGAddress("tng3name@localhost");
+  this->SyncCollab = 1;
   
   this->VRUIAddress = 0;
   this->SetVRUIAddress("localhost");
@@ -138,7 +139,7 @@ vtkPVOptions::~vtkPVOptions()
   this->SetTrackerOrigin(0); 
   this->SetSpaceNavigatorAddress(0); 
   this->SetPhantomAddress(0); 
-  this->SetTNGAddress(0); 
+  this->SetTNGAddress(0);  
 }
 
 //----------------------------------------------------------------------------
@@ -248,6 +249,9 @@ void vtkPVOptions::Initialize()
                     "--tng is specified. Examples: "
                     "\"tng3name@localhost\"",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddBooleanArgument("--sync-collab", 0, &this->SyncCollab,
+                           "Tell the Collaborative Scientific Visualization Workbench to use Synchronous Collaboration.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
 
 
   this->AddBooleanArgument("--vrui", 0, &this->UseVRUI,
