@@ -492,19 +492,19 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		camCoordPosition[3] = 1.0;//renderer->GetActiveCamera()->GetDistance();
 		cameraMatrix->MultiplyPoint(camCoordPosition,newPosition); 
 		double* newPosition2 =  new double[4];
-		/*if (sensorIndex)
+		if (sensorIndex)
 		{
 			vtkTransform* transform = vtkTransform::New();
 			transform->RotateWXYZ(90,0,1,0);
 			transform->MultiplyPoint(newPosition,newPosition2);
 		}
 		else
-		{*/
+		{
 			for (int j = 0; j<3; j++)
 			{
 				newPosition2[j] = newPosition[j];
 			}
-		/*}*/
+		}
 
 		camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
 		double** matrix0Data = (double**) malloc(sizeof(double*)*3);
