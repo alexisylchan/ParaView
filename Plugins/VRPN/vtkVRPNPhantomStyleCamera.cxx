@@ -192,6 +192,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		vtkSMPVRepresentationProxy *repProxy = 0;
 		repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
 		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
+		delete newPosition;
 		repProxy->UpdateVTKObjects();
 	
 	    if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
@@ -240,6 +241,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 					double* nextDataPosition =  new double[3];
 					vtkSMPropertyHelper(nextDataProxy,"Position").Get(nextDataPosition,3);  
 					*evaluationlog << "data: " << nextDataPosition[0] << "," << nextDataPosition[1] << "," << nextDataPosition[2] << endl;
+					delete nextDataPosition;
 				} 
 			evaluationlog->flush();
 		}
@@ -497,6 +499,7 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 			vtkTransform* transform = vtkTransform::New();
 			transform->RotateWXYZ(90,0,1,0);
 			transform->MultiplyPoint(newPosition,newPosition2);
+			transform->Delete();
 		}
 		else
 		{
@@ -511,12 +514,10 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		double** vToSolve = (double**) malloc (sizeof(double*)*8);
 		for (int v = 0; v<3; v++)
 		{
-			matrix0Data[v] = (double*) malloc(sizeof(double)*3);
-			vToSolve[v] = (double*) malloc(sizeof(double)*3);
+			matrix0Data[v] = (double*) malloc(sizeof(double)*3); 
 			for (int w = 0; w<3; w++)
 			{
-				matrix0Data[v][w] = 0.0F;
-				vToSolve[v][w] = 0.0F; 
+				matrix0Data[v][w] = 0.0F; 
 			}
 		}  
 
@@ -735,6 +736,19 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		/*
 		qWarning("newScaledPosition %f %f %f",newScaledPosition[0],newScaledPosition[1],newScaledPosition[2]);*/
 	/*	delete index;*/
+		for (int v = 0; v<3; v++)
+		{ 
+			free(matrix0Data[v]);
+		}
+		free(matrix0Data);
+		for (int p = 0; p<8; p++)
+		{
+			free(vToSolve[p]);
+		}
+		free(vToSolve);
+
+		free(index);
+
 		delete newPosition;
 		delete newPosition2;
 		return newScaledPosition;
