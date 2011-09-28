@@ -505,224 +505,232 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 				newPosition2[j] = newPosition[j];
 			}
 		/*}*/
-		//camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
-		//double matrix0Data[3][3];
-		//double *matrix0[3]; 
-		//double value[8][3];
-		//for (int v = 0; v<8; v++)
-		//{
-		//	for (int t = 0; t<3; t++)
-		//	{
-		//		value[v][t] = 0.0;
-		//	}
-		//}
-		//for(int n=0;n<4;n++)
-		//{
-		//	matrix0[n] = matrix0Data[n];
-		//	matrix0[n][0]=0.0F; // fill N with zeros
-		//	matrix0[n][1]=0.0F;
-		//	matrix0[n][2]=0.0F;  
-		// } 
 
-		//// (-x)| 3 
-		//matrix0[0][0] = planes[0];
-		//matrix0[0][1] = planes[1];
-		//matrix0[0][2] = planes[2]; 
-		//value[0][0] = planes[3]; 
-		//// (-z) | 1
-		//matrix0[1][0] = planes[16];
-		//matrix0[1][1] = planes[17];
-		//matrix0[1][2] = planes[18]; 
-		//value[0][1] = planes[19]; 
-		//// (+y) | 4
-		//matrix0[2][0] = planes[12];
-		//matrix0[2][1] = planes[13];
-		//matrix0[2][2] = planes[14]; 
-		//value[0][2] = planes[15]; 
-		//int* index = new int[3];
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[0],3);
-		////qWarning("value[0] %f %f %f",value[0][0],value[0][1],value[0][2]);
+		camera->GetFrustumPlanes(renderer->GetTiledAspectRatio(),planes);
+		double** matrix0Data = (double**) malloc(sizeof(double*)*3);
+		double** vToSolve = (double**) malloc (sizeof(double*)*8);
+		for (int v = 0; v<3; v++)
+		{
+			matrix0Data[v] = (double*) malloc(sizeof(double)*3);
+			vToSolve[v] = (double*) malloc(sizeof(double)*3);
+			for (int w = 0; w<3; w++)
+			{
+				matrix0Data[v][w] = 0.0F;
+				vToSolve[v][w] = 0.0F; 
+			}
+		}  
 
-		///////////////////////////////////////////////////////////////////
-		//
-		//// (-x)| 3 
-		//matrix0[0][0] = planes[0];
-		//matrix0[0][1] = planes[1];
-		//matrix0[0][2] = planes[2]; 
-		//value[1][0] = planes[3]; 
-		//// (-z) | 1
-		//matrix0[1][0] = planes[16];
-		//matrix0[1][1] = planes[17];
-		//matrix0[1][2] = planes[18]; 
-		//value[1][1] = planes[19]; 
-		//// (-y) | 6
-		//matrix0[2][0] = planes[8];
-		//matrix0[2][1] = planes[9];
-		//matrix0[2][2] = planes[10]; 
-		//value[1][2] = planes[11]; 
-		//for (int d = 0; d<3; d++)
-		//	index[d] = 0;
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[1],3); 
-		////qWarning("value[1] %f %f %f",value[1][0],value[1][1],value[1][2]);
-		////////////////////////////////////////////////////////////
-		//
-		//// (-x)| 3 
-		//matrix0[0][0] = planes[0];
-		//matrix0[0][1] = planes[1];
-		//matrix0[0][2] = planes[2]; 
-		//value[2][0] = planes[3]; 
-		//// (-y) | 6
-		//matrix0[1][0] = planes[8];
-		//matrix0[1][1] = planes[9];
-		//matrix0[1][2] = planes[10]; 
-		//value[2][1] = planes[11]; 
-		//// (+z) | 5
-		//matrix0[2][0] = planes[20];
-		//matrix0[2][1] = planes[21];
-		//matrix0[2][2] = planes[22]; 
-		//value[2][2] = planes[23]; 
-		//for (int d = 0; d<3; d++)
-		//	index[d] = 0;
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[2],3); 
-		////qWarning("value[2] %f %f %f",value[2][0],value[2][1],value[2][2]);
-		////////////////////////////////////////////////////////////
-		//
-		//// (-x)| 3 
-		//matrix0[0][0] = planes[0];
-		//matrix0[0][1] = planes[1];
-		//matrix0[0][2] = planes[2]; 
-		//value[3][0] = planes[3]; 
-		//// (+y) | 4
-		//matrix0[1][0] = planes[12];
-		//matrix0[1][1] = planes[13];
-		//matrix0[1][2] = planes[14]; 
-		//value[3][1] = planes[15]; 
-		//// (+z) | 5
-		//matrix0[2][0] = planes[20];
-		//matrix0[2][1] = planes[21];
-		//matrix0[2][2] = planes[22]; 
-		//value[3][2] = planes[23];
-		//for (int d = 0; d<3; d++)
-		//	index[d] = 0;
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[3],3); 
-		////qWarning("value[3] %f %f %f",value[3][0],value[3][1],value[3][2]);
-		///////////////////////////////////////////////////////////////
-		//// (x)| 2 
-		//matrix0[0][0] = planes[4];
-		//matrix0[0][1] = planes[5];
-		//matrix0[0][2] = planes[6]; 
-		//value[4][0] = planes[7]; 
-		//// (-z) | 1
-		//matrix0[1][0] = planes[16];
-		//matrix0[1][1] = planes[17];
-		//matrix0[1][2] = planes[18]; 
-		//value[4][1] = planes[19]; 
-		//// (+y) | 4
-		//matrix0[2][0] = planes[12];
-		//matrix0[2][1] = planes[13];
-		//matrix0[2][2] = planes[14]; 
-		//value[4][2] = planes[15]; 
-		//for (int d = 0; d<3; d++)
-		//	index[d] = 0;
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[4],3);
-		////qWarning("value[4] %f %f %f",value[4][0],value[4][1],value[4][2]);
+		for (int p = 0; p<8; p++)
+		{ 
+			vToSolve[p] = (double*) malloc(sizeof(double)*3);
+			for (int q = 0; q<3; q++)
+			{ 
+				vToSolve[p][q] = 0.0F; 
+			}
+		}  
 
-		///////////////////////////////////////////////////////////////////
-		//
-		//// (x)| 2 
-		//matrix0[0][0] = planes[4];
-		//matrix0[0][1] = planes[5];
-		//matrix0[0][2] = planes[6]; 
-		//value[5][0] = planes[7]; 
-		//// (-z) | 1
-		//matrix0[1][0] = planes[16];
-		//matrix0[1][1] = planes[17];
-		//matrix0[1][2] = planes[18]; 
-		//value[5][1] = planes[19]; 
-		//// (-y) | 6
-		//matrix0[2][0] = planes[8];
-		//matrix0[2][1] = planes[9];
-		//matrix0[2][2] = planes[10]; 
-		//value[5][2] = planes[11]; 
-		//for (int d = 0; d<3; d++)
-		//	index[d] = 0;
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[5],3); 
-		////qWarning("value[5] %f %f %f",value[5][0],value[5][1],value[5][2]);
-		////////////////////////////////////////////////////////////
-		//
-		//// (x)| 2 
-		//matrix0[0][0] = planes[4];
-		//matrix0[0][1] = planes[5];
-		//matrix0[0][2] = planes[6]; 
-		//value[6][0] = planes[7]; 
-		//// (-y) | 6
-		//matrix0[1][0] = planes[8];
-		//matrix0[1][1] = planes[9];
-		//matrix0[1][2] = planes[10]; 
-		//value[6][1] = planes[11]; 
-		//// (+z) | 5
-		//matrix0[2][0] = planes[20];
-		//matrix0[2][1] = planes[21];
-		//matrix0[2][2] = planes[22]; 
-		//value[6][2] = planes[23]; 
-		//for (int d = 0; d<3; d++)
-		//	index[d] = 0;
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[6],3); 
-		////qWarning("value[6] %f %f %f",value[6][0],value[6][1],value[6][2]);
-		////////////////////////////////////////////////////////////
-		//
-		//// (x)| 2 
-		//matrix0[0][0] = planes[4];
-		//matrix0[0][1] = planes[5];
-		//matrix0[0][2] = planes[6]; 
-		//value[7][0] = planes[7]; 
-		//// (+y) | 4
-		//matrix0[1][0] = planes[12];
-		//matrix0[1][1] = planes[13];
-		//matrix0[1][2] = planes[14]; 
-		//value[7][1] = planes[15]; 
-		//// (+z) | 5
-		//matrix0[2][0] = planes[20];
-		//matrix0[2][1] = planes[21];
-		//matrix0[2][2] = planes[22]; 
-		//value[7][2] = planes[23];
-		//for (int d = 0; d<3; d++)
-		//	index[d] = 0;
-		//vtkMath::LUFactorLinearSystem(matrix0, index, 3);
-		//vtkMath::LUSolveLinearSystem(matrix0,index,value[7],3); 
-		////qWarning("value[7] %f %f %f",value[7][0],value[7][1],value[7][2]);
+		// (-x)| 3 
+		matrix0Data[0][0] = planes[0];
+		matrix0Data[0][1] = planes[1];
+		matrix0Data[0][2] = planes[2]; 
+		vToSolve[0][0] = planes[3]; 
+
+		// (-z) | 1
+		matrix0Data[1][0] = planes[16];
+		matrix0Data[1][1] = planes[17];
+		matrix0Data[1][2] = planes[18]; 
+		vToSolve[0][1] = planes[19]; 
+
+		// (+y) | 4
+		matrix0Data[2][0] = planes[12];
+		matrix0Data[2][1] = planes[13];
+		matrix0Data[2][2] = planes[14]; 
+		vToSolve[0][2] = planes[15]; 
+
+		int* index = (int*)malloc(sizeof(int)*3); 
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[0],3);
+		//qWarning("vToSolve[0] %f %f %f",vToSolve[0][0],vToSolve[0][1],vToSolve[0][2]);
+
+		/////////////////////////////////////////////////////////////////
+		
+		// (-x)| 3 
+		matrix0Data[0][0] = planes[0];
+		matrix0Data[0][1] = planes[1];
+		matrix0Data[0][2] = planes[2]; 
+		vToSolve[1][0] = planes[3]; 
+		// (-z) | 1
+		matrix0Data[1][0] = planes[16];
+		matrix0Data[1][1] = planes[17];
+		matrix0Data[1][2] = planes[18]; 
+		vToSolve[1][1] = planes[19]; 
+		// (-y) | 6
+		matrix0Data[2][0] = planes[8];
+		matrix0Data[2][1] = planes[9];
+		matrix0Data[2][2] = planes[10]; 
+		vToSolve[1][2] = planes[11]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[1],3); 
+		//qWarning("vToSolve[1] %f %f %f",vToSolve[1][0],vToSolve[1][1],vToSolve[1][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (-x)| 3 
+		matrix0Data[0][0] = planes[0];
+		matrix0Data[0][1] = planes[1];
+		matrix0Data[0][2] = planes[2]; 
+		vToSolve[2][0] = planes[3]; 
+		// (-y) | 6
+		matrix0Data[1][0] = planes[8];
+		matrix0Data[1][1] = planes[9];
+		matrix0Data[1][2] = planes[10]; 
+		vToSolve[2][1] = planes[11]; 
+		// (+z) | 5
+		matrix0Data[2][0] = planes[20];
+		matrix0Data[2][1] = planes[21];
+		matrix0Data[2][2] = planes[22]; 
+		vToSolve[2][2] = planes[23]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[2],3); 
+		//qWarning("vToSolve[2] %f %f %f",vToSolve[2][0],vToSolve[2][1],vToSolve[2][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (-x)| 3 
+		matrix0Data[0][0] = planes[0];
+		matrix0Data[0][1] = planes[1];
+		matrix0Data[0][2] = planes[2]; 
+		vToSolve[3][0] = planes[3]; 
+		// (+y) | 4
+		matrix0Data[1][0] = planes[12];
+		matrix0Data[1][1] = planes[13];
+		matrix0Data[1][2] = planes[14]; 
+		vToSolve[3][1] = planes[15]; 
+		// (+z) | 5
+		matrix0Data[2][0] = planes[20];
+		matrix0Data[2][1] = planes[21];
+		matrix0Data[2][2] = planes[22]; 
+		vToSolve[3][2] = planes[23];
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[3],3); 
+		//qWarning("vToSolve[3] %f %f %f",vToSolve[3][0],vToSolve[3][1],vToSolve[3][2]);
+		/////////////////////////////////////////////////////////////
+		// (x)| 2 
+		matrix0Data[0][0] = planes[4];
+		matrix0Data[0][1] = planes[5];
+		matrix0Data[0][2] = planes[6]; 
+		vToSolve[4][0] = planes[7]; 
+		// (-z) | 1
+		matrix0Data[1][0] = planes[16];
+		matrix0Data[1][1] = planes[17];
+		matrix0Data[1][2] = planes[18]; 
+		vToSolve[4][1] = planes[19]; 
+		// (+y) | 4
+		matrix0Data[2][0] = planes[12];
+		matrix0Data[2][1] = planes[13];
+		matrix0Data[2][2] = planes[14]; 
+		vToSolve[4][2] = planes[15]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[4],3);
+		//qWarning("vToSolve[4] %f %f %f",vToSolve[4][0],vToSolve[4][1],vToSolve[4][2]);
+
+		/////////////////////////////////////////////////////////////////
+		
+		// (x)| 2 
+		matrix0Data[0][0] = planes[4];
+		matrix0Data[0][1] = planes[5];
+		matrix0Data[0][2] = planes[6]; 
+		vToSolve[5][0] = planes[7]; 
+		// (-z) | 1
+		matrix0Data[1][0] = planes[16];
+		matrix0Data[1][1] = planes[17];
+		matrix0Data[1][2] = planes[18]; 
+		vToSolve[5][1] = planes[19]; 
+		// (-y) | 6
+		matrix0Data[2][0] = planes[8];
+		matrix0Data[2][1] = planes[9];
+		matrix0Data[2][2] = planes[10]; 
+		vToSolve[5][2] = planes[11]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[5],3); 
+		//qWarning("vToSolve[5] %f %f %f",vToSolve[5][0],vToSolve[5][1],vToSolve[5][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (x)| 2 
+		matrix0Data[0][0] = planes[4];
+		matrix0Data[0][1] = planes[5];
+		matrix0Data[0][2] = planes[6]; 
+		vToSolve[6][0] = planes[7]; 
+		// (-y) | 6
+		matrix0Data[1][0] = planes[8];
+		matrix0Data[1][1] = planes[9];
+		matrix0Data[1][2] = planes[10]; 
+		vToSolve[6][1] = planes[11]; 
+		// (+z) | 5
+		matrix0Data[2][0] = planes[20];
+		matrix0Data[2][1] = planes[21];
+		matrix0Data[2][2] = planes[22]; 
+		vToSolve[6][2] = planes[23]; 
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[6],3); 
+		//qWarning("vToSolve[6] %f %f %f",vToSolve[6][0],vToSolve[6][1],vToSolve[6][2]);
+		//////////////////////////////////////////////////////////
+		
+		// (x)| 2 
+		matrix0Data[0][0] = planes[4];
+		matrix0Data[0][1] = planes[5];
+		matrix0Data[0][2] = planes[6]; 
+		vToSolve[7][0] = planes[7]; 
+		// (+y) | 4
+		matrix0Data[1][0] = planes[12];
+		matrix0Data[1][1] = planes[13];
+		matrix0Data[1][2] = planes[14]; 
+		vToSolve[7][1] = planes[15]; 
+		// (+z) | 5
+		matrix0Data[2][0] = planes[20];
+		matrix0Data[2][1] = planes[21];
+		matrix0Data[2][2] = planes[22]; 
+		vToSolve[7][2] = planes[23];
+		for (int d = 0; d<3; d++)
+			index[d] = 0;
+		vtkMath::LUFactorLinearSystem(matrix0Data, index, 3);
+		vtkMath::LUSolveLinearSystem(matrix0Data,index,vToSolve[7],3); 
+		//qWarning("vToSolve[7] %f %f %f",vToSolve[7][0],vToSolve[7][1],vToSolve[7][2]);
 
 		////////////////////////////////////////////////////////////
-		//double xmax,ymax,zmax;// only scale by largest value for now.
-		//xmax = ymax = zmax = 0;
-		//for (int p = 0; p < 8; p++)
-		//{
-		//	if (abs(value[p][0])>xmax)
-		//		xmax = abs(value[p][0]);
-		//	if (abs(value[p][1])>ymax)
-		//		ymax = abs(value[p][1]);
-		//	if (abs(value[p][2])>zmax)
-		//		zmax = abs(value[p][2]);
-		//	//qWarning("value in loop %f %f %f",value[p][0],value[p][1],value[p][2]);
-		//} 
-		//newScaledPosition[0] = (newPosition2[0]/0.5)* (xmax/2000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
-		//newScaledPosition[1] = (newPosition2[1]/0.5 )* (ymax/2000.0);
-		//newScaledPosition[2] = (newPosition2[2]/0.5)* (zmax/2000.0);
+		double xmax,ymax,zmax;// only scale by largest vToSolve for now.
+		xmax = ymax = zmax = 0;
+		for (int p = 0; p < 8; p++)
+		{
+			if (abs(vToSolve[p][0])>xmax)
+				xmax = abs(vToSolve[p][0]);
+			if (abs(vToSolve[p][1])>ymax)
+				ymax = abs(vToSolve[p][1]);
+			if (abs(vToSolve[p][2])>zmax)
+				zmax = abs(vToSolve[p][2]);
+			//qWarning("vToSolve in loop %f %f %f",vToSolve[p][0],vToSolve[p][1],value[p][2]);
+		} 
+		newScaledPosition[0] = (newPosition2[0]/0.5)* (xmax/2000.0);//Scale to -1 and 1, multiply by 0.5* greatest distance along axis
+		newScaledPosition[1] = (newPosition2[1]/0.5 )* (ymax/2000.0);
+		newScaledPosition[2] = (newPosition2[2]/0.5)* (zmax/2000.0);
 		
 		//TODO: Right now we scale by x and y vector?
 		//newScaledPosition[0] = (newPosition2[0]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
 		//newScaledPosition[1] = (newPosition2[1]*5);///*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
 		//newScaledPosition[2] = (newPosition2[2]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
-		newScaledPosition[0] = (newPosition[0]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
-		newScaledPosition[1] = (newPosition[1]*5);///*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
-		newScaledPosition[2] = (newPosition[2]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		//newScaledPosition[0] = (newPosition[0]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		//newScaledPosition[1] = (newPosition[1]*5);///*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
+		//newScaledPosition[2] = (newPosition[2]*5);//*(sqrt(xmax*xmax+ymax*ymax)/2000.0);
 
 		/*
 		qWarning("newScaledPosition %f %f %f",newScaledPosition[0],newScaledPosition[1],newScaledPosition[2]);*/
