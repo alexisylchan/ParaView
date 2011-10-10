@@ -463,9 +463,92 @@ void pqVRPNStarter::initializeEyeAngle()
 
 		//Code from vtkCaveSynchronizedRenderers::SetDisplayConfig
 		double DisplayX[3], DisplayY[3],DisplayOrigin[3];
-		double value = 1.0;
+
+		vtkMatrix4x4* displaySurface = vtkMatrix4x4::New();
+		/*displaySurface->SetElement(0,0,9.72);
+		displaySurface->SetElement(0,1,7.055);
+		displaySurface->SetElement(0,2,0.819);
+		displaySurface->SetElement(0,3,0);
+
+		displaySurface->SetElement(1,0,9.72);
+		displaySurface->SetElement(1,1,6.58);
+		displaySurface->SetElement(1,2,0.819);
+		displaySurface->SetElement(1,3,0);
+
+		displaySurface->SetElement(2,0,9.72);
+		displaySurface->SetElement(2,1,6.58);
+		displaySurface->SetElement(2,2,1.117);
+		displaySurface->SetElement(2,3,0);
+
+		displaySurface->SetElement(3,0,0.0);
+		displaySurface->SetElement(3,1,0.0);
+		displaySurface->SetElement(3,2,0.0);
+		displaySurface->SetElement(3,3,1.0);*/
+
+		displaySurface->SetElement(0,0,9.72);
+		displaySurface->SetElement(0,1,6.58);
+		displaySurface->SetElement(0,2,0.819);
+		displaySurface->SetElement(0,3,0);
+
+		displaySurface->SetElement(1,0,9.72);
+		displaySurface->SetElement(1,1,6.58);
+		displaySurface->SetElement(1,2,1.117);
+		displaySurface->SetElement(1,3,0);
+
+		displaySurface->SetElement(2,0,9.72);
+		displaySurface->SetElement(2,1,7.055);
+		displaySurface->SetElement(2,2,1.117);
+		displaySurface->SetElement(2,3,0);
+
+		displaySurface->SetElement(3,0,0.0);
+		displaySurface->SetElement(3,1,0.0);
+		displaySurface->SetElement(3,2,0.0);
+		displaySurface->SetElement(3,3,1.0);
+
+
+
+
+
+
+		vtkMatrix4x4* tracker2World = vtkMatrix4x4::New();
+		
+		tracker2World->SetElement(0,0,0);
+		tracker2World->SetElement(0,1,-1);
+		tracker2World->SetElement(0,2,0);
+		tracker2World->SetElement(0,3,0);
+
+		tracker2World->SetElement(1,0,0);
+		tracker2World->SetElement(1,1,0);
+		tracker2World->SetElement(1,2,1.0);
+		tracker2World->SetElement(1,3, 0);
+
+		tracker2World->SetElement(2,0,-1);
+		tracker2World->SetElement(2,1,0);
+		tracker2World->SetElement(2,2,0);
+		tracker2World->SetElement(2,3, 0);
+
+		tracker2World->SetElement(3,0,0.0);
+		tracker2World->SetElement(3,1,0.0);
+		tracker2World->SetElement(3,2,0.0);
+		tracker2World->SetElement(3,3,1.0);
+		
+
+	 vtkMatrix4x4::Multiply4x4(displaySurface,tracker2World,displaySurface);
+
+		//double value = 1.0;
 		if (this->sensorIndex == 1)
-		{ 
+		 { 
+		//DisplayOrigin[0]= -0.45;//-value;
+		//DisplayOrigin[1]= -0.3;//-value; 
+		//DisplayOrigin[2]= 0.9;//value; 
+		//DisplayX[0]= -0.45;//-value; 
+		//DisplayX[1]= -0.3;//-value; 
+		//DisplayX[2]= -0.9;//-value; 
+		//DisplayY[0]= -0.45;//-value;
+		//DisplayY[1]= 0.3;//value; 
+		//DisplayY[2]= -0.9;//-value; 
+
+			 
 		DisplayOrigin[0]= -0.45;//-value;
 		DisplayOrigin[1]= -0.3;//-value; 
 		DisplayOrigin[2]= 0.9;//value; 
@@ -476,18 +559,83 @@ void pqVRPNStarter::initializeEyeAngle()
 		DisplayY[1]= 0.3;//value; 
 		DisplayY[2]= -0.9;//-value; 
 
+		/*	DisplayOrigin[0]= 9.15;
+			DisplayOrigin[1]= 7.075;
+			DisplayOrigin[2]= 0.819;
+			DisplayX[0]= 9.288;
+			DisplayX[1]= 7.075;
+			DisplayX[2]= 0.819;
+			DisplayY[0]= 9.288;
+			DisplayY[1]= 7.075;
+			DisplayY[2]= 1.117;*/
+
+
+
 		}
 		else
-		{
-			DisplayOrigin[0]= -0.5;//-value;
-			DisplayOrigin[1]= -0.3;//-value; 
-			DisplayOrigin[2]= -0.9;//-value; 
-			DisplayX[0]= 0.5;//value; 
-			DisplayX[1]= -0.3;//-value; 
-			DisplayX[2]= -0.9;//-value; 
-			DisplayY[0]= 0.5;//value; 
-			DisplayY[1]= 0.3;//value; 
-			DisplayY[2]= -0.9;//-value; 
+		{/*
+			 DisplayOrigin[0]= displaySurface->GetElement(0,0);
+			DisplayOrigin[1]= displaySurface->GetElement(0,1);
+			DisplayOrigin[2]= displaySurface->GetElement(0,2);
+			DisplayX[0]= displaySurface->GetElement(1,0);
+			DisplayX[1]= displaySurface->GetElement(1,1);
+			DisplayX[2]= displaySurface->GetElement(1,2);
+			DisplayY[0]= displaySurface->GetElement(2,0);
+			DisplayY[1]= displaySurface->GetElement(2,1);
+			DisplayY[2]= displaySurface->GetElement(2,2); */
+
+			 
+			/*
+			DisplayOrigin[0]= 0 ;
+			DisplayOrigin[1]= 0;
+			DisplayOrigin[2]= 1;
+			DisplayX[0]= 0.475;
+			DisplayX[1]= 0;
+			DisplayX[2]= 1;
+			DisplayY[0]= 0.475;
+			DisplayY[1]=  0.298;
+			DisplayY[2]= 1;*/
+			
+			/*DisplayOrigin[0]= 9.72;
+			DisplayOrigin[1]= 7.055;
+			DisplayOrigin[2]= 0.819;
+			DisplayX[0]= 9.72;
+			DisplayX[1]= 6.58;
+			DisplayX[2]= 0.819;
+			DisplayY[0]= 9.72;
+			DisplayY[1]= 6.58;
+			DisplayY[2]= 1.117;*/
+
+			//DisplayOrigin[0]= -0.25;//-value;
+			//DisplayOrigin[1]= -0.3;//-value; 
+			//DisplayOrigin[2]= -0.9;//-value; 
+			//DisplayX[0]= 0.25;//value; 
+			//DisplayX[1]= -0.3;//-value; 
+			//DisplayX[2]= -0.9;//-value; 
+			//DisplayY[0]= 0.25;//value; 
+			//DisplayY[1]= 0;//value; 
+			//DisplayY[2]= -0.9;//-value; 
+
+
+			DisplayOrigin[0]= -0.25;//-value;
+			DisplayOrigin[1]= -0.15;//-value; 
+			DisplayOrigin[2]= -0.45;//-value; 
+			DisplayX[0]= 0.25;//value; 
+			DisplayX[1]= -0.15;//-value; 
+			DisplayX[2]= -0.45;//-value; 
+			DisplayY[0]= 0.25;//value; 
+			DisplayY[1]= 0.15;//value; 
+			DisplayY[2]= -0.45;//-value; 
+
+			//DisplayOrigin[0]= -0.5;//-value;
+			//DisplayOrigin[1]= -0.3;//-value; 
+			//DisplayOrigin[2]= -0.9;//-value; 
+			//DisplayX[0]= 0.5;//value; 
+			//DisplayX[1]= -0.3;//-value; 
+			//DisplayX[2]= -0.9;//-value; 
+			//DisplayY[0]= 0.5;//value; 
+			//DisplayY[1]= 0.3;//value; 
+			//DisplayY[2]= -0.9;//-value; 
 		}
 
 		double xBase[3],yBase[3],zBase[3];
