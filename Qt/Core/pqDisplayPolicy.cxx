@@ -315,11 +315,10 @@ pqDataRepresentation* pqDisplayPolicy::setRepresentationVisibility(
   // the next to last source is turned off, the camera would be reset to fit the
   // last remaining one which would be unexpected to the user
   // (hence the conditional on "visible")
-  /*if(view->getNumberOfVisibleRepresentations()==1 && visible)
-    {
-    view->resetDisplay();
-    }*/
-
+  //if(view->getNumberOfVisibleRepresentations()==1 && visible)
+  //  {
+  //  view->resetDisplay();
+  //  } 
   return repr;
 }
 

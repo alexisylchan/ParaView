@@ -483,17 +483,17 @@ void pqVRPNStarter::initializeEyeAngle()
 		else
 		{ 
 			
-			DisplayOrigin[0]= 8.0 ;//-value;
-		 	DisplayOrigin[1]= 5.4 ;//-value; 
-			DisplayOrigin[2]=  0.8 ;//-value; 
+			DisplayOrigin[0]= 8.174900;
+		 	DisplayOrigin[1]= 5.435796; 
+			DisplayOrigin[2]= 0.808637;//-value; 
 
-			DisplayX[0]=   8.0  ;//value; 
-			DisplayX[1]=   4.9    ;//-value; 
-			DisplayX[2]=   0.8 ;//-value; 
+			DisplayX[0]=   8.192622;//value; 
+			DisplayX[1]=    4.967024;//-value; 
+			DisplayX[2]=    0.803074;//-value; 
 
-			DisplayY[0]= 8.0   ;//value; 
-			DisplayY[1]=   4.9 ;//value; 
-			DisplayY[2]=    1.1;//-value;     
+			DisplayY[0]= 8.197782;//value; 
+			DisplayY[1]=    4.963459;//value; 
+			DisplayY[2]=     1.094415;//-value;     
 			vtkMatrix4x4* trackerTransformM = vtkMatrix4x4::New();
 			trackerTransformM->SetElement(0,0,0);
 			trackerTransformM->SetElement(0,1,-1);
@@ -567,7 +567,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		////qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
 		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065,((abs(O2Right) + abs(O2Left))/2.0)/1.732,SurfaceRot);
 		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.0 ,0.1268/0.22,SurfaceRot);
-		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065 ,6.69/0.5,SurfaceRot);
+		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065 ,6.69/O2Screen,SurfaceRot);
 		//TODO: Check if this causes problems
 		SurfaceRot->Delete();
 	}
