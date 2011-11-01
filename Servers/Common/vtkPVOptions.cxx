@@ -99,7 +99,7 @@ vtkPVOptions::vtkPVOptions()
   this->UseTNG = 0; 
   this->TNGAddress = 0;
   this->SetTNGAddress("tng3name@localhost");
-  this->SyncCollab = 1;
+  this->SyncCollab = 0;
   this->CollabVisDemo = 0;
   
   this->VRUIAddress = 0;

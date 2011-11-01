@@ -462,91 +462,11 @@ void pqVRPNStarter::initializeEyeAngle()
 		camera->SetHeadTracked(true);//this->useTracker);
 
 		//Code from vtkCaveSynchronizedRenderers::SetDisplayConfig
-		double DisplayX[3], DisplayY[3],DisplayOrigin[3];
-
-		vtkMatrix4x4* displaySurface = vtkMatrix4x4::New();
-		/*displaySurface->SetElement(0,0,9.72);
-		displaySurface->SetElement(0,1,7.055);
-		displaySurface->SetElement(0,2,0.819);
-		displaySurface->SetElement(0,3,0);
-
-		displaySurface->SetElement(1,0,9.72);
-		displaySurface->SetElement(1,1,6.58);
-		displaySurface->SetElement(1,2,0.819);
-		displaySurface->SetElement(1,3,0);
-
-		displaySurface->SetElement(2,0,9.72);
-		displaySurface->SetElement(2,1,6.58);
-		displaySurface->SetElement(2,2,1.117);
-		displaySurface->SetElement(2,3,0);
-
-		displaySurface->SetElement(3,0,0.0);
-		displaySurface->SetElement(3,1,0.0);
-		displaySurface->SetElement(3,2,0.0);
-		displaySurface->SetElement(3,3,1.0);*/
-
-		displaySurface->SetElement(0,0,9.72);
-		displaySurface->SetElement(0,1,6.58);
-		displaySurface->SetElement(0,2,0.819);
-		displaySurface->SetElement(0,3,0);
-
-		displaySurface->SetElement(1,0,9.72);
-		displaySurface->SetElement(1,1,6.58);
-		displaySurface->SetElement(1,2,1.117);
-		displaySurface->SetElement(1,3,0);
-
-		displaySurface->SetElement(2,0,9.72);
-		displaySurface->SetElement(2,1,7.055);
-		displaySurface->SetElement(2,2,1.117);
-		displaySurface->SetElement(2,3,0);
-
-		displaySurface->SetElement(3,0,0.0);
-		displaySurface->SetElement(3,1,0.0);
-		displaySurface->SetElement(3,2,0.0);
-		displaySurface->SetElement(3,3,1.0);
-
-
-
-
-
-
-		vtkMatrix4x4* tracker2World = vtkMatrix4x4::New();
-		
-		tracker2World->SetElement(0,0,0);
-		tracker2World->SetElement(0,1,-1);
-		tracker2World->SetElement(0,2,0);
-		tracker2World->SetElement(0,3,0);
-
-		tracker2World->SetElement(1,0,0);
-		tracker2World->SetElement(1,1,0);
-		tracker2World->SetElement(1,2,1.0);
-		tracker2World->SetElement(1,3, 0);
-
-		tracker2World->SetElement(2,0,-1);
-		tracker2World->SetElement(2,1,0);
-		tracker2World->SetElement(2,2,0);
-		tracker2World->SetElement(2,3, 0);
-
-		tracker2World->SetElement(3,0,0.0);
-		tracker2World->SetElement(3,1,0.0);
-		tracker2World->SetElement(3,2,0.0);
-		tracker2World->SetElement(3,3,1.0);
-		
-
-	 vtkMatrix4x4::Multiply4x4(displaySurface,tracker2World,displaySurface);
+		double DisplayX[4], DisplayY[4],DisplayOrigin[4];
 
 		//double value = 1.0;
 		if (this->sensorIndex == 1)
-		 { 
-		//DisplayOrigin[0]= -0.45;//-value;
-		//DisplayOrigin[1]= -0.3;//-value; 
-		//DisplayOrigin[2]= 0.9;//value; 
-		//DisplayX[0]= -0.45;//-value; 
-		//DisplayX[1]= -0.3;//-value; 
-		//DisplayX[2]= -0.9;//-value; 
-		//DisplayY[0]= -0.45;//-value;
-		//DisplayY[1]= 0.3;//value; 
-		//DisplayY[2]= -0.9;//-value; 
+		 {  
 
 			 
 		DisplayOrigin[0]= -0.45;//-value;
@@ -557,85 +477,48 @@ void pqVRPNStarter::initializeEyeAngle()
 		DisplayX[2]= -0.9;//-value; 
 		DisplayY[0]= -0.45;//-value;
 		DisplayY[1]= 0.3;//value; 
-		DisplayY[2]= -0.9;//-value; 
-
-		/*	DisplayOrigin[0]= 9.15;
-			DisplayOrigin[1]= 7.075;
-			DisplayOrigin[2]= 0.819;
-			DisplayX[0]= 9.288;
-			DisplayX[1]= 7.075;
-			DisplayX[2]= 0.819;
-			DisplayY[0]= 9.288;
-			DisplayY[1]= 7.075;
-			DisplayY[2]= 1.117;*/
-
-
+		DisplayY[2]= -0.9;//-value;  
 
 		}
 		else
-		{/*
-			 DisplayOrigin[0]= displaySurface->GetElement(0,0);
-			DisplayOrigin[1]= displaySurface->GetElement(0,1);
-			DisplayOrigin[2]= displaySurface->GetElement(0,2);
-			DisplayX[0]= displaySurface->GetElement(1,0);
-			DisplayX[1]= displaySurface->GetElement(1,1);
-			DisplayX[2]= displaySurface->GetElement(1,2);
-			DisplayY[0]= displaySurface->GetElement(2,0);
-			DisplayY[1]= displaySurface->GetElement(2,1);
-			DisplayY[2]= displaySurface->GetElement(2,2); */
-
-			 
-			/*
-			DisplayOrigin[0]= 0 ;
-			DisplayOrigin[1]= 0;
-			DisplayOrigin[2]= 1;
-			DisplayX[0]= 0.475;
-			DisplayX[1]= 0;
-			DisplayX[2]= 1;
-			DisplayY[0]= 0.475;
-			DisplayY[1]=  0.298;
-			DisplayY[2]= 1;*/
+		{ 
 			
-			/*DisplayOrigin[0]= 9.72;
-			DisplayOrigin[1]= 7.055;
-			DisplayOrigin[2]= 0.819;
-			DisplayX[0]= 9.72;
-			DisplayX[1]= 6.58;
-			DisplayX[2]= 0.819;
-			DisplayY[0]= 9.72;
-			DisplayY[1]= 6.58;
-			DisplayY[2]= 1.117;*/
+			DisplayOrigin[0]= 8.0 ;//-value;
+		 	DisplayOrigin[1]= 5.4 ;//-value; 
+			DisplayOrigin[2]=  0.8 ;//-value; 
 
-			//DisplayOrigin[0]= -0.25;//-value;
-			//DisplayOrigin[1]= -0.3;//-value; 
-			//DisplayOrigin[2]= -0.9;//-value; 
-			//DisplayX[0]= 0.25;//value; 
-			//DisplayX[1]= -0.3;//-value; 
-			//DisplayX[2]= -0.9;//-value; 
-			//DisplayY[0]= 0.25;//value; 
-			//DisplayY[1]= 0;//value; 
-			//DisplayY[2]= -0.9;//-value; 
+			DisplayX[0]=   8.0  ;//value; 
+			DisplayX[1]=   4.9    ;//-value; 
+			DisplayX[2]=   0.8 ;//-value; 
 
-
-			DisplayOrigin[0]= -0.25;//-value;
-			DisplayOrigin[1]= -0.15;//-value; 
-			DisplayOrigin[2]= -0.45;//-value; 
-			DisplayX[0]= 0.25;//value; 
-			DisplayX[1]= -0.15;//-value; 
-			DisplayX[2]= -0.45;//-value; 
-			DisplayY[0]= 0.25;//value; 
-			DisplayY[1]= 0.15;//value; 
-			DisplayY[2]= -0.45;//-value; 
-
-			//DisplayOrigin[0]= -0.5;//-value;
-			//DisplayOrigin[1]= -0.3;//-value; 
-			//DisplayOrigin[2]= -0.9;//-value; 
-			//DisplayX[0]= 0.5;//value; 
-			//DisplayX[1]= -0.3;//-value; 
-			//DisplayX[2]= -0.9;//-value; 
-			//DisplayY[0]= 0.5;//value; 
-			//DisplayY[1]= 0.3;//value; 
-			//DisplayY[2]= -0.9;//-value; 
+			DisplayY[0]= 8.0   ;//value; 
+			DisplayY[1]=   4.9 ;//value; 
+			DisplayY[2]=    1.1;//-value;     
+			vtkMatrix4x4* trackerTransformM = vtkMatrix4x4::New();
+			trackerTransformM->SetElement(0,0,0);
+			trackerTransformM->SetElement(0,1,-1);
+			trackerTransformM->SetElement(0,2,0);
+			trackerTransformM->SetElement(0,3,-1*trackerOrigin[1]);
+			trackerTransformM->SetElement(1,0,0);
+			trackerTransformM->SetElement(1,1,0);
+			trackerTransformM->SetElement(1,2,1);
+			trackerTransformM->SetElement(1,3, 1*trackerOrigin[2]);
+			trackerTransformM->SetElement(2,0,-1);
+			trackerTransformM->SetElement(2,1,0);
+			trackerTransformM->SetElement(2,2,0); 
+			trackerTransformM->SetElement(2,3,-1*trackerOrigin[0]);
+			trackerTransformM->SetElement(3,0, 0);
+			trackerTransformM->SetElement(3,1, 0 );
+			trackerTransformM->SetElement(3,2,0); 
+			trackerTransformM->SetElement(3,3,1);
+			DisplayOrigin[3] = 1;
+			DisplayX[3] = 1;
+			DisplayY[3] = 1;
+			trackerTransformM->MultiplyPoint(DisplayOrigin,DisplayOrigin);
+			trackerTransformM->MultiplyPoint(DisplayX,DisplayX);
+			trackerTransformM->MultiplyPoint(DisplayY,DisplayY); 
+			
+ 
 		}
 
 		double xBase[3],yBase[3],zBase[3];
@@ -667,6 +550,14 @@ void pqVRPNStarter::initializeEyeAngle()
 		SurfaceRot->MultiplyPoint( DisplayX, DisplayX );
 		SurfaceRot->MultiplyPoint( DisplayY, DisplayY );
 
+			//// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top
+	/*	double O2Screen = - DisplayOrigin[2];
+		double O2Right  =   DisplayX[0];
+		double O2Left   =   DisplayOrigin[0];
+		double O2Top    =   DisplayY[1];
+		double O2Bottom =   DisplayX[1];*/
+
+
 		// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top
 		double O2Screen = - DisplayOrigin[2];
 		double O2Right  =   DisplayX[0];
@@ -674,7 +565,9 @@ void pqVRPNStarter::initializeEyeAngle()
 		double O2Top    =   DisplayY[1];
 		double O2Bottom = - DisplayX[1];
 		////qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
-		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0,1.0,SurfaceRot);
+		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065,((abs(O2Right) + abs(O2Left))/2.0)/1.732,SurfaceRot);
+		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.0 ,0.1268/0.22,SurfaceRot);
+		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065 ,6.69/0.5,SurfaceRot);
 		//TODO: Check if this causes problems
 		SurfaceRot->Delete();
 	}
@@ -1265,88 +1158,88 @@ const vrpn_ANALOGCB t)
     tData->sn_counts.push_back(0);
     }
 
-  if ( tData->sn_counts[0] == 1 )
-    {
-    tData->sn_counts[0] = 0;
+  //if ( tData->sn_counts[0] == 1 )
+  //  {
+  //  tData->sn_counts[0] = 0;
 
-    vrpn_ANALOGCB at = t;//TODO: TEST If this is better SNAugmentChannelsToRetainLargestMagnitude(t);
-    pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	
-	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
-	{ 
+  //  vrpn_ANALOGCB at = t;//TODO: TEST If this is better SNAugmentChannelsToRetainLargestMagnitude(t);
+ //   pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	//
+	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+	//{ 
 
-			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-			vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
-			/*	Try to move Camera around  . .*/
-			vtkCamera* camera;
-            double pos[3], fp[3], up[3], dir[3];
-			
+	//		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+	//		vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
+	//		/*	Try to move Camera around  . .*/
+	//		vtkCamera* camera;
+ //           double pos[3], fp[3], up[3], dir[3];
+	//		
 
-            camera = viewProxy->GetActiveCamera();
+ //           camera = viewProxy->GetActiveCamera();
 
-            camera->GetPosition(pos);
-            camera->GetFocalPoint(fp);
-            camera->GetDirectionOfProjection(dir);
-			
+ //           camera->GetPosition(pos);
+ //           camera->GetFocalPoint(fp);
+ //           camera->GetDirectionOfProjection(dir);
+	//		
 
-            camera->OrthogonalizeViewUp();
-            camera->GetViewUp(up);
+ //           camera->OrthogonalizeViewUp();
+ //           camera->GetViewUp(up);
 
-            for (int i = 0; i < 3; i++)
-              {
-                double dx = 0.01*at.channel[2]*up[i];
-                pos[i] += dx;
-                fp[i]  += dx;
-              }
+ //           for (int i = 0; i < 3; i++)
+ //             {
+ //               double dx = 0.01*at.channel[2]*up[i];
+ //               pos[i] += dx;
+ //               fp[i]  += dx;
+ //             }
 
-            // Apply right-left motion
-            double r[3];
-            vtkMath::Cross(dir, up, r);
+ //           // Apply right-left motion
+ //           double r[3];
+ //           vtkMath::Cross(dir, up, r);
 
-            for (int i = 0; i < 3; i++)
-              {
-                double dx = 0.01*at.channel[0]*r[i];
-                pos[i] += dx;
-                fp[i]  += dx;
-              }
+ //           for (int i = 0; i < 3; i++)
+ //             {
+ //               double dx = 0.01*at.channel[0]*r[i];
+ //               pos[i] += dx;
+ //               fp[i]  += dx;
+ //             }
 
-            camera->SetPosition(pos);
-            camera->SetFocalPoint(fp);
-			camera->Dolly(pow(1.01,-at.channel[1]));
-			camera->ViewingRaysModified(); 
-			if (tData->sensorIndex == 1)
-			{	
-				camera->Azimuth(    1.0*at.channel[5]);
-				camera->Roll(       -1.0*at.channel[4]);
-				 double axis[3], newPosition[3]; 
-				vtkTransform* vttrans = vtkTransform::New();
-				// snatch the axis from the view transform matrix
-				axis[0] = -camera->GetViewTransformMatrix()->GetElement(2,0);
-				axis[1] = -camera->GetViewTransformMatrix()->GetElement(2,1);
-				axis[2] = -camera->GetViewTransformMatrix()->GetElement(2,2); 
-				vttrans->Translate(+fp[0],+fp[1],+fp[2]);
-				vttrans->RotateWXYZ(-1.0*at.channel[3],axis);
-				vttrans->Translate(-fp[0],-fp[1],-fp[2]); 
-				vttrans->TransformPoint(camera->GetPosition(),newPosition);
-				camera->SetPosition(newPosition);
-				vttrans->Delete();
-			}
-			else 
-			{				
-			
-				camera->Azimuth(    1.0*at.channel[5]);
-				camera->Roll(       -1.0*at.channel[4]);	
-				camera->Elevation(  -1.0*at.channel[3]);
-			} 
-			viewProxy->GetRenderer()->ResetCameraClippingRange();
-			
-		  }
+ //           camera->SetPosition(pos);
+ //           camera->SetFocalPoint(fp);
+	//		camera->Dolly(pow(1.01,-at.channel[1]));
+	//		camera->ViewingRaysModified(); 
+	//		if (tData->sensorIndex == 1)
+	//		{	
+	//			camera->Azimuth(    1.0*at.channel[5]);
+	//			camera->Roll(       -1.0*at.channel[4]);
+	//			 double axis[3], newPosition[3]; 
+	//			vtkTransform* vttrans = vtkTransform::New();
+	//			// snatch the axis from the view transform matrix
+	//			axis[0] = -camera->GetViewTransformMatrix()->GetElement(2,0);
+	//			axis[1] = -camera->GetViewTransformMatrix()->GetElement(2,1);
+	//			axis[2] = -camera->GetViewTransformMatrix()->GetElement(2,2); 
+	//			vttrans->Translate(+fp[0],+fp[1],+fp[2]);
+	//			vttrans->RotateWXYZ(-1.0*at.channel[3],axis);
+	//			vttrans->Translate(-fp[0],-fp[1],-fp[2]); 
+	//			vttrans->TransformPoint(camera->GetPosition(),newPosition);
+	//			camera->SetPosition(newPosition);
+	//			vttrans->Delete();
+	//		}
+	//		else 
+	//		{				
+	//		
+	//			camera->Azimuth(    1.0*at.channel[5]);
+	//			camera->Roll(       -1.0*at.channel[4]);	
+	//			camera->Elevation(  -1.0*at.channel[3]);
+	//		} 
+	//		viewProxy->GetRenderer()->ResetCameraClippingRange();
+	//		
+	//	  }
 
-    }
-  else
-    {
-      tData->sn_counts[0]++;
-    }
+ //   }
+ // else
+ //   {
+ //     tData->sn_counts[0]++;
+ //   }
 }
 
 
@@ -1401,11 +1294,11 @@ void  pqVRPNStarter::loadState()
 void  pqVRPNStarter::initialLoadState()
 {
 		//createConeInParaView();
-		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
+		/*if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
 			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
 		else
 			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));
-
+*/
 		this->changeTimeStamp();
 }
 
