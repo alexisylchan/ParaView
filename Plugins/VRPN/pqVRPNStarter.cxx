@@ -567,7 +567,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		////qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
 		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065,((abs(O2Right) + abs(O2Left))/2.0)/1.732,SurfaceRot);
 		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.0 ,0.1268/0.22,SurfaceRot);
-		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065 ,6.69/O2Screen,SurfaceRot);
+		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom, 0.065  ,6.69/O2Screen,SurfaceRot);
 		//TODO: Check if this causes problems
 		SurfaceRot->Delete();
 	}
