@@ -30,12 +30,15 @@
 #include "vtkDeviceInteractorStyle.h"
 
 #include "vtkVRPNPhantom.h"
-#include "vtkActor.h"
+
+#define CREATE_VTK_CONE 1
+
 //
 //class vtkCollisionDetectionFilter;
 class pqView;
 class pqPipelineSource;
-
+class vtkActor;
+class vtkConeSource;
 class vtkVRPNPhantomStyleCamera : public vtkDeviceInteractorStyle
 {
 public:
@@ -57,8 +60,10 @@ public:
   bool GetCreateTube();
 
   void SetActor(vtkActor* myActor);
+  void SetConeSource(vtkConeSource* myCone);
   /*void SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter);*/
   vtkActor* myActor;
+  vtkConeSource* myCone;
 
   void SetEvaluationLog(ofstream* evaluationlog);
 

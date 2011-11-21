@@ -129,6 +129,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqOutputPort.h"
 #include "pqProxyTabWidget.h"
 #include "pqRepresentation.h"
+
+//VTK source
+#include "vtkConeSource.h"
+#include "vtkSphereSource.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkPVXMLElement.h"
+#include "vtkSMProxyLocator.h"
+
+
+
 // From Cory Quammen's code
 class sn_user_callback
 {
@@ -494,6 +505,8 @@ void pqVRPNStarter::initializeEyeAngle()
 			DisplayY[0]= 8.197782;//value; 
 			DisplayY[1]=    4.963459;//value; 
 			DisplayY[2]=     1.094415;//-value;     
+
+			//Todo: factorize this
 			vtkMatrix4x4* trackerTransformM = vtkMatrix4x4::New();
 			trackerTransformM->SetElement(0,0,0);
 			trackerTransformM->SetElement(0,1,-1);
@@ -548,16 +561,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		SurfaceRot->SetElement( 2, 2, zBase[2]);
 		SurfaceRot->MultiplyPoint( DisplayOrigin, DisplayOrigin );
 		SurfaceRot->MultiplyPoint( DisplayX, DisplayX );
-		SurfaceRot->MultiplyPoint( DisplayY, DisplayY );
-
-			//// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top
-	/*	double O2Screen = - DisplayOrigin[2];
-		double O2Right  =   DisplayX[0];
-		double O2Left   =   DisplayOrigin[0];
-		double O2Top    =   DisplayY[1];
-		double O2Bottom =   DisplayX[1];*/
-
-
+		SurfaceRot->MultiplyPoint( DisplayY, DisplayY );  
 		// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top
 		double O2Screen = - DisplayOrigin[2];
 		double O2Right  =   DisplayX[0];
@@ -638,7 +642,7 @@ void pqVRPNStarter::initializeDevices()
 		/////////////////////////CREATE  TRACKER STYLE////////////////////////////
 
 		//Create device interactor style (defined in vtkInteractionDevice.lib) that determines how the device manipulates camera viewpoint
-		vtkVRPNTrackerCustomSensorStyleCamera* trackerStyleCamera1 = vtkVRPNTrackerCustomSensorStyleCamera::New();
+		trackerStyleCamera1 = vtkVRPNTrackerCustomSensorStyleCamera::New();
 		trackerStyleCamera1->SetTracker(tracker1);
 		trackerStyleCamera1->SetRenderer(renderer1);
 	
@@ -651,6 +655,7 @@ void pqVRPNStarter::initializeDevices()
    }  
 	if (this->usePhantom)
 	{
+
 		/////////////////////////CREATE  PHANTOM////////////////////////////
 		
 		vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
@@ -658,11 +663,23 @@ void pqVRPNStarter::initializeDevices()
 		phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
 		phantom1->SetNumberOfButtons(2);
 		phantom1->SetSensorIndex(this->sensorIndex);
+
 		phantom1->Initialize();
-
-
+  
 		/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
-		phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New();
+		phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New(); 
+		/////////////////////////CONNECT TO SERVER CHANGE////////////////////////////
+ 
+		if (CREATE_VTK_CONE)
+		{ 
+			this->createConeAndSphereFromVTK(false);
+
+			phantomStyleCamera1->SetActor(ConeActor); 
+			phantomStyleCamera1->SetConeSource(this->Cone);
+
+		QObject::connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement* , vtkSMProxyLocator* )),
+		this, SLOT(resetPhantomActor(vtkPVXMLElement* , vtkSMProxyLocator* )));
+		}
 		phantomStyleCamera1->SetPhantom(phantom1);
 		phantomStyleCamera1->SetRenderer(renderer1);
 		phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
@@ -1438,3 +1455,97 @@ void pqVRPNStarter::createConeInParaView()
 	}
 }
 
+void pqVRPNStarter::createConeAndSphereFromVTK(bool deleteOldCone)
+{
+	
+	double position[3] = {-0.000033, -0.065609, -0.087861};
+	double quat[4] = { -0.205897 ,-0.050476, -0.227901 , 0.950326};
+	    double  matrix[3][3];
+		double orientNew[3] ;
+		if (deleteOldCone)
+		{
+			this->ConeActor->Delete();
+			this->Cone->Delete();
+		}
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() );  
+		 
+		vtkMatrix4x4* cameraLightTransformMatrix = proxy->GetActiveCamera()->GetCameraLightTransformMatrix(); 
+		cameraLightTransformMatrix->MultiplyPoint(position,position); 
+		// Update Object Orientation
+
+		//Change transform quaternion to matrix
+		vtkMath::QuaternionToMatrix3x3(quat, matrix); 
+		vtkMatrix4x4* RotationMatrix = vtkMatrix4x4::New();
+		RotationMatrix->SetElement(0,0, matrix[0][0]);
+		RotationMatrix->SetElement(0,1, matrix[0][1]);
+		RotationMatrix->SetElement(0,2, matrix[0][2]); 
+		RotationMatrix->SetElement(0,3, 0.0); 
+		
+		RotationMatrix->SetElement(1,0, matrix[1][0]);
+		RotationMatrix->SetElement(1,1, matrix[1][1]);
+		RotationMatrix->SetElement(1,2, matrix[1][2]); 
+		RotationMatrix->SetElement(1,3, 0.0); 
+		
+		RotationMatrix->SetElement(2,0, matrix[2][0]);
+		RotationMatrix->SetElement(2,1, matrix[2][1]);
+		RotationMatrix->SetElement(2,2, matrix[2][2]); 
+		RotationMatrix->SetElement(2,3, 1.0); 
+
+		//cameraLightTransformMatrix->Multiply4x4(cameraLightTransformMatrix,RotationMatrix,RotationMatrix); 
+		vtkTransform::GetOrientation(orientNew,RotationMatrix); 
+ 
+	// ConeSource
+    Cone = vtkConeSource::New();
+	Cone->SetRadius(0.05);
+	Cone->SetHeight(0.1); 
+	/*Cone->SetRadius(0.05);
+	Cone->SetHeight(0.1); */
+	Cone->SetDirection(orientNew); 
+
+	//Cone Mapper
+    vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
+	ConeMapper->SetInput(Cone->GetOutput());
+    
+	ConeActor = vtkActor::New();
+    ConeActor->SetMapper(ConeMapper); 
+	ConeActor->SetPosition(position);  
+ 	vtkRenderer* renderer1 = proxy->GetRenderer();
+	renderer1->AddActor(ConeActor);
+
+	Cone->Delete(); 
+	ConeMapper->Delete();
+
+
+}
+
+
+void pqVRPNStarter::resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* locator)
+{
+	if (this->useTracker)
+	{ 
+		
+		trackerStyleCamera1->SetRenderer(vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() )->GetRenderer());
+	}
+	if (this->usePhantom)
+	{
+
+	this->VRPNTimer->blockSignals(true);
+	createConeAndSphereFromVTK(true);
+	phantomStyleCamera1->SetActor(this->ConeActor);
+	phantomStyleCamera1->SetConeSource(this->Cone);
+	this->VRPNTimer->blockSignals(false);
+	}
+}
+void pqVRPNStarter::resetPhantomActor2()
+{
+	if (this->usePhantom)
+	{
+
+	this->VRPNTimer->blockSignals(true);
+	this->ConeActor->Delete();
+	createConeAndSphereFromVTK(true);
+	phantomStyleCamera1->SetActor(this->ConeActor);
+	phantomStyleCamera1->SetConeSource(this->Cone);
+	this->VRPNTimer->blockSignals(false);
+	}
+}

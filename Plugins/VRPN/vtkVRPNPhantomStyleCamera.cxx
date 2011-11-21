@@ -82,6 +82,10 @@
 // Allow Vortex Vis option
 #include "vtkPVOptions.h"
 #include "vtkProcessModule.h"
+
+#include "vtkActor.h"
+#include "vtkConeSource.h"
+
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 
@@ -139,6 +143,10 @@ void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor)
 { 
 	this->myActor = myActor;
 }
+void vtkVRPNPhantomStyleCamera::SetConeSource(vtkConeSource* myCone) 
+{ 
+	this->myCone = myCone;
+}
 //----------------------------------------------------------------------------
 //void vtkVRPNPhantomStyleCamera::PrintCollision(vtkCollisionDetectionFilter* CollisionFilter)
 //{
@@ -163,12 +171,63 @@ void vtkVRPNPhantomStyleCamera::SetEvaluationLog(ofstream* evaluationlog)
 { 
 	this->evaluationlog = evaluationlog;
 }
+//----------------------------------------------------------------------------
+ 
 void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
-{ 
-	
-	if (!this->showingTimeline)
+{
+	if (CREATE_VTK_CONE)
 	{
-	//qWarning(" Showing Timeline %d",this->showingTimeline);
+	if (myActor)
+	{ 
+		double* position = Phantom->GetPosition();
+		double newPosition[3];
+		//Scale up position. TODO: Determine how much to scale between phantom position and world position
+		for (int s = 0; s<3;s++)
+		{
+			newPosition[s]=position[s];
+		} 
+		
+		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() );  
+		vtkMatrix4x4* cameraLightTransformMatrix = proxy->GetActiveCamera()->GetCameraLightTransformMatrix(); 
+		cameraLightTransformMatrix->MultiplyPoint(newPosition,newPosition); 
+		// Update Object Orientation
+        double  matrix[3][3];
+		double orientNew[4] ;
+		//Change transform quaternion to matrix
+		vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix); 
+		vtkMatrix4x4* RotationMatrix = vtkMatrix4x4::New();
+		RotationMatrix->SetElement(0,0, matrix[0][0]);
+		RotationMatrix->SetElement(0,1, matrix[0][1]);
+		RotationMatrix->SetElement(0,2, matrix[0][2]); 
+		RotationMatrix->SetElement(0,3, 0.0); 
+		
+		RotationMatrix->SetElement(1,0, matrix[1][0]);
+		RotationMatrix->SetElement(1,1, matrix[1][1]);
+		RotationMatrix->SetElement(1,2, matrix[1][2]); 
+		RotationMatrix->SetElement(1,3, 0.0); 
+		
+		RotationMatrix->SetElement(2,0, matrix[2][0]);
+		RotationMatrix->SetElement(2,1, matrix[2][1]);
+		RotationMatrix->SetElement(2,2, matrix[2][2]); 
+		RotationMatrix->SetElement(2,3, 1.0); 
+
+		//cameraLightTransformMatrix->Multiply4x4(cameraLightTransformMatrix,RotationMatrix,RotationMatrix); 
+		
+		vtkTransform::GetOrientation(orientNew,RotationMatrix);
+		myActor->SetOrientation(orientNew); 
+
+		double normalizedOrientNew= vtkMath::Norm(orientNew);
+		for (int i =0; i < 3; i++)
+		{
+			newPosition[i] = newPosition[i] -(myCone->GetHeight()/2.0)* (orientNew[i]/normalizedOrientNew);
+		}
+		myActor->SetPosition(newPosition);
+
+
+	}
+	}
+	else
+	{
 	double* position = Phantom->GetPosition(); 
 	
 	
@@ -192,66 +251,178 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		vtkSMPVRepresentationProxy *repProxy = 0;
 		repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
 		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
-		delete newPosition;
-		repProxy->UpdateVTKObjects();
-	
-	    if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
-		{ 
-		//Operate on object
-		// FOR REMOTE DEBUGGING if (first)
-		if (Phantom->GetButton(0))
-		{	
-			//qWarning("Button 0!");
-			//this->CreateStreamTracerTube(view,Phantom,newPosition);	
-			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
-			if (createdSource) // Assume that this is always true
+
+		 double  matrix[3][3];
+		double orientNew[3] ;
+		//Change transform quaternion to matrix
+		vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
+		vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
+		for (int i =0; i<4;i++)
+		{
+			for (int j = 0; j<4; j++)
 			{
-				this->ModifySeedPosition(createdSource,newPosition);
-				this->DisplayCreatedObject(view,createdSource, false);   
-				 
-				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1"); 
-				if (!tubeSource)
-					tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube2"); //Hack: Make this Tube2 instead of Tube1 for certain occasions where ParaView renames the Tubes
-				//pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(4);
-				if (tubeSource)
-				{  
-					BEGIN_UNDO_SET(QString("Delete %1").arg(tubeSource->getSMName()));
-					pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
-					END_UNDO_SET();
-					//TODO FIX BUG: REPLACE7 WITH ACTUAL COUNT
-					this->CreateParaViewObject(7,-1,view,Phantom,newPosition,"TubeFilter");
-				}  
-			
+				if ((i == 3) || (j==3))
+				{
+					vtkMatrixToOrient->SetElement(i,j, 0);
+				}
+				else
+					vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
 			}
 		}
-		if (Phantom->GetButton(1))
-		{
-			
-			 QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
-			 pqTimeKeeper* timekeeper =  Scene->getServer()->getTimeKeeper();
-			 int index = timekeeper->getTimeStepValueIndex(Scene->getServer()->getTimeKeeper()->getTime());
-			 *evaluationlog <<"TimeIndex :"<<index<<endl;
-			*evaluationlog << "phantom: " << newPosition[0] << "," << newPosition[1] << "," << newPosition[2] << endl;
-			pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::STREAMTRACER_INPUT); 
-				if (nextData)
-				{	
-					
-					vtkSMPVRepresentationProxy *nextDataProxy = 0;
-					nextDataProxy = vtkSMPVRepresentationProxy::SafeDownCast(nextData->getProxy());
-					double* nextDataPosition =  new double[3];
-					vtkSMPropertyHelper(nextDataProxy,"Position").Get(nextDataPosition,3);  
-					*evaluationlog << "data: " << nextDataPosition[0] << "," << nextDataPosition[1] << "," << nextDataPosition[2] << endl;
-					delete nextDataPosition;
-				} 
-			evaluationlog->flush();
-		}
-		//else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
-		//	CreateStreamTracerTube(view,Phantom,newPosition);
-		}
-		}
-	}  
+		vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
+
+		vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
+
+
+
+		delete newPosition;
+		repProxy->UpdateVTKObjects();
 	}
+	}
+	}
+	//else
+	//{	
+	//// CODE FOR ADDING ARROW TO PARAVIEW - DO NOT REMOVE
+ //   pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
+	///*for (int j = 0; j < serverManager->getNumberOfItems<pqDataRepresentation*> (); j++)
+	//{*/
+	//	pqDataRepresentation *data = serverManager->getItemAtIndex<pqDataRepresentation*>(0);
+	//	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
+	//	{
+	//		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+	//		vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() ); 
+
+	//		vtkSMRepresentationProxy *repProxy = 0;
+	//		repProxy = vtkSMRepresentationProxy::SafeDownCast(data->getProxy());
+
+	//		if ( repProxy && viewProxy)
+	//		  {
+	//			// Update Object Orientation
+ //               double  matrix[3][3];
+	//			double orientNew[3] ;
+	//			//Change transform quaternion to matrix
+	//			vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
+	//			vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
+	//			for (int i =0; i<4;i++)
+	//			{
+	//				for (int j = 0; j<4; j++)
+	//				{
+	//					if ((i == 3) || (j==3))
+	//					{
+	//						vtkMatrixToOrient->SetElement(i,j, 0);
+	//					}
+	//					else
+	//						vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
+	//				}
+	//			}
+	//			// Change matrix to orientation values
+	//			vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
+	//			double* position = Phantom->GetPosition();
+	//			double newPosition[3];
+	//			//Scale up position. TODO: Determine how much to scale between phantom position and world position
+	//			for (int s = 0; s<3;s++)
+	//			{
+	//				newPosition[s]= position[s]*10;
+	//			}
+
+	//			vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3);
+	//			vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
+	//			repProxy->UpdateVTKObjects(); 
+	//		  }
+	//	  }
+
+ //     }
+ 
 }
+//void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
+//{ 
+//	
+//	if (!this->showingTimeline)
+//	{
+//	//qWarning(" Showing Timeline %d",this->showingTimeline);
+//	double* position = Phantom->GetPosition(); 
+//	
+//	
+//	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 
+//
+//	for (int i = 0; i<serverManager->getNumberOfItems<pqView*>(); i++)
+//	{
+//		/*qWarning("Orig %f %f %f",position[0],position[1],position[2]);*/
+//		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
+//		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
+//		vtkCamera* camera = proxy->GetActiveCamera();  
+//		
+//		double* newPosition;
+//		newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer(),Phantom->GetSensorIndex());
+//		//newPosition= this->ScalePosition(position,proxy->GetRenderer());
+//
+//			//Set position to view position
+//		pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
+//		if (cursorData)
+//		{
+//		vtkSMPVRepresentationProxy *repProxy = 0;
+//		repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
+//		vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
+//		delete newPosition;
+//		repProxy->UpdateVTKObjects();
+//	
+//	    if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
+//		{ 
+//		//Operate on object
+//		// FOR REMOTE DEBUGGING if (first)
+//		if (Phantom->GetButton(0))
+//		{	
+//			//qWarning("Button 0!");
+//			//this->CreateStreamTracerTube(view,Phantom,newPosition);	
+//			pqPipelineSource* createdSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
+//			if (createdSource) // Assume that this is always true
+//			{
+//				this->ModifySeedPosition(createdSource,newPosition);
+//				this->DisplayCreatedObject(view,createdSource, false);   
+//				 
+//				pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1"); 
+//				if (!tubeSource)
+//					tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube2"); //Hack: Make this Tube2 instead of Tube1 for certain occasions where ParaView renames the Tubes
+//				//pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(4);
+//				if (tubeSource)
+//				{  
+//					BEGIN_UNDO_SET(QString("Delete %1").arg(tubeSource->getSMName()));
+//					pqApplicationCore::instance()->getObjectBuilder()->destroy(tubeSource);
+//					END_UNDO_SET();
+//					//TODO FIX BUG: REPLACE7 WITH ACTUAL COUNT
+//					this->CreateParaViewObject(7,-1,view,Phantom,newPosition,"TubeFilter");
+//				}  
+//			
+//			}
+//		}
+//		if (Phantom->GetButton(1))
+//		{
+//			
+//			 QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
+//			 pqTimeKeeper* timekeeper =  Scene->getServer()->getTimeKeeper();
+//			 int index = timekeeper->getTimeStepValueIndex(Scene->getServer()->getTimeKeeper()->getTime());
+//			 *evaluationlog <<"TimeIndex :"<<index<<endl;
+//			*evaluationlog << "phantom: " << newPosition[0] << "," << newPosition[1] << "," << newPosition[2] << endl;
+//			pqDataRepresentation *nextData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::STREAMTRACER_INPUT); 
+//				if (nextData)
+//				{	
+//					
+//					vtkSMPVRepresentationProxy *nextDataProxy = 0;
+//					nextDataProxy = vtkSMPVRepresentationProxy::SafeDownCast(nextData->getProxy());
+//					double* nextDataPosition =  new double[3];
+//					vtkSMPropertyHelper(nextDataProxy,"Position").Get(nextDataPosition,3);  
+//					*evaluationlog << "data: " << nextDataPosition[0] << "," << nextDataPosition[1] << "," << nextDataPosition[2] << endl;
+//					delete nextDataPosition;
+//				} 
+//			evaluationlog->flush();
+//		}
+//		//else if (Phantom->GetButton(1)) // Button 1 is for always creating new streamtracer source
+//		//	CreateStreamTracerTube(view,Phantom,newPosition);
+//		}
+//		}
+//	}  
+//	}
+//}
 void vtkVRPNPhantomStyleCamera::SetCreateTube(bool createTube)
 {
 	this->createTube = createTube;

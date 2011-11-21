@@ -57,18 +57,24 @@ class pqProxy;
 class pqPipelineSource;
 class vtkSMProxy;
 class pqPipelineFilter;
-
+class vtkVRPNTrackerCustomSensorStyleCamera;
 
 #define IGNORE_FILE_ACC 1 
 
 //Timeline
 class vtkVRPNPhantomStyleCamera;
+class vtkPVXMLElement;
+class vtkSMProxyLocator;
+class vtkConeSource;
 
 class pqVRPNStarter : public QObject
 {
   Q_OBJECT
   typedef QObject Superclass;
 public:
+	vtkActor* ConeActor;
+	vtkConeSource* Cone;
+	vtkActor* SphereActor;
 
 	//Constants used for selecting Data Set Type in the Special UseCase: Vortex Visualization
 	enum DataType
@@ -125,7 +131,6 @@ public slots:
 	//Listen to proxy creation from pqObjectBuilder
 	void onSourceCreated(pqPipelineSource* createdSource);
 	void onFilterCreated(pqPipelineSource* createdFilter);
-
 	void onSourceChanged(pqPipelineSource* changedSource);
 
 	//Listen to accept from pqObjectInspectorWidget  
@@ -133,12 +138,19 @@ public slots:
 
 	//Listen to Proxy Tab Widget selection change to enable propagation of Representation properties (see bug 11)
 	 void onProxyTabWidgetChanged(int tabIndex);
+
+	 //Reset Phantom Actor when server is changed
+	void resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
+	void resetPhantomActor2();
 protected:
 	//
     QTimer *VRPNTimer;
 
 	//inputInteractor 
 	vtkDeviceInteractor* inputInteractor;
+
+	//Need to reset renderer to handle load state
+	vtkVRPNTrackerCustomSensorStyleCamera*  trackerStyleCamera1;
 
 	//SpaceNavigator and TNG-3B Serial Interface are handled as vrpn_Analog_Remote objects with corresponding callbacks
 	vrpn_Analog_Remote* spaceNavigator1;
@@ -239,6 +251,7 @@ private:
   // on source change after creation , we need to _not_ change isRepeating so that the pqpropertylinks
   // changes will not be repeated infinitely.
   bool onSourceChangeAfterRepeatingCreation;
+  void createConeAndSphereFromVTK(bool deleteOldCone);
 };
 
 #endif
