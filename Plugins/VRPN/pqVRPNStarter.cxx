@@ -567,12 +567,9 @@ void pqVRPNStarter::initializeEyeAngle()
 		double O2Right  =   DisplayX[0];
 		double O2Left   = - DisplayOrigin[0];
 		double O2Top    =   DisplayY[1];
-		double O2Bottom = - DisplayX[1];
-		////qWarning("%f %f %f %f %f",O2Screen, O2Right, O2Left, O2Top,O2Bottom);
-		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.065,((abs(O2Right) + abs(O2Left))/2.0)/1.732,SurfaceRot);
-		//camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom,0.0 ,0.1268/0.22,SurfaceRot);
-		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom, 0.065  ,6.69/O2Screen,SurfaceRot);
-		//TODO: Check if this causes problems
+		double O2Bottom = - DisplayX[1]; 
+		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom, 0.065  ,/*6.69*/(camera->GetDistance()/(2*O2Screen)),SurfaceRot);
+		camera->Modified(); 
 		SurfaceRot->Delete();
 	}
 }
@@ -598,7 +595,7 @@ void pqVRPNStarter::initializeDevices()
     
 	// VRPN input events.
 	this->VRPNTimer=new QTimer(this);
-	this->VRPNTimer->setInterval(4); // in ms
+	this->VRPNTimer->setInterval(1); // in ms
    
 	/////////////////////////GET VIEW////////////////////////////
 
@@ -1265,21 +1262,15 @@ const vrpn_ANALOGCB t)
 {
   tng_user_callback *tData=static_cast<tng_user_callback *>(userdata); 
 
-  //TODO: Determine what is delta?
+  // TNG 3B values go from 0 to 252. To get an eye separation of 0.0065 to be in the middle (126), we use delta  == 0.0065/126 ==
 	double value = t.channel[tData->channelIndex];  
-	double delta = value - tData->initialValue; 
+	double delta = value; /* - tData->initialValue; */
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
 			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
-			if (delta > 0 )
-			{ 
-				camera->SetEyeOffset(0.001*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
-			}
-			else if (delta < 0)
-			{ 
-				camera->SetEyeOffset(0.001*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
-			} 
+			 camera->SetEyeOffset( (((camera->GetDistance()/camera->O2Screen)*0.065/2.0)/126.0)*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
+			
 
 	} 
 }
