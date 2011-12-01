@@ -83,6 +83,7 @@ private:
   vtkVRPNPhantomStyleCamera(const vtkVRPNPhantomStyleCamera&);  // Not implemented.
   void operator=(const vtkVRPNPhantomStyleCamera&);  // Not implemented.
   double* ScalePosition(double* position,vtkRenderer* renderer);
+  void ComputeVisiblePropBounds( vtkRenderer* renderer1,double allBounds[6] );
   double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer,int sensorIndex);
   void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
   void CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);

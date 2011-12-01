@@ -1499,7 +1499,8 @@ void pqVRPNStarter::createConeAndSphereFromVTK(bool deleteOldCone)
     
 	ConeActor = vtkActor::New();
     ConeActor->SetMapper(ConeMapper); 
-	ConeActor->SetPosition(position);  
+	ConeActor->SetPosition(position); 
+	ConeActor->UseBoundsOff();
  	vtkRenderer* renderer1 = proxy->GetRenderer();
 	renderer1->AddActor(ConeActor);
 
