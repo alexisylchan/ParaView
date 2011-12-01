@@ -669,7 +669,7 @@ void pqVRPNStarter::initializeDevices()
  
 		if (CREATE_VTK_CONE)
 		{ 
-			this->createConeAndSphereFromVTK(false);
+			this->createConeInVTK(false);
 
 			phantomStyleCamera1->SetActor(ConeActor); 
 			phantomStyleCamera1->SetConeSource(this->Cone);
@@ -1446,7 +1446,7 @@ void pqVRPNStarter::createConeInParaView()
 	}
 }
 
-void pqVRPNStarter::createConeAndSphereFromVTK(bool deleteOldCone)
+void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 {
 	
 	double position[3] = {-0.000033, -0.065609, -0.087861};
@@ -1486,11 +1486,9 @@ void pqVRPNStarter::createConeAndSphereFromVTK(bool deleteOldCone)
 		vtkTransform::GetOrientation(orientNew,RotationMatrix); 
  
 	// ConeSource
-    Cone = vtkConeSource::New();
+    Cone = vtkConeSource::New(); 
 	Cone->SetRadius(0.05);
-	Cone->SetHeight(0.1); 
-	/*Cone->SetRadius(0.05);
-	Cone->SetHeight(0.1); */
+	Cone->SetHeight(0.1);  
 	Cone->SetDirection(orientNew); 
 
 	//Cone Mapper
@@ -1522,7 +1520,7 @@ void pqVRPNStarter::resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* 
 	{
 
 	this->VRPNTimer->blockSignals(true);
-	createConeAndSphereFromVTK(true);
+	createConeInVTK(true);
 	phantomStyleCamera1->SetActor(this->ConeActor);
 	phantomStyleCamera1->SetConeSource(this->Cone);
 	this->VRPNTimer->blockSignals(false);
@@ -1535,7 +1533,7 @@ void pqVRPNStarter::resetPhantomActor2()
 
 	this->VRPNTimer->blockSignals(true);
 	this->ConeActor->Delete();
-	createConeAndSphereFromVTK(true);
+	createConeInVTK(true);
 	phantomStyleCamera1->SetActor(this->ConeActor);
 	phantomStyleCamera1->SetConeSource(this->Cone);
 	this->VRPNTimer->blockSignals(false);

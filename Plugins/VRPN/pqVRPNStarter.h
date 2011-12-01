@@ -74,7 +74,7 @@ class pqVRPNStarter : public QObject
 public:
 	vtkActor* ConeActor;
 	vtkConeSource* Cone;
-	vtkActor* SphereActor;
+//	vtkActor* ConeActor;
 
 	//Constants used for selecting Data Set Type in the Special UseCase: Vortex Visualization
 	enum DataType
@@ -251,7 +251,7 @@ private:
   // on source change after creation , we need to _not_ change isRepeating so that the pqpropertylinks
   // changes will not be repeated infinitely.
   bool onSourceChangeAfterRepeatingCreation;
-  void createConeAndSphereFromVTK(bool deleteOldCone);
+  void createConeInVTK(bool deleteOldCone);
 };
 
 #endif
