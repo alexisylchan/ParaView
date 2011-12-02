@@ -64,7 +64,11 @@ public:
   /*void SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter);*/
   vtkActor* myActor;
   vtkConeSource* myCone;
-
+  double  button1PressedPosition[4]; 
+  double  button2PressedPosition[4]; 
+  bool  button2AlreadyPressed; 
+  double pickedActorPos[4];
+ 
   void SetEvaluationLog(ofstream* evaluationlog);
 
   //To handle showing timeline ribbons
@@ -85,6 +89,7 @@ private:
   double* ScalePosition(double* position,vtkRenderer* renderer);
   void ComputeVisiblePropBounds( vtkRenderer* renderer1,double allBounds[6] );
   void RotateVisibleProps(double position[],double orientNew[]);
+  void PickUpProp(double position[],double orientNew[]);
   double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer,int sensorIndex);
   void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
   void CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);

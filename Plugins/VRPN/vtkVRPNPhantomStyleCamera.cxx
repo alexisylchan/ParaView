@@ -90,6 +90,8 @@
 #include "vtkCollection.h"
 #include "vtkOpenGLActor.h"
 #include "vtkProperty.h"
+
+#include "vtkPVAxesActor.h"
 vtkStandardNewMacro(vtkVRPNPhantomStyleCamera);
 vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 
@@ -97,8 +99,21 @@ vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 vtkVRPNPhantomStyleCamera::vtkVRPNPhantomStyleCamera() 
 { 
 	first = 1;
-	createTube = 1;
-			
+	createTube = 1; 
+	button1PressedPosition[0] = 0.0;
+	button1PressedPosition[1] = 0.0;
+	button1PressedPosition[2] = 0.0;
+	button1PressedPosition[3] = 0.0;
+	button2PressedPosition[0] = 0.0;
+	button2PressedPosition[1] = 0.0;
+	button2PressedPosition[2] = 0.0;
+	button2PressedPosition[3] = 0.0;
+	pickedActorPos[0] = 0.0;
+	pickedActorPos[1] = 0.0;
+	pickedActorPos[2] = 0.0;
+	pickedActorPos[3] = 0.0;
+
+	button2AlreadyPressed = false;
 }
 
 
@@ -176,27 +191,83 @@ void vtkVRPNPhantomStyleCamera::SetEvaluationLog(ofstream* evaluationlog)
 	this->evaluationlog = evaluationlog;
 }
 
+  void vtkVRPNPhantomStyleCamera::PickUpProp(double position[],double orientNew[])
+  {  
+	vtkProp3D* prop;
+  // loop through all props
+  vtkCollectionSimpleIterator pit;
+  double delta[3] = {0,0,0};
+  double translation[4]; 
+			if (!button2AlreadyPressed)
+			{
+				
+			button2PressedPosition[0] = position[0];
+			button2PressedPosition[1] = position[1];
+			button2PressedPosition[2] = position[2];
+			button2PressedPosition[3] = position[3];
+			} 
+			
+
+  for (int j = 0; j< this->Renderer->GetViewProps()->GetNumberOfItems(); j++ )
+  {
+	  prop= vtkProp3D::SafeDownCast(this->Renderer->GetViewProps()->GetItemAsObject(j));
+ 
+	  if (!prop->PhantomPicked)
+	  {
+	  if (vtkMath::PointIsWithinBounds(position,prop->GetBounds(), delta))
+	  { 
+		 if (!button2AlreadyPressed)
+		 {
+			 prop->GetPosition(pickedActorPos);
+		 }
+		 for (int i =0; i < 3; i++)
+		 {
+			 translation[i] = position[i] - button2PressedPosition[i]; 
+		 }  
+		 prop->SetPosition(pickedActorPos[0]+translation[0],pickedActorPos[1]+translation[1],pickedActorPos[2]+translation[2]);
+		 prop->SetOrientation(orientNew);
+		 prop->Modified();
+	  }
+	  }
+	  else
+	  {
+		 for (int i =0; i < 3; i++)
+		 {
+			 translation[i] = position[i] - button2PressedPosition[i]; 
+		 }  
+		 prop->SetPosition(pickedActorPos[0]+translation[0],pickedActorPos[1]+translation[1],pickedActorPos[2]+translation[2]);
+		 prop->SetOrientation(orientNew);
+		 prop->Modified();
+
+	  }
+  }
+				button2AlreadyPressed = true;
+
+  }
 void vtkVRPNPhantomStyleCamera::RotateVisibleProps(double position[],double orientNew[])
-{
-	//double bounds[6];
-	//this->Renderer->ComputeVisiblePropBounds(bounds);
-	//double delta[3] = {0.0,0.0,0.0};
-	//if (vtkMath::AreBoundsInitialized(bounds) && vtkMath::PointIsWithinBounds(position,bounds,delta))
-	//{
-	//	 this->myActor->GetProperty()->SetColor(1,0,0); 
-	//} 
-	//else
-	//{
-	//	this->myActor->GetProperty()->SetColor(1,1,1);
-	//} 
-	 	 
+{ 
+	double vector1[3], vector2[3]; 
+	for (int j= 0; j< 3; j++)
+	{
+		vector1[j] = button1PressedPosition[j] - this->Renderer->GetActiveCamera()->GetFocalPoint()[j];
+		vector2[j] = position[j] - this->Renderer->GetActiveCamera()->GetFocalPoint()[j];
+		
+		button1PressedPosition[j] = position[j]; 
+
+	} 
+		double cosAngle = vtkMath::Dot(vector1,vector2)/(vtkMath::Norm(vector1)*vtkMath::Norm(vector2));
+		double angle = acos(cosAngle);
+		double axis[3];
+		vtkMath::Cross(vector1,vector2,axis); 
 		for (int i = 0; i < this->Renderer->GetViewProps()->GetNumberOfItems(); i++)
 		  {
-			  vtkActor* actor1 = vtkActor::SafeDownCast(this->Renderer->GetViewProps()->GetItemAsObject(i));
-			  if (actor1  && actor1->GetUseBounds())
-			  {
-				  actor1->SetOrientation(orientNew[0],orientNew[1],orientNew[2]);
-				  actor1->Modified(); 
+			  vtkProp3D* prop = vtkProp3D::SafeDownCast(this->Renderer->GetViewProps()->GetItemAsObject(i));
+			  if (prop  && prop->GetUseBounds())
+			  {  // Rotate the Prop3D in degrees about an arbitrary axis specified by
+					// the last three arguments. The axis is specified in world
+					// coordinates.  
+				  prop->RotateWXYZ(angle*180/(vtkMath::Pi()),axis[0],axis[1],axis[2]); 
+				  prop->Modified(); 
 			  }
 		  }
 	
@@ -209,6 +280,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 	{
 	if (myActor)
 	{ 
+		
 		double* position = Phantom->GetPosition();
 		double* newPosition = (double*)malloc(sizeof(double)*4);
 		//Scale up position. TODO: Determine how much to scale between phantom position and world position
@@ -256,8 +328,28 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 
 
 		if (Phantom->GetButton(0))
+		{  
 			RotateVisibleProps(newScaledPosition,orientNew); 
-	 
+		}
+		else if (Phantom->GetButton(1))
+		{ 
+			
+			PickUpProp(newScaledPosition,orientNew);
+		} 
+		else if (!Phantom->GetButton(1))
+		{
+vtkProp3D* prop;
+
+			for (int j = 0; j< this->Renderer->GetViewProps()->GetNumberOfItems(); j++ )
+  {
+	  prop= vtkProp3D::SafeDownCast(this->Renderer->GetViewProps()->GetItemAsObject(j));
+ 
+	   prop->PhantomPicked = false;
+	   prop->Modified();
+  }
+
+			button2AlreadyPressed = false;
+		}
 		myActor->SetPosition(newScaledPosition); 
 		myActor->Modified();
 		free(newPosition);
@@ -781,7 +873,7 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		newScaledPosition[0] = position[0] * 2 *  camera->GetDistance()/origScale[0];
 		newScaledPosition[1] = position[1] * 2 *  camera->GetDistance()/origScale[1];
 		newScaledPosition[2] = position[2] * 2 *  camera->GetDistance()/origScale[2];
-		 
+		newScaledPosition[3] = 0.0;
 		return newScaledPosition;
  
 }

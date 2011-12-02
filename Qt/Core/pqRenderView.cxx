@@ -401,10 +401,10 @@ void pqRenderView::getCenterOfRotation(double center[3]) const
 //-----------------------------------------------------------------------------
 void pqRenderView::setCenterAxesVisibility(bool visible)
 {
-  pqSMAdaptor::setElementProperty(
-    this->getProxy()->GetProperty("CenterAxesVisibility"),
-    visible? 1 : 0);
-  this->getProxy()->UpdateVTKObjects();
+  //pqSMAdaptor::setElementProperty(
+  //  this->getProxy()->GetProperty("CenterAxesVisibility"),
+  //  visible? 1 : 0);
+  //this->getProxy()->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------

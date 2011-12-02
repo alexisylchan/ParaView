@@ -227,6 +227,8 @@ private:
  // int writeFileIndex;
   //ifstream readFile;
  // bool isRepeating;
+
+
   void writeChangeSnippet(const char* snippet); 
   void respondToOtherAppsChange();
   void repeatCreateSource(char* groupName,char* sourceName );
