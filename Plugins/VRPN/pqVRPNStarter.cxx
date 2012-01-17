@@ -506,11 +506,11 @@ void pqVRPNStarter::initializeEyeAngle()
 		 	DisplayOrigin[1]=  5.435796;//5.287540 ; 
 			DisplayOrigin[2]= 0.854639 ;//-value; 
 
-			DisplayX[0]=  8.174900;// 7.911325 ;
+			DisplayX[0]=7.911325 ;//  8.174900;// 7.911325 ;
 			DisplayX[1]=   5.435796;// 5.370214 ;//-value; 
 			DisplayX[2]=    0.855222;//-value; 
 
-			DisplayY[0]= 8.174900;//7.911044 ;  
+			DisplayY[0]=7.911325 ;// 8.174900;//7.911044 ;  
 			DisplayY[1]=   5.435796;// 5.322561 ;//value; 
 			DisplayY[2]=     1.091538;//-value;  
 		//	 
