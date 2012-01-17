@@ -474,21 +474,55 @@ void pqVRPNStarter::initializeEyeAngle()
 
 		//Code from vtkCaveSynchronizedRenderers::SetDisplayConfig
 		double DisplayX[4], DisplayY[4],DisplayOrigin[4];
+		
+		//Transform monitor position to ceiling tracker space
+		vtkMatrix4x4* trackerTransformM = vtkMatrix4x4::New();
+		trackerTransformM->SetElement(0,0,0);
+		trackerTransformM->SetElement(0,1,-1);
+		trackerTransformM->SetElement(0,2,0);
+		trackerTransformM->SetElement(0,3,-1*trackerOrigin[1]);
+		trackerTransformM->SetElement(1,0,0);
+		trackerTransformM->SetElement(1,1,0);
+		trackerTransformM->SetElement(1,2,1);
+		trackerTransformM->SetElement(1,3, 1*trackerOrigin[2]);
+		trackerTransformM->SetElement(2,0,-1);
+		trackerTransformM->SetElement(2,1,0);
+		trackerTransformM->SetElement(2,2,0); 
+		trackerTransformM->SetElement(2,3,-1*trackerOrigin[0]);
+		trackerTransformM->SetElement(3,0, 0);
+		trackerTransformM->SetElement(3,1, 0 );
+		trackerTransformM->SetElement(3,2,0); 
+		trackerTransformM->SetElement(3,3,1);
+		DisplayOrigin[3] = 1;
+		DisplayX[3] = 1;
+		DisplayY[3] = 1;
+
 
 		//double value = 1.0;
 		if (this->sensorIndex == 1)
 		 {  
+		
+			DisplayOrigin[0]= 7.464330 ;  
+		 	DisplayOrigin[1]=  5.435796;//5.287540 ; 
+			DisplayOrigin[2]= 0.854639 ;//-value; 
 
-			 
-		DisplayOrigin[0]= -0.45;//-value;
-		DisplayOrigin[1]= -0.3;//-value; 
-		DisplayOrigin[2]= 0.9;//value; 
-		DisplayX[0]= -0.45;//-value; 
-		DisplayX[1]= -0.3;//-value; 
-		DisplayX[2]= -0.9;//-value; 
-		DisplayY[0]= -0.45;//-value;
-		DisplayY[1]= 0.3;//value; 
-		DisplayY[2]= -0.9;//-value;  
+			DisplayX[0]=  8.174900;// 7.911325 ;
+			DisplayX[1]=   5.435796;// 5.370214 ;//-value; 
+			DisplayX[2]=    0.855222;//-value; 
+
+			DisplayY[0]= 8.174900;//7.911044 ;  
+			DisplayY[1]=   5.435796;// 5.322561 ;//value; 
+			DisplayY[2]=     1.091538;//-value;  
+		//	 
+		//DisplayOrigin[0]= -0.45;//-value;
+		//DisplayOrigin[1]= -0.3;//-value; 
+		//DisplayOrigin[2]= 0.9;//value; 
+		//DisplayX[0]= -0.45;//-value; 
+		//DisplayX[1]= -0.3;//-value; 
+		//DisplayX[2]= -0.9;//-value; 
+		//DisplayY[0]= -0.45;//-value;
+		//DisplayY[1]= 0.3;//value; 
+		//DisplayY[2]= -0.9;//-value;  
 
 		}
 		else
@@ -505,34 +539,14 @@ void pqVRPNStarter::initializeEyeAngle()
 			DisplayY[0]= 8.197782;//value; 
 			DisplayY[1]=    4.963459;//value; 
 			DisplayY[2]=     1.094415;//-value;     
-
-			//Todo: factorize this
-			vtkMatrix4x4* trackerTransformM = vtkMatrix4x4::New();
-			trackerTransformM->SetElement(0,0,0);
-			trackerTransformM->SetElement(0,1,-1);
-			trackerTransformM->SetElement(0,2,0);
-			trackerTransformM->SetElement(0,3,-1*trackerOrigin[1]);
-			trackerTransformM->SetElement(1,0,0);
-			trackerTransformM->SetElement(1,1,0);
-			trackerTransformM->SetElement(1,2,1);
-			trackerTransformM->SetElement(1,3, 1*trackerOrigin[2]);
-			trackerTransformM->SetElement(2,0,-1);
-			trackerTransformM->SetElement(2,1,0);
-			trackerTransformM->SetElement(2,2,0); 
-			trackerTransformM->SetElement(2,3,-1*trackerOrigin[0]);
-			trackerTransformM->SetElement(3,0, 0);
-			trackerTransformM->SetElement(3,1, 0 );
-			trackerTransformM->SetElement(3,2,0); 
-			trackerTransformM->SetElement(3,3,1);
-			DisplayOrigin[3] = 1;
-			DisplayX[3] = 1;
-			DisplayY[3] = 1;
-			trackerTransformM->MultiplyPoint(DisplayOrigin,DisplayOrigin);
-			trackerTransformM->MultiplyPoint(DisplayX,DisplayX);
-			trackerTransformM->MultiplyPoint(DisplayY,DisplayY); 
 			
  
 		}
+
+			
+			trackerTransformM->MultiplyPoint(DisplayOrigin,DisplayOrigin);
+			trackerTransformM->MultiplyPoint(DisplayX,DisplayX);
+			trackerTransformM->MultiplyPoint(DisplayY,DisplayY); 
 
 		double xBase[3],yBase[3],zBase[3];
 		//Get Vectors of screen
