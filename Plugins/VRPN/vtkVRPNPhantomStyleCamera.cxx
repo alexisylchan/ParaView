@@ -99,7 +99,7 @@ vtkCxxRevisionMacro(vtkVRPNPhantomStyleCamera, "$Revision: 1.0 $");
 vtkVRPNPhantomStyleCamera::vtkVRPNPhantomStyleCamera() 
 { 
 	first = 1;
-	createTube = 1; 
+	/*createTube = 1; */
 	button1PressedPosition[0] = 0.0;
 	button1PressedPosition[1] = 0.0;
 	button1PressedPosition[2] = 0.0;
@@ -181,15 +181,15 @@ void vtkVRPNPhantomStyleCamera::SetConeSource(vtkConeSource* myCone)
 //
 //} 
 //----------------------------------------------------------------------------
-
-void vtkVRPNPhantomStyleCamera::SetShowingTimeline(int showingTimeline)
-{ 
-	this->showingTimeline = showingTimeline;
-}
-void vtkVRPNPhantomStyleCamera::SetEvaluationLog(ofstream* evaluationlog)
-{ 
-	this->evaluationlog = evaluationlog;
-}
+//
+//void vtkVRPNPhantomStyleCamera::SetShowingTimeline(int showingTimeline)
+//{ 
+//	this->showingTimeline = showingTimeline;
+//}
+//void vtkVRPNPhantomStyleCamera::SetEvaluationLog(ofstream* evaluationlog)
+//{ 
+//	this->evaluationlog = evaluationlog;
+//}
 
   void vtkVRPNPhantomStyleCamera::PickUpProp(double position[],double orientNew[])
   {  
@@ -555,177 +555,177 @@ vtkProp3D* prop;
 //	}  
 //	}
 //}
-void vtkVRPNPhantomStyleCamera::SetCreateTube(bool createTube)
-{
-	this->createTube = createTube;
-}
-bool vtkVRPNPhantomStyleCamera::GetCreateTube()
-{
-	return this->createTube;
-}
-void vtkVRPNPhantomStyleCamera::CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
-{
-	//core->getServerManagerModel()->findChild<pq
-	
-	int streamtracerIndex = CreateParaViewObject(1,-1,view,Phantom,newPosition,"StreamTracer");
-	if (createTube)
-		this->CreateParaViewObject(streamtracerIndex,-1,view,Phantom,newPosition,"TubeFilter");
-		
-		
-}
-int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputIndex,pqView* view, vtkVRPNPhantom* Phantom, double* newPosition,const char* name)
-{
-	
-		BEGIN_UNDO_SET(QString("Create '%1'").arg(name));
-		vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-		vtkSMProxy* prototype = pxm->GetPrototypeProxy("filters",name);
-		QList<pqOutputPort*> outputPorts;
-		 
-		//NOTE: Cannot use AutoAccept because this creates 3 streamtracers everytime a button is clicked (PhantomButton probably is called 3 times due to frequency of Phantom updates)
-		// pqObjectInspectorWidget::setAutoAccept(true);
-	 
-		//Modified code from pqFiltersMenuReaction::createFilter()
-		pqPipelineSource* item = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(sourceIndex);//TODO:Set object index to constant
-		
-		pqOutputPort* opPort = qobject_cast<pqOutputPort*>(item);
-		pqPipelineSource* source = qobject_cast<pqPipelineSource*>(item);
-		
-		if (source)
-		  {
-		  outputPorts.push_back(source->getOutputPort(0));
-		  //qWarning("source %d",source->getNumberOfOutputPorts());
-		  }
-		else if (opPort)
-		  {
-			outputPorts.push_back(opPort);
-			//qWarning("opPort %s",opPort->getPortName().toStdString()); 
-		  } 
-		QMap<QString, QList<pqOutputPort*> > namedInputs;
-		QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
-		namedInputs[inputPortNames[0]] = outputPorts;
-
-		// If the filter has more than 1 input ports, we are simply going to ask the
-		// user to make selection for the inputs for each port. We may change that in
-		// future to be smarter.
-		if (pqPipelineFilter::getRequiredInputPorts(prototype).size() > 1)
-		{
-			//qWarning("need more inputs!!!");
-			vtkSMProxy* filterProxy = pxm->GetPrototypeProxy("filters",
-			name);
-			vtkSMPropertyHelper helper(filterProxy, inputPortNames[0]);
-			helper.RemoveAllValues();
-
-			foreach (pqOutputPort *outputPort, outputPorts)
-			{
-				helper.Add(outputPort->getSource()->getProxy(),
-				outputPort->getPortNumber());
-			}
-
-			pqChangeInputDialog dialog(filterProxy, pqCoreUtilities::mainWidget());
-			dialog.setObjectName("SelectInputDialog");
-			if (QDialog::Accepted != dialog.exec())
-			{
-				helper.RemoveAllValues();
-				// User aborted creation.
-				return -1;
-			}
-			helper.RemoveAllValues();
-			namedInputs = dialog.selectedInputs();
-		}
-
-		pqPipelineSource* createdSource = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", name,
-		namedInputs, pqActiveObjects::instance().activeServer());
-		END_UNDO_SET();
-
-		bool setVisible = true;
-		if (!strcmp(name,"StreamTracer") )
-		{
-			setVisible = false;		
-			createdSource->setObjectName("UserSeededStreamTracer");
-		}
-		else if (!strcmp(name,"TubeFilter"))
-		{
-			setVisible = true;
-			createdSource->setObjectName("Tube1");
-		}
-		
-		this->ModifySeedPosition(createdSource,newPosition);
-
-		this->DisplayCreatedObject(view,createdSource,setVisible);
- 
-		int newSourceIndex = pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqPipelineSource*>();
-		//qWarning("Source index %d", --newSourceIndex);
-	return newSourceIndex;
-}
-void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource, bool setVisible)
-{
-	//Display createdSource in view
-		//Modified code from pqObjectInspectorWizard::accept()
-		for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
-		{
-			pqView* displayView = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
-			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( displayView->getViewProxy() );
-
-			pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
-			
-
-			for (int cc=0; cc < createdSource->getNumberOfOutputPorts(); cc++)
-			{
-
-				pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-				createdSource->getOutputPort(cc), displayView, false);
-				if (!repr || !repr->getView())
-				{
-					//qWarning("!repr");
-					continue;
-				}
-				pqView* cur_view = repr->getView();
-				
-				//Change color
-				pqPipelineRepresentation* displayRepresentation =qobject_cast<pqPipelineRepresentation*>(repr);
-				displayRepresentation->colorByArray("Velocity",vtkDataObject::FIELD_ASSOCIATION_POINTS);
-				pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(createdSource);
-				if (filter)
-				{
-					filter->hideInputIfRequired(cur_view);
-				}
-
-				repr->setVisible(true);
-
-			}
-			proxy->GetRenderWindow()->Render();
-			//Todo: Debug if this is actually needed to repaint an object then set it to invisible
-			createdSource->getRepresentation(0,view)->setVisible(setVisible);
-			proxy->GetRenderWindow()->Render();
-		} 
-}
-void vtkVRPNPhantomStyleCamera::ModifySeedPosition(pqPipelineSource* createdSource,double* newPosition)
-{
-	if(vtkSMProxyProperty* const source_property = vtkSMProxyProperty::SafeDownCast(
-		createdSource->getProxy()->GetProperty("Source")))
-    {
-    const QList<pqSMProxy> sources = pqSMAdaptor::getProxyPropertyDomain(source_property);
-    for(int i = 0; i != sources.size(); ++i)
-      {
-      pqSMProxy source = sources[i];
-      if(source->GetVTKClassName() == QString("vtkPointSource"))
-        {  
-      if(vtkSMDoubleVectorProperty* const center =
-        vtkSMDoubleVectorProperty::SafeDownCast(
-          source->GetProperty("Center")))
-        {
-        center->SetNumberOfElements(3);
-        center->SetElement(0, newPosition[0]);
-        center->SetElement(1, newPosition[1]);
-        center->SetElement(2, newPosition[2]);
-        }
-	  }
-	  
-      source->UpdateVTKObjects();
-      }
-    }
-
-}
+//void vtkVRPNPhantomStyleCamera::SetCreateTube(bool createTube)
+//{
+//	this->createTube = createTube;
+//}
+//bool vtkVRPNPhantomStyleCamera::GetCreateTube()
+//{
+//	return this->createTube;
+//}
+//void vtkVRPNPhantomStyleCamera::CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
+//{
+//	//core->getServerManagerModel()->findChild<pq
+//	
+//	int streamtracerIndex = CreateParaViewObject(1,-1,view,Phantom,newPosition,"StreamTracer");
+//	if (createTube)
+//		this->CreateParaViewObject(streamtracerIndex,-1,view,Phantom,newPosition,"TubeFilter");
+//		
+//		
+//}
+//int vtkVRPNPhantomStyleCamera::CreateParaViewObject(int sourceIndex,int inputIndex,pqView* view, vtkVRPNPhantom* Phantom, double* newPosition,const char* name)
+//{
+//	
+//		BEGIN_UNDO_SET(QString("Create '%1'").arg(name));
+//		vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
+//		vtkSMProxy* prototype = pxm->GetPrototypeProxy("filters",name);
+//		QList<pqOutputPort*> outputPorts;
+//		 
+//		//NOTE: Cannot use AutoAccept because this creates 3 streamtracers everytime a button is clicked (PhantomButton probably is called 3 times due to frequency of Phantom updates)
+//		// pqObjectInspectorWidget::setAutoAccept(true);
+//	 
+//		//Modified code from pqFiltersMenuReaction::createFilter()
+//		pqPipelineSource* item = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqPipelineSource*>(sourceIndex);//TODO:Set object index to constant
+//		
+//		pqOutputPort* opPort = qobject_cast<pqOutputPort*>(item);
+//		pqPipelineSource* source = qobject_cast<pqPipelineSource*>(item);
+//		
+//		if (source)
+//		  {
+//		  outputPorts.push_back(source->getOutputPort(0));
+//		  //qWarning("source %d",source->getNumberOfOutputPorts());
+//		  }
+//		else if (opPort)
+//		  {
+//			outputPorts.push_back(opPort);
+//			//qWarning("opPort %s",opPort->getPortName().toStdString()); 
+//		  } 
+//		QMap<QString, QList<pqOutputPort*> > namedInputs;
+//		QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
+//		namedInputs[inputPortNames[0]] = outputPorts;
+//
+//		// If the filter has more than 1 input ports, we are simply going to ask the
+//		// user to make selection for the inputs for each port. We may change that in
+//		// future to be smarter.
+//		if (pqPipelineFilter::getRequiredInputPorts(prototype).size() > 1)
+//		{
+//			//qWarning("need more inputs!!!");
+//			vtkSMProxy* filterProxy = pxm->GetPrototypeProxy("filters",
+//			name);
+//			vtkSMPropertyHelper helper(filterProxy, inputPortNames[0]);
+//			helper.RemoveAllValues();
+//
+//			foreach (pqOutputPort *outputPort, outputPorts)
+//			{
+//				helper.Add(outputPort->getSource()->getProxy(),
+//				outputPort->getPortNumber());
+//			}
+//
+//			pqChangeInputDialog dialog(filterProxy, pqCoreUtilities::mainWidget());
+//			dialog.setObjectName("SelectInputDialog");
+//			if (QDialog::Accepted != dialog.exec())
+//			{
+//				helper.RemoveAllValues();
+//				// User aborted creation.
+//				return -1;
+//			}
+//			helper.RemoveAllValues();
+//			namedInputs = dialog.selectedInputs();
+//		}
+//
+//		pqPipelineSource* createdSource = pqApplicationCore::instance()->getObjectBuilder()->createFilter("filters", name,
+//		namedInputs, pqActiveObjects::instance().activeServer());
+//		END_UNDO_SET();
+//
+//		bool setVisible = true;
+//		if (!strcmp(name,"StreamTracer") )
+//		{
+//			setVisible = false;		
+//			createdSource->setObjectName("UserSeededStreamTracer");
+//		}
+//		else if (!strcmp(name,"TubeFilter"))
+//		{
+//			setVisible = true;
+//			createdSource->setObjectName("Tube1");
+//		}
+//		
+//		this->ModifySeedPosition(createdSource,newPosition);
+//
+//		this->DisplayCreatedObject(view,createdSource,setVisible);
+// 
+//		int newSourceIndex = pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqPipelineSource*>();
+//		//qWarning("Source index %d", --newSourceIndex);
+//	return newSourceIndex;
+//}
+//void vtkVRPNPhantomStyleCamera::DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource, bool setVisible)
+//{
+//	//Display createdSource in view
+//		//Modified code from pqObjectInspectorWizard::accept()
+//		for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
+//		{
+//			pqView* displayView = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+//			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( displayView->getViewProxy() );
+//
+//			pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+//			
+//
+//			for (int cc=0; cc < createdSource->getNumberOfOutputPorts(); cc++)
+//			{
+//
+//				pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+//				createdSource->getOutputPort(cc), displayView, false);
+//				if (!repr || !repr->getView())
+//				{
+//					//qWarning("!repr");
+//					continue;
+//				}
+//				pqView* cur_view = repr->getView();
+//				
+//				//Change color
+//				pqPipelineRepresentation* displayRepresentation =qobject_cast<pqPipelineRepresentation*>(repr);
+//				displayRepresentation->colorByArray("Velocity",vtkDataObject::FIELD_ASSOCIATION_POINTS);
+//				pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(createdSource);
+//				if (filter)
+//				{
+//					filter->hideInputIfRequired(cur_view);
+//				}
+//
+//				repr->setVisible(true);
+//
+//			}
+//			proxy->GetRenderWindow()->Render();
+//			//Todo: Debug if this is actually needed to repaint an object then set it to invisible
+//			createdSource->getRepresentation(0,view)->setVisible(setVisible);
+//			proxy->GetRenderWindow()->Render();
+//		} 
+//}
+//void vtkVRPNPhantomStyleCamera::ModifySeedPosition(pqPipelineSource* createdSource,double* newPosition)
+//{
+//	if(vtkSMProxyProperty* const source_property = vtkSMProxyProperty::SafeDownCast(
+//		createdSource->getProxy()->GetProperty("Source")))
+//    {
+//    const QList<pqSMProxy> sources = pqSMAdaptor::getProxyPropertyDomain(source_property);
+//    for(int i = 0; i != sources.size(); ++i)
+//      {
+//      pqSMProxy source = sources[i];
+//      if(source->GetVTKClassName() == QString("vtkPointSource"))
+//        {  
+//      if(vtkSMDoubleVectorProperty* const center =
+//        vtkSMDoubleVectorProperty::SafeDownCast(
+//          source->GetProperty("Center")))
+//        {
+//        center->SetNumberOfElements(3);
+//        center->SetElement(0, newPosition[0]);
+//        center->SetElement(1, newPosition[1]);
+//        center->SetElement(2, newPosition[2]);
+//        }
+//	  }
+//	  
+//      source->UpdateVTKObjects();
+//      }
+//    }
+//
+//}
 void vtkVRPNPhantomStyleCamera::CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)
 {
 	// Check all  items except for first one (which is the cursor)

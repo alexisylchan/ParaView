@@ -182,8 +182,8 @@ void pqVRPNStarter::onStartup()
 	onSourceChangeAfterRepeatingCreation = false;
 	this->showingTimeline = false;
 	//Log file to log test data (Vortex Visualization)
-	if(vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
-		evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");
+	/*if(vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
+		evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");*/
    
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
@@ -225,10 +225,10 @@ void pqVRPNStarter::onStartup()
 	//Listen to Custom Application's GUI Qt signals for Vortex Visualization
 	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
 	
-	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
+	/*if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
 	{
 		QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int))); 
-	}
+	}*/
 	
 	showPartnersView = false;
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 	
@@ -420,7 +420,7 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 			}
 		}		 
 	} 
-}
+}/*
 void pqVRPNStarter::onChangeDataSet(int index)
 {
 	switch (index)
@@ -445,7 +445,7 @@ void pqVRPNStarter::onChangeDataSet(int index)
 		break;
 	}
 
-}
+}*/
 void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 { 
 	this->VRPNTimer->blockSignals(true);
@@ -693,8 +693,8 @@ void pqVRPNStarter::initializeDevices()
 		}
 		phantomStyleCamera1->SetPhantom(phantom1);
 		phantomStyleCamera1->SetRenderer(renderer1);
-		phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
-		phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);
+		/*phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
+		phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);*/
 
 		
 	    /////////////////////////INTERACTOR////////////////////////////
@@ -1328,7 +1328,7 @@ void pqVRPNStarter::loadState(char* filename)
 {
 	this->VRPNTimer->blockSignals(true); 
 	
-	phantomStyleCamera1->SetShowingTimeline(this->showingTimeline); 
+	//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline); 
 	pqDeleteReaction::deleteAll();
     pqLoadStateReaction::loadState(QString(filename));
 	this->changeTimeStamp(); 

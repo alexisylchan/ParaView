@@ -54,9 +54,9 @@ public:
     };
   myMainWindow();
   ~myMainWindow();
-  static void DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource);
-  static void DisplayObject(pqView* view,pqPipelineSource* createdSource);
-  static void HideObject(pqView* view,pqPipelineSource* createdSource);
+  //static void DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource);
+  //static void DisplayObject(pqView* view,pqPipelineSource* createdSource);
+  //static void HideObject(pqView* view,pqPipelineSource* createdSource);
 public slots:
 
     /// Open File dialog in order to choose the location and the type of
@@ -65,23 +65,24 @@ public slots:
    // toggle to partner's view 
    void onToggleView(); 
   //Set mode to contextual flow
-   void contextualFlow(); 
-  //Set mode to vortex identification
-   void vortexIdentification(); 
-   //void onCurrentTimeIndexChanged(int time); 
-   void timeSliderChanged(double val);
+  // void contextualFlow(); 
+  ////Set mode to vortex identification
+  // void vortexIdentification(); 
+  // //void onCurrentTimeIndexChanged(int time); 
+  // void timeSliderChanged(double val);
 
-   // Set mode to vortex core line
-   void vortexCoreLine();
-   // Turn on turbine geometry
-   void turbineGeometry();
-   //Toggle Enable time Slider
-   void enableTimeSlider();
-   ////Toggle Timeline Summary
-   void onToggleTimelineSummary();
+  // // Set mode to vortex core line
+  // void vortexCoreLine();
+  // // Turn on turbine geometry
+  // void turbineGeometry();
+  // //Toggle Enable time Slider
+  // void enableTimeSlider();
+  // ////Toggle Timeline Summary
+  // void onToggleTimelineSummary();
 
    //Change dataset
-   void onChangeDataSet(int index );
+   /*
+   void onChangeDataSet(int index );*/
 
    // //Slot for propagating Object Inspector Accept
    //void onObjectInspectorWidgetAccept();
@@ -91,8 +92,8 @@ public slots:
 
 signals: 
   /// emitted to request the scene to change it's animation time.
-  void changeSceneTime(double);
-  void changeDataSet(int index);
+  //void changeSceneTime(double);
+  //void changeDataSet(int index);
   //void toggleTimelineSummary(); 
   void toggleView();
  /* void objectInspectorWidgetAccept();
@@ -106,10 +107,10 @@ protected slots:
   /// When user edits the line-edit.
   //void currentTimeIndexChanged();
   /// When user edits the slider.
-  void sliderTimeIndexChanged(int value);
-  
- 
-void  onTimeStepsChanged() ;
+//  void sliderTimeIndexChanged(int value);
+//  
+// 
+//void  onTimeStepsChanged() ;
   void showHelpForProxy(const QString& proxyname);
 
 private:
@@ -118,11 +119,11 @@ private:
   void operator=(const myMainWindow&); // Not implemented. 
   class pqInternals;
   pqInternals* Internals;
-  bool showContextualFlow;
-  bool showVortexCore;
-  bool showVortexCoreLine;
-  bool showTurbineGeometry;
-  bool showTimelineSummary;
+  //bool showContextualFlow;
+  //bool showVortexCore;
+  //bool showVortexCoreLine;
+  //bool showTurbineGeometry;
+  //bool showTimelineSummary;
   //bool showPartnersView;
 };
 

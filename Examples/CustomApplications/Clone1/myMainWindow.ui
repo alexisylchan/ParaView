@@ -157,7 +157,7 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <widget class="QComboBox" name="VortexDataSetComboBox">
+     <!--widget class="QComboBox" name="VortexDataSetComboBox">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -195,7 +195,7 @@
      <property name="text">
       <string>Toggle Contextual Flow</string>
      </property>
-    </widget>
+    </widget -->
     <widget class="QPushButton" name="PushToSharedState">
      <property name="enabled">
       <bool>false</bool>
@@ -212,7 +212,7 @@
       <string>Push to Shared State</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="ToggleVortexCoreDirection">
+     <!--widget class="QPushButton" name="ToggleVortexCoreDirection">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -289,7 +289,7 @@
      <property name="text">
       <string>Toggle Fast Time Series View</string>
      </property>
-    </widget>
+    </widget-->
     <widget class="QPushButton" name="ToggleToPartnersView">
      <property name="geometry">
       <rect>

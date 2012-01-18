@@ -118,7 +118,7 @@ public slots:
 	// Change the stored time stamp so that the current ParaView application will not reload upon next timer callback.
 	void selfSaveEvent(); 
 	// Switch between three data sets for Special Use Case: Vortex Visualization
-	void onChangeDataSet(int index);
+	/*void onChangeDataSet(int index);*/
 	// Switch between partner's (other user) view and self
 	void onToggleView();  
 	
