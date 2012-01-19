@@ -47,12 +47,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class QTimer;
 class ParaViewVRPN;
-class sn_user_callback;
 class tng_user_callback;
 class vtkPVXMLElement;
 class vtkVRPNPhantom;
-class vtkEventQtSlotConnect;
-class pqUndoStack;
+class vtkEventQtSlotConnect; 
 class pqProxy;
 class pqPipelineSource;
 class vtkSMProxy;
@@ -122,12 +120,7 @@ public slots:
 	// Switch between partner's (other user) view and self
 	void onToggleView();  
 	
-	//For debugging. Turns on and off VRPN Timer
-	void debugToggleVRPNTimer();
-
-	//For debugging. Grabs properties from Object Inspector Widget.
-	void debugGrabProps();
-
+	
 	//Listen to proxy creation from pqObjectBuilder
 	void onSourceCreated(pqPipelineSource* createdSource);
 	void onFilterCreated(pqPipelineSource* createdFilter);
@@ -141,7 +134,7 @@ public slots:
 
 	 //Reset Phantom Actor when server is changed
 	void resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
-	void resetPhantomActor2();
+
 protected:
 	//
     QTimer *VRPNTimer;
@@ -152,12 +145,10 @@ protected:
 	//Need to reset renderer to handle load state
 	vtkVRPNTrackerCustomSensorStyleCamera*  trackerStyleCamera1;
 
-	//SpaceNavigator and TNG-3B Serial Interface are handled as vrpn_Analog_Remote objects with corresponding callbacks
-	vrpn_Analog_Remote* spaceNavigator1;
+	// TNG-3B Serial Interface are handled as vrpn_Analog_Remote objects with corresponding callbacks
 	vrpn_Analog_Remote* tng1;
 
-	//VRPN Device callbacks
-	sn_user_callback *AC1;
+	//VRPN Device callbacks 
 	tng_user_callback *TNGC1;
 
 private: 
@@ -171,22 +162,11 @@ private:
 
   void loadState(char* filename); 
   void initialLoadState();
-  void loadTestState();
-  
-  void loadSSTTimelineState();
-  void loadSASTimelineState();
-  void loadDESTimelineState();
-
-  void loadDESState();
-  void loadAllState();
-  void loadSSTState();
-  void loadSASState();
-  void removeRepresentations();
+    
   void initializeDevices();
   void uninitializeDevices();
   bool sharedStateModified();
-  void changeTimeStamp();
-  void createConeInParaView();
+  void changeTimeStamp(); 
 
 
   time_t last_write; 
@@ -199,26 +179,19 @@ private:
   double trackerOrigin[3];
   int sensorIndex;
   int origSensorIndex;
-  bool showPartnersView;
-  int useSpaceNavigator;
-  const char* spacenavigatorAddress;
+  bool showPartnersView; 
   int usePhantom;
   const char* phantomAddress;
   int useTNG;
   const char* tngAddress;
 
-  int showingTimeline;
- 
-  //Log file for recording Phantom positions
-  ofstream evaluationlog;
+
 
   ////xml file
   //ofstream xmlSnippetFile;
   
   int fileIndex;
-  int fileStart;
- //Track pqUndoStack to deal with creation? OR track Apply?
-  pqUndoStack* undoStack; 
+  int fileStart; 
  //void loadXMLSnippet();
   bool xmlSnippetModified();
 

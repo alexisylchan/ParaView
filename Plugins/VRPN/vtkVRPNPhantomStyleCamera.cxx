@@ -193,9 +193,7 @@ void vtkVRPNPhantomStyleCamera::SetConeSource(vtkConeSource* myCone)
 
   void vtkVRPNPhantomStyleCamera::PickUpProp(double position[],double orientNew[])
   {  
-	vtkProp3D* prop;
-  // loop through all props
-  vtkCollectionSimpleIterator pit;
+	vtkProp3D* prop; 
   double delta[3] = {0,0,0};
   double translation[4]; 
 			if (!button2AlreadyPressed)
@@ -755,8 +753,7 @@ void vtkVRPNPhantomStyleCamera::CheckWithinPipelineBounds(pqView* view, vtkVRPNP
 double* vtkVRPNPhantomStyleCamera::ScalePosition(double* position,vtkRenderer* renderer)
 {
 		double* newPosition =  new double[4];
-		double* newScaledPosition =  new double[4];
-		double planes[24];
+		double* newScaledPosition =  new double[4]; 
 		vtkCamera* camera = renderer->GetActiveCamera();  
 		 
 		//Attempt to rotate by camera orientation.

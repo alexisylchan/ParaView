@@ -106,9 +106,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkstd/vector>
 //
 
-//Continuous sync
-#include "pqUndoStack.h"
-#include "vtkUndoSet.h"
+//Continuous sync  
 #include "vtkSMProxyManager.h"
 #include "vtkProcessModuleConnectionManager.h"
 #include "vtkSMProperty.h"
@@ -140,14 +138,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-// From Cory Quammen's code
-class sn_user_callback
-{
-public:
-  char sn_name[vrpn_MAX_TEXT_LEN];
-  vtkstd::vector<unsigned> sn_counts;
-  int sensorIndex;
-};
 class tng_user_callback
 {
 public:
@@ -157,14 +147,12 @@ public:
   double initialValue;
 };
 
-//Forward declaration
-void VRPN_CALLBACK handleSpaceNavigatorPos(void *userdata,const vrpn_ANALOGCB t);
+//Forward declaration 
 void VRPN_CALLBACK handleTNG(void *userdata,const vrpn_ANALOGCB t);
 //-----------------------------------------------------------------------------
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
   : QObject(p)
-{
-	spaceNavigator1 = 0; 
+{ 
 }
 
 //-----------------------------------------------------------------------------
@@ -179,11 +167,7 @@ void pqVRPNStarter::onStartup()
 	fileIndex = 0;
 	partnersTabInDisplay = false;
 	doNotPropagateSourceSelection = false;
-	onSourceChangeAfterRepeatingCreation = false;
-	this->showingTimeline = false;
-	//Log file to log test data (Vortex Visualization)
-	/*if(vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
-		evaluationlog.open("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/phantomlog.txt");*/
+	onSourceChangeAfterRepeatingCreation = false; 
    
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
     vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
@@ -205,10 +189,6 @@ void pqVRPNStarter::onStartup()
 	this->sensorIndex = options->GetTrackerSensor(); 
 	this->origSensorIndex = options->GetTrackerSensor();
 
-	//SpaceNavigator Options
-	this->useSpaceNavigator = options->GetUseSpaceNavigator();
-	this->spacenavigatorAddress = options->GetSpaceNavigatorAddress();
-
 	//Phantom Options
 	this->usePhantom = options->GetUsePhantom();
 	this->phantomAddress = options->GetPhantomAddress();
@@ -221,14 +201,8 @@ void pqVRPNStarter::onStartup()
 	this->initialLoadState();
 	this->initializeEyeAngle();
 	this->initializeDevices();
-
-	//Listen to Custom Application's GUI Qt signals for Vortex Visualization
-	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
-	
-	/*if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
-	{
-		QObject::connect(mainWindow,SIGNAL(changeDataSet(int)),this,SLOT(onChangeDataSet(int))); 
-	}*/
+ 
+	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget()); 
 	
 	showPartnersView = false;
 	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 	
@@ -420,32 +394,7 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 			}
 		}		 
 	} 
-}/*
-void pqVRPNStarter::onChangeDataSet(int index)
-{
-	switch (index)
-	{
-	case SST:
-		loadSSTState();
-		break;
-	case SAS:
-		loadSASState();
-		break;
-	case DES:
-		loadDESState();
-		break;
-	case SSTTIMELINE:
-		loadSSTTimelineState();
-		break;
-	case SASTIMELINE:
-		loadSASTimelineState();
-		break;
-	case DESTIMELINE:
-		loadDESTimelineState();
-		break;
-	}
-
-}*/
+} 
 void pqVRPNStarter::onToggleView()//bool togglePartnersView)
 { 
 	this->VRPNTimer->blockSignals(true);
@@ -692,9 +641,7 @@ void pqVRPNStarter::initializeDevices()
 		this, SLOT(resetPhantomActor(vtkPVXMLElement* , vtkSMProxyLocator* )));
 		}
 		phantomStyleCamera1->SetPhantom(phantom1);
-		phantomStyleCamera1->SetRenderer(renderer1);
-		/*phantomStyleCamera1->SetEvaluationLog(&evaluationlog);
-		phantomStyleCamera1->SetShowingTimeline(this->showingTimeline);*/
+		phantomStyleCamera1->SetRenderer(renderer1); 
 
 		
 	    /////////////////////////INTERACTOR////////////////////////////
@@ -705,17 +652,6 @@ void pqVRPNStarter::initializeDevices()
 		//phantom1->Delete();
 		//phantomStyleCamera1->Delete();
 	} 
-
-	if (this->useSpaceNavigator)
-	{
-	//Cory Quammen's Code 
-		spaceNavigator1 = new vrpn_Analog_Remote(this->spacenavigatorAddress);
-		AC1 = new sn_user_callback;
-		strncpy(AC1->sn_name,this->spacenavigatorAddress,sizeof(AC1->sn_name));
-		AC1->sensorIndex = this->sensorIndex;  //TODO: Should this be origSensorIndex? How often do we reinitialize device 
-		spaceNavigator1->register_change_handler(AC1,handleSpaceNavigatorPos);
-	
-	}
 	if (this->useTNG)
 	{
 		//TNG  
@@ -739,12 +675,7 @@ void pqVRPNStarter::uninitializeDevices()
 {
 	this->VRPNTimer->stop(); 
 	delete this->VRPNTimer;
-	
-	if (this->useSpaceNavigator)
-	{
-		delete this->spaceNavigator1;
-		delete this->AC1;
-	}
+
 	if (this->useTracker || this->usePhantom)
 		this->inputInteractor->Delete();
 	if (this->useTNG)
@@ -1125,9 +1056,7 @@ void pqVRPNStarter::timerCallback()
 	else if ((DEBUG_1_USER && this->origSensorIndex) || !DEBUG_1_USER)/// && this->changeSnippetModified())
 	{
 		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
-			respondToOtherAppsChange(); 
-		if (this->useSpaceNavigator)
-			this->spaceNavigator1->mainloop();
+			respondToOtherAppsChange();  
 		if (this->useTNG)
 			this->tng1->mainloop();
 		if (this->useTracker || this->usePhantom)
@@ -1175,102 +1104,7 @@ vrpn_ANALOGCB SNAugmentChannelsToRetainLargestMagnitude(const vrpn_ANALOGCB t)
     }
   return at;
 }
-
-void VRPN_CALLBACK handleSpaceNavigatorPos(void *userdata,
-const vrpn_ANALOGCB t)
-{
-  sn_user_callback *tData=static_cast<sn_user_callback *>(userdata);
-
-  if ( tData->sn_counts.size() == 0 )
-    {
-    tData->sn_counts.push_back(0);
-    }
-
-  //if ( tData->sn_counts[0] == 1 )
-  //  {
-  //  tData->sn_counts[0] = 0;
-
-  //  vrpn_ANALOGCB at = t;//TODO: TEST If this is better SNAugmentChannelsToRetainLargestMagnitude(t);
- //   pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	//
-	//for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++)
-	//{ 
-
-	//		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-	//		vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
-	//		/*	Try to move Camera around  . .*/
-	//		vtkCamera* camera;
- //           double pos[3], fp[3], up[3], dir[3];
-	//		
-
- //           camera = viewProxy->GetActiveCamera();
-
- //           camera->GetPosition(pos);
- //           camera->GetFocalPoint(fp);
- //           camera->GetDirectionOfProjection(dir);
-	//		
-
- //           camera->OrthogonalizeViewUp();
- //           camera->GetViewUp(up);
-
- //           for (int i = 0; i < 3; i++)
- //             {
- //               double dx = 0.01*at.channel[2]*up[i];
- //               pos[i] += dx;
- //               fp[i]  += dx;
- //             }
-
- //           // Apply right-left motion
- //           double r[3];
- //           vtkMath::Cross(dir, up, r);
-
- //           for (int i = 0; i < 3; i++)
- //             {
- //               double dx = 0.01*at.channel[0]*r[i];
- //               pos[i] += dx;
- //               fp[i]  += dx;
- //             }
-
- //           camera->SetPosition(pos);
- //           camera->SetFocalPoint(fp);
-	//		camera->Dolly(pow(1.01,-at.channel[1]));
-	//		camera->ViewingRaysModified(); 
-	//		if (tData->sensorIndex == 1)
-	//		{	
-	//			camera->Azimuth(    1.0*at.channel[5]);
-	//			camera->Roll(       -1.0*at.channel[4]);
-	//			 double axis[3], newPosition[3]; 
-	//			vtkTransform* vttrans = vtkTransform::New();
-	//			// snatch the axis from the view transform matrix
-	//			axis[0] = -camera->GetViewTransformMatrix()->GetElement(2,0);
-	//			axis[1] = -camera->GetViewTransformMatrix()->GetElement(2,1);
-	//			axis[2] = -camera->GetViewTransformMatrix()->GetElement(2,2); 
-	//			vttrans->Translate(+fp[0],+fp[1],+fp[2]);
-	//			vttrans->RotateWXYZ(-1.0*at.channel[3],axis);
-	//			vttrans->Translate(-fp[0],-fp[1],-fp[2]); 
-	//			vttrans->TransformPoint(camera->GetPosition(),newPosition);
-	//			camera->SetPosition(newPosition);
-	//			vttrans->Delete();
-	//		}
-	//		else 
-	//		{				
-	//		
-	//			camera->Azimuth(    1.0*at.channel[5]);
-	//			camera->Roll(       -1.0*at.channel[4]);	
-	//			camera->Elevation(  -1.0*at.channel[3]);
-	//		} 
-	//		viewProxy->GetRenderer()->ResetCameraClippingRange();
-	//		
-	//	  }
-
- //   }
- // else
- //   {
- //     tData->sn_counts[0]++;
- //   }
-}
-
-
+ 
 void VRPN_CALLBACK handleTNG(void *userdata,
 const vrpn_ANALOGCB t)
 {
@@ -1316,20 +1150,12 @@ void  pqVRPNStarter::loadState()
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::initialLoadState()
 {
-		//createConeInParaView();
-		/*if (vtkProcessModule::GetProcessModule()->GetOptions()->GetCollabVisDemo())
-			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm"));
-		else
-			pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/clean.pvsm"));
-*/
 		this->changeTimeStamp();
 }
 
 void pqVRPNStarter::loadState(char* filename)
 {
 	this->VRPNTimer->blockSignals(true); 
-	
-	//phantomStyleCamera1->SetShowingTimeline(this->showingTimeline); 
 	pqDeleteReaction::deleteAll();
     pqLoadStateReaction::loadState(QString(filename));
 	this->changeTimeStamp(); 
@@ -1339,58 +1165,6 @@ void pqVRPNStarter::loadState(char* filename)
 }
 
 
-//Load Test State
-void  pqVRPNStarter::loadTestState()
-{
-		this->showingTimeline = false; 
-		loadState("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanTest.pvsm" ); 
-}
-
-//Load All Data State
-void  pqVRPNStarter::loadAllState()
-{
-		this->showingTimeline = false; 
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESSASSST.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSSTState()
-{
-		this->showingTimeline = false; 
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSST.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSASState()
-{
-		this->showingTimeline = false; 
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSAS.pvsm" ); 
- 
-}
-
-//Load DES State
-void  pqVRPNStarter::loadDESState()
-{
-		this->showingTimeline = false; 
-	    loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDES.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSSTTimelineState()
-{
-		this->showingTimeline = true; 
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSSTTimeline.pvsm" ); 
-}
-//Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
-void  pqVRPNStarter::loadSASTimelineState()
-{
-		this->showingTimeline = true; 
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanSASTimeline.pvsm" ); 
-}
-
-//Load DES State
-void  pqVRPNStarter::loadDESTimelineState()
-{ 
-		this->showingTimeline = true; 
-		loadState( "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/cleanDESTimeline.pvsm" ); 
-}
 
 
 void pqVRPNStarter::changeTimeStamp()
@@ -1400,64 +1174,6 @@ void pqVRPNStarter::changeTimeStamp()
 		struct stat filestat;
 		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
 		this->last_write = filestat.st_mtime;
-	}
-}
-/*************************************************FOR DEBUGGING PURPOSES ***********************************************/
-// Used as a debugging tool to start and stop timer. TODO: remove
-void pqVRPNStarter::debugToggleVRPNTimer()
-{
-	/*if (showPartnersView)
-	{
-		showPartnersView = false;
-	}
-	else
-	{
-		showPartnersView = true;
-	}
-	this->VRPNTimer->blockSignals(showPartnersView);*/
-
-}
-// Used as a debugging tool to grab  properties from Object Inspector Widget. TODO: remove
-void pqVRPNStarter::debugGrabProps()
-{ 
-	//qWarning ("Responding!!");
-	respondToOtherAppsChange(); 
-}
-/*************************************************DEPRECATED. TO BE REMOVED ***********************************************/
-   
-void pqVRPNStarter::createConeInParaView()
-{
- 
-  pqApplicationCore* core = pqApplicationCore::instance();
-	// Get the Server Manager Model so that we can get each view
-	pqServerManagerModel* serverManager = core->getServerManagerModel();
-	pqPipelineSource* pipelineSource = core->getObjectBuilder()->createSource("sources","PhantomCursorSource",pqActiveObjects::instance().activeServer());
-	
-	//Display source in view
-	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) //Check that there really are 2 views
-	{
-		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );
-
-		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
-
-
-		for (int cc=0; cc < pipelineSource->getNumberOfOutputPorts(); cc++)
-		{
-			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-			pipelineSource->getOutputPort(cc), view, false);
-			if (!repr || !repr->getView())
-			{
-				continue;
-			}
-			pqView* cur_view = repr->getView();
-			pqPipelineFilter* filter = qobject_cast<pqPipelineFilter*>(pipelineSource);
-			if (filter)
-			{
-				filter->hideInputIfRequired(cur_view);
-			}
-
-		}
 	}
 }
 
@@ -1540,16 +1256,4 @@ void pqVRPNStarter::resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* 
 	this->VRPNTimer->blockSignals(false);
 	}
 }
-void pqVRPNStarter::resetPhantomActor2()
-{
-	if (this->usePhantom)
-	{
-
-	this->VRPNTimer->blockSignals(true);
-	/*this->ConeActor->Delete();*/
-	createConeInVTK(true);
-	phantomStyleCamera1->SetActor(this->ConeActor);
-	phantomStyleCamera1->SetConeSource(this->Cone);
-	this->VRPNTimer->blockSignals(false);
-	}
-}
+ 
