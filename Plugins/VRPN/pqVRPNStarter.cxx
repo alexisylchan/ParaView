@@ -1309,6 +1309,7 @@ bool pqVRPNStarter::sharedStateModified()
 void  pqVRPNStarter::loadState()
 {  
         pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
+		this->initializeEyeAngle();
 		this->changeTimeStamp();
 } 
 
@@ -1469,8 +1470,7 @@ void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 		double orientNew[3] ;
 		if (deleteOldCone)
 		{
-			this->ConeActor->Delete();
-			this->Cone->Delete();
+			this->ConeActor->Delete(); 
 		}
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() );  
 		 
@@ -1546,7 +1546,7 @@ void pqVRPNStarter::resetPhantomActor2()
 	{
 
 	this->VRPNTimer->blockSignals(true);
-	this->ConeActor->Delete();
+	/*this->ConeActor->Delete();*/
 	createConeInVTK(true);
 	phantomStyleCamera1->SetActor(this->ConeActor);
 	phantomStyleCamera1->SetConeSource(this->Cone);
