@@ -82,6 +82,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqSMAdaptor.h"
 #include "pqUndoStack.h"
 
+// Synchronous Collaboration
+#include "vtkPVOptions.h"
+#include "vtkProcessModule.h"
+#include "pqApplicationCore.h"
+
 //-----------------------------------------------------------------------------
 class pqPipelineRepresentation::pqInternal
 {
@@ -771,6 +776,7 @@ void pqPipelineRepresentation::setColor(double R,double G,double B)
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::resetLookupTableScalarRange()
 {
+	 
   pqScalarsToColors* lut = this->getLookupTable();
   QString colorField = this->getColorField();
   if (lut && colorField != "" && 
@@ -785,7 +791,16 @@ void pqPipelineRepresentation::resetLookupTableScalarRange()
       {
       opacity->setScalarRange(range.first, range.second);
       }
-    }
+    } 
+	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	{
+		if (!pqApplicationCore::instance()->isRepeating)
+		{
+			pqApplicationCore::writeChangeSnippet("ResetLookupTableScalarRange");
+		
+		}
+	}
+
 }
 
 //-----------------------------------------------------------------------------

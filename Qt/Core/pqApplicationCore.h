@@ -96,6 +96,7 @@ public:
   static pqApplicationCore* instance();
 
   void printSMProperty(vtkSMProperty* smProperty);
+  static void writeChangeSnippet(const char* snippet);
   
   static int incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile);
 

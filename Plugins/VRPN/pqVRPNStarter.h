@@ -201,8 +201,7 @@ private:
   //ifstream readFile;
  // bool isRepeating;
 
-
-  void writeChangeSnippet(const char* snippet); 
+ 
   void respondToOtherAppsChange();
   void repeatCreateSource(char* groupName,char* sourceName );
   void repeatCreateFilter(char* groupName,char* sourceName );

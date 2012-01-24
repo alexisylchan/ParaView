@@ -249,6 +249,7 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 	return;
 }
 // Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
+// If findNextFile is true, the function is used to determine the index of the next file only, the currentSensorIndex is not incremented.
 int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile)
 {
 	std::string     strFilePath;             // Filepath
@@ -319,6 +320,26 @@ int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensor
 	return trackedIndex;
 
 }  
+
+ void pqApplicationCore::writeChangeSnippet(const char* snippet)
+{
+	pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
+	
+	char* filename = (char*)malloc(sizeof(char)*FILE_PATH_SIZE);
+	sprintf(filename, "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",pqApplicationCore::instance()->sensorIndex,pqApplicationCore::instance()->writeFileIndex);
+    ofstream xmlSnippetFile;
+	//TODO: rename xmlSnippetFile
+	xmlSnippetFile.open(filename);
+	free(filename);
+	if (!xmlSnippetFile)
+	{ 
+		//qWarning ("File not opened!!! %s",filename.str().c_str());
+		return;
+	}
+	xmlSnippetFile.write(snippet,strlen(snippet)); 
+	xmlSnippetFile.close(); 
+
+}
 pqApplicationCore::pqApplicationCore(int& argc, char** argv, pqOptions* options,
   QObject* parentObject)
   : QObject(parentObject)

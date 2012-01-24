@@ -136,6 +136,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVXMLElement.h"
 #include "vtkSMProxyLocator.h"
 
+//Propagation
+#include "pqPipelineRepresentation.h"
 
 
 class tng_user_callback
@@ -268,31 +270,13 @@ void pqVRPNStarter::onStartup()
 
 	
 }
-void pqVRPNStarter::writeChangeSnippet(const char* snippet)
-{
-	pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,this->origSensorIndex,true);
-	
-	char* filename = (char*)malloc(sizeof(char)*FILE_PATH_SIZE);
-	sprintf(filename, "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",this->origSensorIndex,pqApplicationCore::instance()->writeFileIndex);
-    ofstream xmlSnippetFile;
-	//TODO: rename xmlSnippetFile
-	xmlSnippetFile.open(filename);
-	free(filename);
-	if (!xmlSnippetFile)
-	{ 
-		//qWarning ("File not opened!!! %s",filename.str().c_str());
-		return;
-	}
-	xmlSnippetFile.write(snippet,strlen(snippet)); 
-	xmlSnippetFile.close(); 
 
-}
 
 void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
 	if (!pqApplicationCore::instance()->isRepeating)
 	{  
-		writeChangeSnippet("Apply");
+		pqApplicationCore::writeChangeSnippet("Apply");
 	}
 }
 
@@ -307,15 +291,15 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 		 
 		if (proxyTabWidget->currentIndex() == pqProxyTabWidget::DISPLAY) // If current tab is display
 		{
-			writeChangeSnippet("Tab,Display");
+			pqApplicationCore::writeChangeSnippet("Tab,Display");
 		}
 		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::PROPERTIES)  // If current tab is display
 		{		
-			writeChangeSnippet("Tab,Properties");
+			pqApplicationCore::writeChangeSnippet("Tab,Properties");
 		}
 		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::INFORMATION)  // If current tab is display
 		{		
-			writeChangeSnippet("Tab,Information");
+			pqApplicationCore::writeChangeSnippet("Tab,Information");
 		}
 		else
 		{
@@ -336,7 +320,7 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 		doNotPropagateSourceSelection = true;
 		char* sourceStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 		sprintf(sourceStr,"Source,%s,%s",createdSource->getSMGroup().toAscii().data(),createdSource->getProxy()->GetXMLName());
-		writeChangeSnippet(const_cast<const char*>(sourceStr));
+		pqApplicationCore::writeChangeSnippet(const_cast<const char*>(sourceStr));
 		free(sourceStr); 
 	}	
 }
@@ -364,7 +348,7 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 		
 		char* filterStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 		sprintf(filterStr,"Filter,%s,%s",groupName.toAscii().data(),createdFilter->getProxy()->GetXMLName());
-		writeChangeSnippet(const_cast<const char*>(filterStr));
+		pqApplicationCore::writeChangeSnippet(const_cast<const char*>(filterStr));
 		free(filterStr);  
 	} 
 }
@@ -389,7 +373,7 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 			{
 				char* changedStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 				sprintf(changedStr,"Changed,%s",createdSource->getSMName().toAscii().data());
-				writeChangeSnippet(const_cast<const char*>(changedStr));
+				pqApplicationCore::writeChangeSnippet(const_cast<const char*>(changedStr));
 				free(changedStr); 
 			}
 		}		 
@@ -789,14 +773,14 @@ void pqVRPNStarter::respondToOtherAppsChange()
 {
 	VRPNTimer->blockSignals(true); 
 	ifstream readFile;
-	int targetFileIndex = pqApplicationCore::incrementDirectoryFile(readFileIndex,(this->origSensorIndex+1)%2,false);
+	int targetFileIndex = pqApplicationCore::incrementDirectoryFile(readFileIndex,(pqApplicationCore::instance()->sensorIndex+1)%2,false);
 	//Check if target file exists.
 	::HANDLE hFileT;         
 	::WIN32_FIND_DATA FileInformationT; 
 	char inputStr[FILE_PATH_SIZE]; 
 
 	sprintf(inputStr,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
-					((this->origSensorIndex+1)%2),targetFileIndex); 
+					((pqApplicationCore::instance()->sensorIndex+1)%2),targetFileIndex); 
 	hFileT = ::FindFirstFile(inputStr, &FileInformationT);
 	if(hFileT == INVALID_HANDLE_VALUE)
 	{ 
@@ -816,7 +800,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		char inputStr1[FILE_PATH_SIZE]; 
 
 	    sprintf(inputStr1,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
-					((this->origSensorIndex+1)%2),i);
+					((pqApplicationCore::instance()->sensorIndex+1)%2),i);
 		::HANDLE hFile;         
 		::WIN32_FIND_DATA FileInformation;  
 		hFile = ::FindFirstFile(inputStr1, &FileInformation);
@@ -882,6 +866,11 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			{  
 				char* sourceName = strtok(NULL,",");
 				repeatSelectionChange(sourceName); 
+			}
+			else if (!strcmp(operation,"ResetLookupTableScalarRange"))
+			{
+				pqPipelineRepresentation*  repr = dynamic_cast<pqPipelineRepresentation*>(pqActiveObjects::instance().activeRepresentation());
+				repr->resetLookupTableScalarRange();
 			}
 			else 
 			{  
