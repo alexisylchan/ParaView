@@ -341,9 +341,11 @@ vtkProp3D* prop;
 			for (int j = 0; j< this->Renderer->GetViewProps()->GetNumberOfItems(); j++ )
   {
 	  prop= vtkProp3D::SafeDownCast(this->Renderer->GetViewProps()->GetItemAsObject(j));
- 
+		if (prop )
+		{
 	   prop->PhantomPicked = false;
 	   prop->Modified();
+		}
   }
 
 			button2AlreadyPressed = false;

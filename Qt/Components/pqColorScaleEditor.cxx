@@ -85,6 +85,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QVariant>
 
 
+// Synchronous Collaboration
+#include "vtkPVOptions.h"
+#include "vtkProcessModule.h"
+#include "pqApplicationCore.h"
+
 
 
 class pqColorScaleEditorForm : public Ui::pqColorScaleDialog
@@ -439,11 +444,38 @@ void pqColorScaleEditor::setColors()
   vtkSMProxy *lookupTable = this->ColorMap->getProxy();
   pqSMAdaptor::setMultipleElementProperty(
       lookupTable->GetProperty("RGBPoints"), rgbPoints);
+ if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+      lookupTable->GetProperty("RGBPoints")); 
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
+
   if(this->OpacityFunction)
     {
     vtkSMProxy *points = this->OpacityFunction->getProxy();
     pqSMAdaptor::setMultipleElementProperty(points->GetProperty("Points"),
         opacityPoints);
+	 if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(points->GetProperty("Points")
+      ); 
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
     points->UpdateVTKObjects();
     }
 
@@ -647,6 +679,22 @@ void pqColorScaleEditor::setColorSpace(int index)
         lookupTable->GetProperty("ColorSpace"), index);
     pqSMAdaptor::setElementProperty(
         lookupTable->GetProperty("HSVWrap"), wrap);
+	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+        lookupTable->GetProperty("ColorSpace"));
+		pqApplicationCore::instance()->printSMProperty(
+        lookupTable->GetProperty("HSVWrap"));
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
+
     this->Form->InSetColors = false;
     lookupTable->UpdateVTKObjects();
     this->Display->renderViewEventually();
@@ -663,6 +711,21 @@ void pqColorScaleEditor::setNanColor(const QColor &color)
     values << color.redF() << color.greenF() << color.blueF();
     pqSMAdaptor::setMultipleElementProperty(
                                   lookupTable->GetProperty("NanColor"), values);
+		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+                                  lookupTable->GetProperty("NanColor")); 
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
+
+
     this->Form->InSetColors = false;
     lookupTable->UpdateVTKObjects();
     this->Display->renderViewEventually();
@@ -788,6 +851,22 @@ void pqColorScaleEditor::loadPreset()
             lookupTable->GetProperty("ColorSpace"), colorSpace);
         pqSMAdaptor::setElementProperty(
             lookupTable->GetProperty("HSVWrap"), wrap);
+		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+        lookupTable->GetProperty("ColorSpace"));
+		pqApplicationCore::instance()->printSMProperty(
+        lookupTable->GetProperty("HSVWrap"));
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
+
         this->Form->InSetColors = false;
         }
 
@@ -807,6 +886,19 @@ void pqColorScaleEditor::loadPreset()
         values << nanColor.redF() << nanColor.greenF() << nanColor.blueF();
         pqSMAdaptor::setMultipleElementProperty(
                                   lookupTable->GetProperty("NanColor"), values);
+		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+                                  lookupTable->GetProperty("NanColor")); 
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
         this->Form->InSetColors = false;
         }
 
@@ -829,6 +921,20 @@ void pqColorScaleEditor::setLogScale(bool on)
   vtkSMProxy *lookupTable = this->ColorMap->getProxy();
   pqSMAdaptor::setElementProperty(
       lookupTable->GetProperty("UseLogScale"), on ? 1 : 0);
+  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+      lookupTable->GetProperty("UseLogScale")); 
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
+
 
   // Set the log scale flag on the editor.
   this->Viewer->GetColorFunction()->SetScale(
@@ -931,6 +1037,19 @@ void pqColorScaleEditor::setUseDiscreteColors(bool on)
     vtkSMProxy *lookupTable = this->ColorMap->getProxy();
     pqSMAdaptor::setElementProperty(
         lookupTable->GetProperty("Discretize"), (on ? 1 : 0));
+ if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+        lookupTable->GetProperty("Discretize")); 
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
     lookupTable->UpdateVTKObjects();
     this->Display->renderViewEventually();
     }
@@ -964,6 +1083,20 @@ void pqColorScaleEditor::setTableSize(int tableSize)
     vtkSMProxy *lookupTable = this->ColorMap->getProxy();
     pqSMAdaptor::setElementProperty(
         lookupTable->GetProperty("NumberOfTableValues"), QVariant(tableSize));
+	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ {
+	if (!pqApplicationCore::instance()->isRepeatingDisplay)
+	{ 
+		pqApplicationCore::instance()->printSMProperty(
+        lookupTable->GetProperty("NumberOfTableValues")); 
+			
+	}
+	else
+	{
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+	}
+ }
+
     lookupTable->UpdateVTKObjects();
     this->Display->renderViewEventually();
     }

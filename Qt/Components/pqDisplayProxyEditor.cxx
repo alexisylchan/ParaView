@@ -984,8 +984,7 @@ void pqDisplayProxyEditor::updateMaterial(int vtkNotUsed(idx))
 //-----------------------------------------------------------------------------
 void pqDisplayProxyEditor::cubeAxesVisibilityChanged()
 {
-	if (!pqApplicationCore::instance()->isRepeatingDisplay)
-	{ 
+	 
 		vtkSMProxy* reprProxy = (this->Internal->Representation)? this->Internal->Representation->getProxy() : NULL;
 		vtkSMProperty* prop = 0;
 
@@ -996,11 +995,7 @@ void pqDisplayProxyEditor::cubeAxesVisibilityChanged()
 			reprProxy->UpdateVTKObjects(); 
 		}
 		this->updateAllViews();
-	}
-	else
-	{
-		pqApplicationCore::instance()->isRepeatingDisplay = false;
-	}
+	 
 }
 //-----------------------------------------------------------------------------
 void pqDisplayProxyEditor::editCubeAxes()
@@ -1018,24 +1013,13 @@ bool pqDisplayProxyEditor::isCubeAxesVisible()
 //-----------------------------------------------------------------------------
 void pqDisplayProxyEditor::sliceDirectionChanged()
 {
-  if (this->Internal->Representation)
-    {
- 
-	if (!pqApplicationCore::instance()->isRepeatingDisplay)
-	{ 
-		vtkSMProxy* reprProxy = this->Internal->Representation->getProxy();
-	    vtkSMProperty* prop = reprProxy->GetProperty("SliceMode");
-		if (prop)
-		{
-		prop->UpdateDependentDomains();
-		}
-	}
-	else
-	{
-		pqApplicationCore::instance()->isRepeatingDisplay = false;
-	}
 
-  }
+		vtkSMProxy* reprProxy = this->Internal->Representation->getProxy();
+			vtkSMProperty* prop = reprProxy->GetProperty("SliceMode");
+			if (prop)
+			{
+			prop->UpdateDependentDomains();
+			}
 }
 
 //-----------------------------------------------------------------------------
@@ -1045,20 +1029,52 @@ void pqDisplayProxyEditor::volumeBlockSelected()
   if (this->Internal->CompositeTreeAdaptor
       && this->Internal->Representation)
     {
-    bool valid = false;
-    unsigned int selectedIndex =
-      this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
-    if (valid && selectedIndex > 0)
-      {
-      vtkSMRepresentationProxy* repr =
-        this->Internal->Representation->getRepresentationProxy();
-      pqSMAdaptor::setElementProperty(
-        repr->GetProperty("ExtractedBlockIndex"), selectedIndex);
-      repr->UpdateVTKObjects();
-      this->Internal->Representation->renderViewEventually();
-      this->Internal->ColorBy->reloadGUI();
+
+		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+		{
+			if (!pqApplicationCore::instance()->isRepeatingDisplay)
+			{ 
+
+					bool valid = false;
+					unsigned int selectedIndex =
+					  this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
+					if (valid && selectedIndex > 0)
+					  {
+					  vtkSMRepresentationProxy* repr =
+						this->Internal->Representation->getRepresentationProxy();
+					  pqSMAdaptor::setElementProperty(
+						repr->GetProperty("ExtractedBlockIndex"), selectedIndex);
+					  
+					pqApplicationCore::instance()->printSMProperty(
+						repr->GetProperty("ExtractedBlockIndex")); 
+			
+					  repr->UpdateVTKObjects();
+					  this->Internal->Representation->renderViewEventually();
+					  this->Internal->ColorBy->reloadGUI();
+					}
+		  }
+			else
+			{
+			pqApplicationCore::instance()->isRepeatingDisplay = false;
+			}
       }
-    }
+		else
+		{
+			bool valid = false;
+					unsigned int selectedIndex =
+					  this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
+					if (valid && selectedIndex > 0)
+					  {
+					  vtkSMRepresentationProxy* repr =
+						this->Internal->Representation->getRepresentationProxy();
+					  pqSMAdaptor::setElementProperty(
+						repr->GetProperty("ExtractedBlockIndex"), selectedIndex);
+					  repr->UpdateVTKObjects();
+					  this->Internal->Representation->renderViewEventually();
+					  this->Internal->ColorBy->reloadGUI();
+					}
+		}
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1104,19 +1120,53 @@ void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 // Called when the GUI selection for the backface solid color changes.
 void pqDisplayProxyEditor::setBackfaceSolidColor(const QColor& color)
 {
-  QList<QVariant> val;
-  val.push_back(color.red()/255.0);
-  val.push_back(color.green()/255.0);
-  val.push_back(color.blue()/255.0);
+	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	{
+		if (!pqApplicationCore::instance()->isRepeatingDisplay)
+		{ 
+			QList<QVariant> val;
+			  val.push_back(color.red()/255.0);
+			  val.push_back(color.green()/255.0);
+			  val.push_back(color.blue()/255.0);
 
-  pqSMAdaptor::setMultipleElementProperty(
-    this->Internal->Representation->getProxy()->GetProperty("BackfaceAmbientColor"), val);
-  pqSMAdaptor::setMultipleElementProperty(
-    this->Internal->Representation->getProxy()->GetProperty("BackfaceDiffuseColor"), val);
+			  pqSMAdaptor::setMultipleElementProperty(
+				this->Internal->Representation->getProxy()->GetProperty("BackfaceAmbientColor"), val);
+			  pqSMAdaptor::setMultipleElementProperty(
+				this->Internal->Representation->getProxy()->GetProperty("BackfaceDiffuseColor"), val);
 
-  // If specular white is off, then we want to update the specular color as
-  // well.
-  emit this->specularColorChanged();
+			  // If specular white is off, then we want to update the specular color as
+			  // well.
+			  emit this->specularColorChanged();
+
+			// If specular white is off, then we want to update the specular color as
+			// well.
+			emit this->specularColorChanged();
+			pqApplicationCore::instance()->printSMProperty(this->Internal->Representation->getProxy()->GetProperty("BackfaceAmbientColor")); 
+
+			pqApplicationCore::instance()->printSMProperty(this->Internal->Representation->getProxy()->GetProperty("BackfaceDiffuseColor")); 
+		}
+		else  
+		{
+			pqApplicationCore::instance()->isRepeatingDisplay = false;
+		}
+	}
+	else
+	{
+
+	  QList<QVariant> val;
+	  val.push_back(color.red()/255.0);
+	  val.push_back(color.green()/255.0);
+	  val.push_back(color.blue()/255.0);
+
+	  pqSMAdaptor::setMultipleElementProperty(
+		this->Internal->Representation->getProxy()->GetProperty("BackfaceAmbientColor"), val);
+	  pqSMAdaptor::setMultipleElementProperty(
+		this->Internal->Representation->getProxy()->GetProperty("BackfaceDiffuseColor"), val);
+
+	  // If specular white is off, then we want to update the specular color as
+	  // well.
+	  emit this->specularColorChanged();
+	}
 }
 
 //-----------------------------------------------------------------------------

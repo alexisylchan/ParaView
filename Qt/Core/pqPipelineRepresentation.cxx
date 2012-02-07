@@ -1210,11 +1210,32 @@ QString pqPipelineRepresentation::getColorField(bool raw)
 //-----------------------------------------------------------------------------
 void pqPipelineRepresentation::setRepresentation(int representation)
 {
-  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
-  pqSMAdaptor::setElementProperty(
-    repr->GetProperty("Representation"), representation);
-  repr->UpdateVTKObjects();
-  this->onRepresentationChanged();
+ 
+  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	{if (!pqApplicationCore::instance()->isRepeatingDisplay)
+		{
+		 vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
+		  pqSMAdaptor::setElementProperty(
+			repr->GetProperty("Representation"), representation);
+		pqApplicationCore::instance()->printSMProperty(  repr->GetProperty("Representation"));
+		
+	  repr->UpdateVTKObjects();
+	  this->onRepresentationChanged();
+		}
+		else  
+		{
+			pqApplicationCore::instance()->isRepeatingDisplay = false;
+		}
+  }
+  else
+  {
+	  vtkSMRepresentationProxy* repr = this->getRepresentationProxy();
+		  pqSMAdaptor::setElementProperty(
+			repr->GetProperty("Representation"), representation);
+	  repr->UpdateVTKObjects();
+	  this->onRepresentationChanged();
+  }
+
 }
 
 //-----------------------------------------------------------------------------

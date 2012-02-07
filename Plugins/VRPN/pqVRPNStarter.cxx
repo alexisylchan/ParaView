@@ -1005,8 +1005,9 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 					continue; 
 				pqView* cur_view = repr->getView(); 
 				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
-				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
+				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true); 
 				pqSMAdaptor::setMultipleElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),valueList);
+				
 				if (VERBOSE)
 					qWarning("Proxy Property Name %s",displayRepresentation->getProxy()->GetProperty(propertyName)->GetXMLName());
 				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
