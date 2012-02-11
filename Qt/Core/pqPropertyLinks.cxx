@@ -565,7 +565,7 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 			{
 			if (VERBOSE)
 				qWarning("qt link changed"); 
-			pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
+				pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
 			}  
 		}
 	}

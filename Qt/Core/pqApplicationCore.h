@@ -77,7 +77,7 @@ class vtkSMProperty;
 #define VERBOSE 0 
 #define PROPAGATE 0
 #define DEBUG_1_USER 0
-#define SNIPPET_LENGTH 50
+#define SNIPPET_LENGTH 100
 #define FILE_PATH_SIZE 200
 #define LONG_SNIPPET_LENGTH 200
 /// This class is the crux of the ParaView application. It creates
