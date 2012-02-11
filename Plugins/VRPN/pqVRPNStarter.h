@@ -226,6 +226,10 @@ private:
   // changes will not be repeated infinitely.
   bool onSourceChangeAfterRepeatingCreation;
   void createConeInVTK(bool deleteOldCone);
+
+  //networking
+	int		err;
+	int		bytesRecv;
 };
 
 #endif

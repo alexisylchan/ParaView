@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
 #include "pqApplicationCore.h"
-
 #include <vtksys/SystemTools.hxx>
 
 // Qt includes.
@@ -108,8 +107,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkProcessModule.h"
 #include "vtkPVOptions.h"
 #include <conio.h>
-#include <windows.h>  
 #include "pqApplicationCore.h"
+//Networking
+#include "stdafx.h"
+#include "conio.h"
+ 
+
+#define SERVER_PORT_0 12345
+#define SERVER_PORT_1 12346
+#define BUF_SIZE 4096  // block transfer size  
+//#define QUEUE_SIZE 1000
 
 //-----------------------------------------------------------------------------
 class pqApplicationCore::pqInternals
@@ -131,7 +138,7 @@ pqApplicationCore* pqApplicationCore::instance()
 void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 {
 	
-    pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
+    //pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
 	QString str; 
 
 	if(VERBOSE)
@@ -146,6 +153,7 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 	ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
 	idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
 	svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
+	/*
 	char filename[FILE_PATH_SIZE];
 	
 	sprintf(filename,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",this->sensorIndex,this->writeFileIndex);
@@ -166,87 +174,260 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		xmlSnippetFile.clear();
 		xmlSnippetFile.close();
 		return;
-	}
-
+	}*/
+	char* snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+	char* snippet_property_name = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+	sprintf(snippet_property_name, "%s,",smProperty->GetXMLName()); 
+	strcpy(snippet,snippet_property_name);
+	
 	if(dvp)
 	{
 		int num = dvp->GetNumberOfElements();
 		double* test = dvp->GetElements();
+		char** snippet_parts = (char**) malloc(sizeof(char*)*num);
+
 		for (int i =0; i< num; i++)
 		{
 			if(VERBOSE)
 				qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
 			
-	        snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-			sprintf(snippet,"%s,dvp,%f\n",smProperty->GetXMLName(),test[i]);
-			xmlSnippetFile.write(snippet,strlen(snippet));
-			free(snippet);
+	        snippet_parts[i] = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(snippet_parts[i],"dvp,%f,",test[i]);
+			strcat(snippet,snippet_parts[i]);
+			free (snippet_parts[i]);
+			//xmlSnippetFile.write(snippet,strlen(snippet));
 		}
+		pqApplicationCore::writeChangeSnippet(snippet);
+		free (snippet_parts);
+
 	}
 	else if (ivp)
 	{
 		int num = ivp->GetNumberOfElements();
 		int* test = ivp->GetElements();
+
+		char** snippet_parts = (char**) malloc(sizeof(char*)*num);
+
 		for (int i =0; i< num; i++)
 		{
 			if(VERBOSE)
-				qWarning("%s ivp %d", smProperty->GetXMLName(),test[i]); 
+				qWarning("%s dvp %f", smProperty->GetXMLName(),test[i]);
 			
-	        snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-			sprintf(snippet,"%s,ivp,%d\n",smProperty->GetXMLName(),test[i]); 
-			xmlSnippetFile.write(snippet,strlen(snippet));
-			free(snippet); 
+	        snippet_parts[i] = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(snippet_parts[i],"ivp,%d,",test[i]);
+			strcat(snippet,snippet_parts[i]);
+			free (snippet_parts[i]); 
 		}
+		pqApplicationCore::writeChangeSnippet(snippet);
+		free (snippet_parts); 
 	}
 	else if (svp)
 	{
 	  int num = svp->GetNumberOfElements();
+
 	  vtkStringList* strList = vtkStringList::New();
+	  
 		svp->GetElements(strList);
+		char** snippet_parts = (char**) malloc(sizeof(char*)*svp->GetNumberOfElements());
 		if (strList)
 		{ 
 			for (int i =0; i< num; i++)
 			{
 				if(VERBOSE) 
 					qWarning("list successful %s",strList->GetString(i));
-				snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-				sprintf(snippet,"%s,svp,%s\n",smProperty->GetXMLName(),strList->GetString(i)); 
-				xmlSnippetFile.write(snippet,strlen(snippet));
-				free(snippet); 
+				//snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				sprintf(snippet_parts[i],"svp,%s,",strList->GetString(i)); 
+				strcat(snippet,snippet_parts[i]); 
+				free (snippet_parts[i]);
 			}
+			pqApplicationCore::writeChangeSnippet(snippet);
 		}
 	}
 	else if (idvp)
 	{
 	 vtkIdType v;
-	  int num = idvp->GetNumberOfElements();
-	  for (int i =0; i < num; i++)
-	  {
-		  #if defined (VTK_USE_64BIT_IDS)
-		  {
-			  if(VERBOSE)
-				qWarning(" vtkIdType %l", idvp->GetElement(i)); 
-			snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-			sprintf(snippet,"%s,vtkIdType,%l\n",smProperty->GetXMLName(),idvp->GetElement(i)); 
-			xmlSnippetFile.write(snippet,strlen(snippet));
-			free(snippet); 
-		  }
-	#else 
-		  if(VERBOSE)
-			qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i)); 
-		snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-		sprintf(snippet,"%s,vtkIdType,%d\n",smProperty->GetXMLName(),idvp->GetElement(i));  
-		xmlSnippetFile.write(snippet,strlen(snippet));
-		free(snippet); 
-	#endif
+	  int num = idvp->GetNumberOfElements(); 
+		char** snippet_parts = (char**) malloc(sizeof(char*)*num);
+
+		for (int i =0; i< num; i++)
+		{
+			#if defined (VTK_USE_64BIT_IDS)
+			  {
+				  if(VERBOSE)
+					qWarning("%s idvp %f", smProperty->GetXMLName(),test[i]);
+				
+				snippet_parts[i] = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				sprintf(snippet_parts[i],"vtkIdType,%l,",idvp->GetElement(i));
+				strcat(snippet,snippet_parts[i]);
+				free (snippet_parts[i]);
+			  }
+	
+	
+			#else 
+			{
+				  if(VERBOSE)
+					qWarning("%s vtkIdType %d",smProperty->GetXMLName(),idvp->GetElement(i)); 
+				snippet_parts[i] = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				sprintf(snippet_parts[i],"vtkIdType,%d,",idvp->GetElement(i));   
+				strcat(snippet,snippet_parts[i]);
+				free (snippet_parts[i]);
+			}
+			#endif
 
 			  
-	  }
+		}
+		pqApplicationCore::writeChangeSnippet(snippet);
+		free (snippet_parts);
+	}
 	 
-	} 
-	xmlSnippetFile.clear();
-	xmlSnippetFile.close();
+	
+	//xmlSnippetFile.clear();
+	//xmlSnippetFile.close();
+	free (snippet_property_name);
+	free (snippet);
 	return;
+}
+
+bool pqApplicationCore::setupCollaborationClientServer()
+{
+	b = l = on = 1;
+	hostname= "sutherland.cs.unc.edu";
+	portnumber =  12346;
+		//--- INITIALIZATION -----------------------------------
+	WORD wVersionRequested1 = MAKEWORD( 1, 1 );
+	wVersionRequested = (WORD*)malloc(sizeof(WORD));
+	memcpy(wVersionRequested, &wVersionRequested1,sizeof(WORD));
+	wsaData = (WSADATA*) malloc(sizeof(WSADATA));
+	err = WSAStartup( *wVersionRequested, wsaData );
+
+	if ( err != 0 ) {
+		printf("WSAStartup error %ld", WSAGetLastError() );
+		WSACleanup();
+		return false;
+	}
+	//------------------------------------------------------
+
+	if (!this->sensorIndex)
+	{
+		//---- Build address structure to bind to socket.--------  
+		channel = (struct sockaddr_in*) malloc(sizeof(sockaddr_in));
+		memset(channel, 0, sizeof(*channel));// zerochannel 
+		channel->sin_family = AF_INET; 
+		channel->sin_addr.s_addr = htonl(INADDR_ANY); 
+		channel->sin_port = htons(portnumber); 
+		//--------------------------------------------------------
+
+
+		// ---- create SOCKET--------------------------------------
+		SOCKET s0 =   socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);  
+		
+		socket0 = (SOCKET*)malloc(sizeof(SOCKET));
+		memcpy(socket0, &s0,sizeof(SOCKET));
+		if (*socket0 < 0) {
+			printf("socket error %ld",WSAGetLastError() );
+			WSACleanup();
+			return false;
+		}
+
+		setsockopt(*socket0, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)); 
+		//---------------------------------------------------------
+
+		//---- BIND socket ----------------------------------------
+		b = bind(*socket0, (struct sockaddr *) channel, sizeof(*channel)); 
+		if (b < 0) {
+			printf("bind error %ld", WSAGetLastError() ); 
+			WSACleanup();
+			return false;
+		}
+		//----------------------------------------------------------
+
+		//---- LISTEN socket ----------------------------------------
+		l = listen(*socket0, SNIPPET_LENGTH);                 // specify queue size 
+		if (l < 0) {
+			printf("listen error %ld",WSAGetLastError() );
+			WSACleanup();
+			return false;
+		}
+		//-----------------------------------------------------------
+
+		while (1) {
+		//---- ACCEPT connection ------------------------------------
+		//*socket1 = accept(*socket0, 0, 0);                  // block for connection request  
+		//	SOCKET s1 =   ::accept((*socket0), 0, 0);    
+		SOCKET s1 =   ::accept(s0, 0, 0); 
+		socket1 = (SOCKET*)malloc(sizeof(SOCKET));
+		memcpy(socket1, &s1,sizeof(SOCKET));
+		if (*socket1 < 0) {
+			printf("accept error %ld ", WSAGetLastError() ); 
+			WSACleanup();
+		//	return false;
+		}
+		else {
+			
+			u_long iMode=1;
+			ioctlsocket(*socket1,FIONBIO,&iMode);
+			printf("connection accepted");
+			return true;
+		} 
+		}
+	}
+	else if (this->sensorIndex )
+	{
+			//---- Build address structure to bind to socket.--------  
+		target = (struct sockaddr_in*)malloc(sizeof(struct sockaddr_in));
+		target->sin_family = AF_INET; // address family Internet
+		target->sin_port = htons (portnumber); //Port to connect on
+		
+		hostIP = (struct hostent*)malloc(sizeof(struct hostent));
+		hostIP = gethostbyname(hostname.c_str());
+				if (!hostIP)
+				{ 
+				printf("WSAStartup error %ld", WSAGetLastError() );
+				WSACleanup();
+				return false;
+		 
+				} 
+		struct in_addr  **pptr;
+		pptr = (struct in_addr **)hostIP->h_addr_list;
+		printf("host ip is %s", inet_ntoa(**(pptr)));  
+		target->sin_addr.s_addr = inet_addr (inet_ntoa(**(pptr)));
+		//--------------------------------------------------------
+
+		
+		// ---- create SOCKET--------------------------------------  
+		
+		SOCKET s1 = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP); //Create socket
+		
+		socket1 = (SOCKET*)malloc(sizeof(SOCKET));
+		memcpy(socket1,&s1,sizeof(SOCKET));
+		if ((*socket1) == INVALID_SOCKET)
+		{
+			printf("socket error %ld" , WSAGetLastError() );
+			WSACleanup();
+			return false; //Couldn't create the socket
+		}  
+		//---------------------------------------------------------
+
+		
+		//---- try CONNECT -----------------------------------------
+	while (1)
+	{
+		if (::connect(*socket1, (SOCKADDR *)target, sizeof(*target)) == SOCKET_ERROR)
+		{
+			int errval = WSAGetLastError();
+			printf("connect error %ld", WSAGetLastError() );
+			WSACleanup();
+			//return false; //Couldn't connect
+		}
+		else
+		{
+			u_long iMode=1;
+			ioctlsocket(*socket1,FIONBIO,&iMode);
+			return true;
+		}
+	}
+	}
+	return true;
 }
 // Code adapted from http://www.codeguru.com/forum/showthread.php?t=312458
 // If findNextFile is true, the function is used to determine the index of the next file only, the currentSensorIndex is not incremented.
@@ -323,21 +504,36 @@ int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensor
 
  void pqApplicationCore::writeChangeSnippet(const char* snippet)
 {
-	pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
-	
-	char* filename = (char*)malloc(sizeof(char)*FILE_PATH_SIZE);
-	sprintf(filename, "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",pqApplicationCore::instance()->sensorIndex,pqApplicationCore::instance()->writeFileIndex);
-    ofstream xmlSnippetFile;
-	//TODO: rename xmlSnippetFile
-	xmlSnippetFile.open(filename);
-	free(filename);
-	if (!xmlSnippetFile)
-	{ 
-		//qWarning ("File not opened!!! %s",filename.str().c_str());
-		return;
+	if( vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	{
+	int bytesSent;
+	//if (!pqApplicationCore::instance()->sensorIndex)
+	//{
+	bytesSent = ::send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 ); 
+	/*}
+	else
+	{
+		bytesSent = send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 ); 
+	}*/
+
+	printf( "Bytes Sent: %ld \n", bytesSent );
+
+	//pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
+	//
+	//char* filename = (char*)malloc(sizeof(char)*FILE_PATH_SIZE);
+	//sprintf(filename, "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",pqApplicationCore::instance()->sensorIndex,pqApplicationCore::instance()->writeFileIndex);
+ //   ofstream xmlSnippetFile;
+	////TODO: rename xmlSnippetFile
+	//xmlSnippetFile.open(filename);
+	//free(filename);
+	//if (!xmlSnippetFile)
+	//{ 
+	//	//qWarning ("File not opened!!! %s",filename.str().c_str());
+	//	return;
+	//}
+	//xmlSnippetFile.write(snippet,strlen(snippet)); 
+	//xmlSnippetFile.close(); 
 	}
-	xmlSnippetFile.write(snippet,strlen(snippet)); 
-	xmlSnippetFile.close(); 
 
 }
 pqApplicationCore::pqApplicationCore(int& argc, char** argv, pqOptions* options,
@@ -422,11 +618,27 @@ void pqApplicationCore::constructor()
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
   this->sensorIndex = options->GetTrackerSensor(); 
   this->writeFileIndex = 0;
+  if (options->GetSyncCollab())
+  {
+  if (!this->setupCollaborationClientServer())
+  {
+	  qWarning("Unable to Setup Synchronous Collaboration");
+  }
+  }
 }
 
 //-----------------------------------------------------------------------------
 pqApplicationCore::~pqApplicationCore()
 {
+	if (!this->sensorIndex)
+	{
+		closesocket( *socket0 );
+	}
+	else
+	{
+		closesocket( *socket1 );
+	}
+	WSACleanup();
   // Ensure that startup plugins get a chance to cleanup before pqApplicationCore is gone.
   delete this->PluginManager;
   this->PluginManager = 0;

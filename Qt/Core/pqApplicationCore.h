@@ -31,13 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #ifndef __pqApplicationCore_h
 #define __pqApplicationCore_h
-
+ 
 #include "pqCoreExport.h"
 #include <QObject>
 #include <QPointer>
-#include <iostream>
-#include <fstream>
-
+//#include <iostream>
+#include <fstream> 
+#include <windows.h>  
 class pq3DWidgetFactory;
 class pqDisplayPolicy;
 class pqLinksModel;
@@ -67,6 +67,13 @@ class vtkSMProxyLocator;
 class vtkSMProxy;
 class vtkSMProperty;
 
+
+
+//class SOCKET;
+//class WORD;
+//class WSADATA;
+//class SOCKADDR_IN; 
+
 #define VERBOSE 0 
 #define PROPAGATE 0
 #define DEBUG_1_USER 0
@@ -91,6 +98,7 @@ public:
   int sensorIndex;
   int writeFileIndex;
  
+  SOCKET*	socket0, *socket1;
 
   // Get the global instace for the pqApplicationCore.
   static pqApplicationCore* instance();
@@ -347,6 +355,32 @@ private:
   void constructor();
   void createOutputWindow();
   bool FinalizeOnExit;
+
+  bool setupCollaborationClientServer();
+	
+  //server
+  	int		b, l, on; 
+	/*char*	recvbuf[QUEUE_SIZE] = { }; */
+	struct	sockaddr_in* channel;  // holds IP address 
+	WORD*	wVersionRequested;
+	WSADATA* wsaData;
+	int		err;
+	int		bytesRecv;
+	int portnumber;
+	std::string hostname;
+	struct hostent* hostIP;
+
+	//client
+	//WORD		wVersionRequested;
+	//WSADATA		wsaData;
+	struct sockaddr_in* target; //Socket address information
+	//SOCKET		s;
+	//int			err;
+	int			bytesSent;
+	//char		buf[10] = "hi hello";
+	//std::string portnumber;
+	//std::string hostname;
+	//struct hostent* hostIP;
 };
 
 #endif

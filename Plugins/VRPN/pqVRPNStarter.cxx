@@ -139,6 +139,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //Propagation
 #include "pqPipelineRepresentation.h"
 
+//networking
+//#include "stdafx.h"
+//#include "winsock2.h"
+//#include "conio.h"
+
 
 class tng_user_callback
 {
@@ -772,32 +777,32 @@ void pqVRPNStarter::repeatPlaceHolder()
 void pqVRPNStarter::respondToOtherAppsChange()
 {
 	VRPNTimer->blockSignals(true); 
-	ifstream readFile;
-	int targetFileIndex = pqApplicationCore::incrementDirectoryFile(readFileIndex,(pqApplicationCore::instance()->sensorIndex+1)%2,false);
-	//Check if target file exists.
-	::HANDLE hFileT;         
-	::WIN32_FIND_DATA FileInformationT; 
-	char inputStr[FILE_PATH_SIZE]; 
+	//ifstream readFile;
+	//int targetFileIndex = pqApplicationCore::incrementDirectoryFile(readFileIndex,(pqApplicationCore::instance()->sensorIndex+1)%2,false);
+	////Check if target file exists.
+	//::HANDLE hFileT;         
+	//::WIN32_FIND_DATA FileInformationT; 
+	//char inputStr[FILE_PATH_SIZE]; 
 
-	sprintf(inputStr,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
-					((pqApplicationCore::instance()->sensorIndex+1)%2),targetFileIndex); 
-	hFileT = ::FindFirstFile(inputStr, &FileInformationT);
-	if(hFileT == INVALID_HANDLE_VALUE)
-	{ 
-		::FindClose(hFileT); 
-		pqApplicationCore::instance()->isRepeating = false;
-		VRPNTimer->blockSignals(false);
-		return;
-	}
-	::FindClose(hFileT);	
+	//sprintf(inputStr,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
+	//				((pqApplicationCore::instance()->sensorIndex+1)%2),targetFileIndex); 
+	//hFileT = ::FindFirstFile(inputStr, &FileInformationT);
+	//if(hFileT == INVALID_HANDLE_VALUE)
+	//{ 
+	//	::FindClose(hFileT); 
+	//	pqApplicationCore::instance()->isRepeating = false;
+	//	VRPNTimer->blockSignals(false);
+	//	return;
+	//}
+	//::FindClose(hFileT);	
 
 
-	int newReadFileIndex = readFileIndex;
-	bool read = false; 
-	for (int i =readFileIndex; i <= targetFileIndex; i++)
-	{
+	//int newReadFileIndex = readFileIndex;
+	//bool read = false; 
+	//for (int i =readFileIndex; i <= targetFileIndex; i++)
+	//{
 		pqApplicationCore::instance()->isRepeating = true; 
-		char inputStr1[FILE_PATH_SIZE]; 
+		/*char inputStr1[FILE_PATH_SIZE]; 
 
 	    sprintf(inputStr1,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
 					((pqApplicationCore::instance()->sensorIndex+1)%2),i);
@@ -812,26 +817,40 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		::FindClose(hFile);	
 		
 		readFile.clear(); 
-		readFile.open(inputStr1);  
+		readFile.open(inputStr1);*/  
 
 		char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
-		if (readFile.good())
+		//if (readFile.good())
+		//{
+		//	
+		//	read = true; // Only set to true after replication is successful.
+		//	readFile.getline(snippet,SNIPPET_LENGTH);  
+		
+		if (pqApplicationCore::instance()->socket1)
 		{
-			
-			read = true; // Only set to true after replication is successful.
-			readFile.getline(snippet,SNIPPET_LENGTH);  
-			if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
+			SOCKET s1 = (SOCKET)(*(pqApplicationCore::instance()->socket1));
+			bytesRecv = ::recv( s1, snippet, SNIPPET_LENGTH, 0 );
+			err = WSAGetLastError( );// 10057 = A request to send or receive data was disallowed because the socket is not connected and (when sending on a datagram socket using a sendto call) 
+			if ( bytesRecv == 0 || bytesRecv == WSAECONNRESET ) {
+			  printf( "Connection Closed.\n");
+			  WSACleanup();
+			} 
+			if (err == 0)
 			{
-				if (read)
-				{ 
-					if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
-					{		
-						newReadFileIndex++;
-					}
-					readFileIndex = newReadFileIndex;
-				} 
-				readFile.clear();
-				readFile.close();
+				//qWarning( " Bytes Recv: %s \n ", snippet );
+				if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
+			{
+				//if (read)
+				//{ 
+				//	if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
+				//	{		
+				//		newReadFileIndex++;
+				//	}
+				//	readFileIndex = newReadFileIndex;
+				//} 
+				//readFile.clear();
+				//readFile.close();
+				WSACleanup();
 				pqApplicationCore::instance()->isRepeating = false;
 				VRPNTimer->blockSignals(false);
 				return;
@@ -877,54 +896,150 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				if(VERBOSE)
 					qWarning("operation %s", operation);			
 				QList<char*> propertyStringList = QList<char*>();  
+				propertyStringList.append(operation);
 				char* newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-				while(true)
+				//char* newLine;
+				while((newLine = strtok(NULL,",")))
 				{
-					if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
+					/*if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
 					{ 
 						break;
-					} 
-					propertyStringList.append(newLine); 	 
-					newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+					} */
+					/*char newLine2[SNIPPET_LENGTH];
+					strcpy(newLine2,newLine);*/	
+					propertyStringList.append(newLine);  
+					 
+					//newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 				} 
 				if (!propertyStringList.empty())
 					repeatPropertiesChange(operation,propertyStringList);			 
-				for (int j = 0; j<propertyStringList.size(); j++)
+				/*for (int j = 0; j<propertyStringList.size(); j++)
 				{
 					free(propertyStringList.at(j));
-				}
+				}*/
 				
-				if (readFile.bad())
+				/*if (readFile.bad())
 				{ 
 					readFile.close();
 				}
-				readFile.clear();
+				readFile.clear();*/
 			}
 			
 			 
-			if (i> readFileIndex)
-			{	newReadFileIndex = i; 
 			}
-		}  
-		else
-		{
-			/*if(VERBOSE)
-				qWarning("bad file %s",filename.str().c_str());*/
 		}
-		readFile.close();
+
+
+		/***********************TEMPORARILY COMMENTED OUT**********/
 		
-	}
+		//if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
+		//	{
+		//		if (read)
+		//		{ 
+		//			if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
+		//			{		
+		//				newReadFileIndex++;
+		//			}
+		//			readFileIndex = newReadFileIndex;
+		//		} 
+		//		readFile.clear();
+		//		readFile.close();
+		//		pqApplicationCore::instance()->isRepeating = false;
+		//		VRPNTimer->blockSignals(false);
+		//		return;
+		//	}
+
+		//	char* operation = strtok(snippet,",");  
+		//	
+		//	if (!strcmp(operation,"Source"))
+		//	{ 
+		//		char* groupName = strtok(NULL,",");
+		//		char* sourceName = strtok(NULL,",");
+		//		 
+		//		repeatCreateSource(groupName,sourceName); 
+		//	}
+		//	else if (!strcmp(operation,"Filter"))
+		//	{ 
+		//		char* groupName = strtok(NULL,",");
+		//		char* sourceName = strtok(NULL,",");
+		//		 
+		//		repeatCreateFilter(groupName,sourceName); 
+		//	}
+		//	else if (!strcmp(operation,"Apply"))
+		//	{  
+		//		repeatApply(); 
+		//	}
+		//	else if (!strcmp(operation,"Tab"))
+		//	{				 
+		//		char* tabName = strtok(NULL,",");
+		//		respondToTabChange(tabName);
+		//	}
+		//	else if (!strcmp(operation,"Changed"))
+		//	{  
+		//		char* sourceName = strtok(NULL,",");
+		//		repeatSelectionChange(sourceName); 
+		//	}
+		//	else if (!strcmp(operation,"ResetLookupTableScalarRange"))
+		//	{
+		//		pqPipelineRepresentation*  repr = dynamic_cast<pqPipelineRepresentation*>(pqActiveObjects::instance().activeRepresentation());
+		//		repr->resetLookupTableScalarRange();
+		//	}
+		//	else 
+		//	{  
+		//		if(VERBOSE)
+		//			qWarning("operation %s", operation);			
+		//		QList<char*> propertyStringList = QList<char*>();  
+		//		char* newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+		//		while(true)
+		//		{
+		//			if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
+		//			{ 
+		//				break;
+		//			} 
+		//			propertyStringList.append(newLine); 	 
+		//			newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+		//		} 
+		//		if (!propertyStringList.empty())
+		//			repeatPropertiesChange(operation,propertyStringList);			 
+		//		for (int j = 0; j<propertyStringList.size(); j++)
+		//		{
+		//			free(propertyStringList.at(j));
+		//		}
+		//		
+		//		if (readFile.bad())
+		//		{ 
+		//			readFile.close();
+		//		}
+		//		readFile.clear();
+		//	}
+		//	
+			 
+	
+			
+		/***********************TEMPORARILY COMMENTED OUT**********/
+			/*if (i> readFileIndex)
+			{	newReadFileIndex = i; 
+			}*/
+	//	}  
+	//	else
+	//	{
+	//		/*if(VERBOSE)
+	//			qWarning("bad file %s",filename.str().c_str());*/
+	//	}
+	//	readFile.close();
+	//	
+	//}
 	/**
 		Only increment read file index if read was successful
 	 */
-	if (read)
-	{ 
-		if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
-		{		
-			newReadFileIndex++;
-		}
-		readFileIndex = newReadFileIndex;
-	} 
+	//if (read)
+	//{ 
+	//	if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
+	//	{		
+	//		newReadFileIndex++;
+	//	}
+	//	readFileIndex = newReadFileIndex;
+	//} 
 	
 	pqApplicationCore::instance()->isRepeating = false;
 	if (VERBOSE)
@@ -941,22 +1056,21 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 	char* propertyType = propertyStringList.at(0).at(1);*/
 	QList<QVariant> valueList = QList<QVariant>(); 
  
-		
-	char*  propertyName = strtok(propertyStringList.at(0),",");
+	char* propertyName = propertyStringList.at(0);
+	/*char*  propertyName = strtok(propertyStringList.at(0),",");
 	char* propertyType = strtok(NULL,",");
-	char* propertyValue = strtok(NULL,",");
+	char* propertyValue = strtok(NULL,",");*/
 
-	for (int i =0; i < propertyStringList.size(); i++)
+	for (int i =1; i < propertyStringList.size(); )
 	{
-		if (i != 0)
-		{/*
+		/*if (i != 0)
+		{*//*
 			free(propertyName);
 			free(propertyType);
-			free(propertyValue);*/
-			propertyName = strtok(propertyStringList.at(i),",");
-			propertyType = strtok(NULL,",");
-		    propertyValue = strtok(NULL,",");
-		}
+			free(propertyValue);*/ 
+			char* propertyType = propertyStringList.at(i++);
+		    char* propertyValue = propertyStringList.at(i++);
+		/*}*/
 		if (!strcmp(propertyType,"dvp"))
 		{
 			double value = atof(propertyValue);

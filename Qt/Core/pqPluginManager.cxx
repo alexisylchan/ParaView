@@ -127,12 +127,12 @@ public:
 
 static void pqPluginManagerImportPlugin(vtkPVPlugin* plugin, void* calldata)
 {
-  vtkPVGUIPluginInterface* interface =
+  vtkPVGUIPluginInterface* plugin_interface =
     dynamic_cast<vtkPVGUIPluginInterface*>(plugin);
   pqPluginManager* mgr = reinterpret_cast<pqPluginManager*>(calldata);
-  if (interface && mgr)
+  if (plugin_interface && mgr)
     {
-    mgr->loadGUIPlugin(interface);
+    mgr->loadGUIPlugin(plugin_interface);
     }
 }
 
