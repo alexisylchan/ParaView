@@ -138,8 +138,7 @@ pqApplicationCore* pqApplicationCore::instance()
 void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 {
 	
-    //pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
-	QString str; 
+   	QString str; 
 
 	if(VERBOSE)
 		qWarning("%s",smProperty->GetXMLName()); 
@@ -153,28 +152,7 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 	ivp = vtkSMIntVectorProperty::SafeDownCast(smProperty);
 	idvp = vtkSMIdTypeVectorProperty::SafeDownCast(smProperty);
 	svp = vtkSMStringVectorProperty::SafeDownCast(smProperty);
-	/*
-	char filename[FILE_PATH_SIZE];
 	
-	sprintf(filename,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",this->sensorIndex,this->writeFileIndex);
-	std::ofstream xmlSnippetFile;
-	xmlSnippetFile.open(filename);
-	char* snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-	sprintf(snippet,"Property,\n");
-	xmlSnippetFile.write(snippet,strlen(snippet));
-	free(snippet);
-
-	if (!xmlSnippetFile)
-	{
-		if(VERBOSE)
-		{
-			qWarning ("File not opened!!!");
-			qWarning(filename);
-		}
-		xmlSnippetFile.clear();
-		xmlSnippetFile.close();
-		return;
-	}*/
 	char* snippet = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 	char* snippet_property_name = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 	sprintf(snippet_property_name, "%s,",smProperty->GetXMLName()); 
@@ -194,8 +172,7 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 	        snippet_parts[i] = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 			sprintf(snippet_parts[i],"dvp,%f,",test[i]);
 			strcat(snippet,snippet_parts[i]);
-			free (snippet_parts[i]);
-			//xmlSnippetFile.write(snippet,strlen(snippet));
+			free (snippet_parts[i]); 
 		}
 		pqApplicationCore::writeChangeSnippet(snippet);
 		free (snippet_parts);
@@ -279,10 +256,7 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 		pqApplicationCore::writeChangeSnippet(snippet);
 		free (snippet_parts);
 	}
-	 
-	
-	//xmlSnippetFile.clear();
-	//xmlSnippetFile.close();
+	  
 	free (snippet_property_name);
 	free (snippet);
 	return;
@@ -329,7 +303,7 @@ bool pqApplicationCore::setupCollaborationClientServer()
 			return false;
 		}
 
-		setsockopt(*socket0, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on)); 
+		setsockopt(*socket0, SOL_SOCKET, SO_KEEPALIVE, (char *) &on, sizeof(on)); //Make sure it does not timeout
 		//---------------------------------------------------------
 
 		//---- BIND socket ----------------------------------------
@@ -363,7 +337,7 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		//	return false;
 		}
 		else {
-			
+			//Set to non-blocking IO
 			u_long iMode=1;
 			ioctlsocket(*socket1,FIONBIO,&iMode);
 			printf("connection accepted");
@@ -421,6 +395,7 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		}
 		else
 		{
+			//Set to non-blocking IO
 			u_long iMode=1;
 			ioctlsocket(*socket1,FIONBIO,&iMode);
 			return true;
@@ -506,33 +481,14 @@ int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensor
 {
 	if( vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 	{
-	int bytesSent;
-	//if (!pqApplicationCore::instance()->sensorIndex)
-	//{
-	bytesSent = ::send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 ); 
-	/*}
-	else
+	int bytesSent; 
+	bytesSent = ::send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 );  
+	if (bytesSent == 0  || bytesSent == WSAECONNRESET )
 	{
-		bytesSent = send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 ); 
-	}*/
-
-	printf( "Bytes Sent: %ld \n", bytesSent );
-
-	//pqApplicationCore::instance()->writeFileIndex = pqApplicationCore::incrementDirectoryFile(pqApplicationCore::instance()->writeFileIndex,pqApplicationCore::instance()->sensorIndex,true);
-	//
-	//char* filename = (char*)malloc(sizeof(char)*FILE_PATH_SIZE);
-	//sprintf(filename, "C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",pqApplicationCore::instance()->sensorIndex,pqApplicationCore::instance()->writeFileIndex);
- //   ofstream xmlSnippetFile;
-	////TODO: rename xmlSnippetFile
-	//xmlSnippetFile.open(filename);
-	//free(filename);
-	//if (!xmlSnippetFile)
-	//{ 
-	//	//qWarning ("File not opened!!! %s",filename.str().c_str());
-	//	return;
-	//}
-	//xmlSnippetFile.write(snippet,strlen(snippet)); 
-	//xmlSnippetFile.close(); 
+		qWarning( "Connection Closed.\n");
+		WSACleanup();
+	}
+	//printf( "Bytes Sent: %ld \n", bytesSent ); 
 	}
 
 }
@@ -620,21 +576,21 @@ void pqApplicationCore::constructor()
   this->writeFileIndex = 0;
   if (options->GetSyncCollab())
   {
-  if (!this->setupCollaborationClientServer())
-  {
-	  qWarning("Unable to Setup Synchronous Collaboration");
-  }
+	  if (!this->setupCollaborationClientServer())
+	  {
+		  qWarning("Unable to Setup Synchronous Collaboration");
+	  }
   }
 }
 
 //-----------------------------------------------------------------------------
 pqApplicationCore::~pqApplicationCore()
 {
-	if (!this->sensorIndex)
+	if (socket0)
 	{
 		closesocket( *socket0 );
 	}
-	else
+	if (socket1)
 	{
 		closesocket( *socket1 );
 	}

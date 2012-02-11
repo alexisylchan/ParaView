@@ -832,7 +832,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			bytesRecv = ::recv( s1, snippet, SNIPPET_LENGTH, 0 );
 			err = WSAGetLastError( );// 10057 = A request to send or receive data was disallowed because the socket is not connected and (when sending on a datagram socket using a sendto call) 
 			if ( bytesRecv == 0 || bytesRecv == WSAECONNRESET ) {
-			  printf( "Connection Closed.\n");
+			  qWarning( "Connection Closed.\n");
 			  WSACleanup();
 			} 
 			if (err == 0)

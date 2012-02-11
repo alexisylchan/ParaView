@@ -553,9 +553,7 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
       }
 	  
 	if(VERBOSE)
-		qWarning ("Qt Property Changed");
-	/*vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-    vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();*/
+		qWarning ("Qt Property Changed"); 
 
 	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 	{
