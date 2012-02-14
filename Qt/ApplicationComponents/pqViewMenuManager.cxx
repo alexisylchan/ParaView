@@ -66,18 +66,19 @@ void pqViewMenuManager::buildMenu()
     delete menu;
     }
 
-  QMenu* toolbars = this->Menu->addMenu("Toolbars")
+  /*QMenu* toolbars = this->Menu->addMenu("Toolbars")
     << pqSetName("Toolbars");
   QList<QToolBar*> all_toolbars = this->Window->findChildren<QToolBar*>();
   foreach (QToolBar* toolbar, all_toolbars)
     {
     toolbars->addAction(toolbar->toggleViewAction());
-    }
+    }*/
 
   this->Menu->addSeparator();
   foreach (QDockWidget* dock_widget, this->Window->findChildren<QDockWidget*>())
     {
-    this->Menu->addAction(dock_widget->toggleViewAction());
+		if (!dock_widget->windowTitle().isEmpty())
+			this->Menu->addAction(dock_widget->toggleViewAction());
     }
 
   this->Menu->addSeparator();

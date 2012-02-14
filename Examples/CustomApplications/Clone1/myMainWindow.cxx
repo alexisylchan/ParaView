@@ -93,8 +93,18 @@ class myMainWindow::pqInternals : public Ui::pqClientMainWindow
 myMainWindow::myMainWindow()
 {
   this->Internals = new pqInternals();
+
   this->Internals->setupUi(this);
 
+	if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetTrackerSensor())
+	{
+		this->setWindowTitle("CSVW: User 0"); 
+	}
+	else
+	{
+		this->setWindowTitle("CSVW: User 1");
+	}
+	
   // Setup default GUI layout.
 
   // Set up the dock window corners to give the vertical docks more room.
@@ -107,7 +117,7 @@ myMainWindow::myMainWindow()
   this->Internals->comparativePanelDock->hide();*/
   /*this->tabifyDockWidget(this->Internals->animationViewDock,
     this->Internals->statisticsDock);*/
-  this->Internals->animationViewDock->hide();
+//  this->Internals->animationViewDock->hide();
   /*this->Internals->ToggleVortexCore->setIconSize(QSize(24,24));
   this->Internals->ToggleVortexCore->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/vortexcore.png"));
   QObject::connect(this->Internals->ToggleVortexCore,SIGNAL(clicked()),this,SLOT(vortexIdentification()));
@@ -125,6 +135,7 @@ myMainWindow::myMainWindow()
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
   if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 	  this->Internals->PushToSharedState->setEnabled(true);
+
   this->Internals->ToggleToPartnersView->setIconSize(QSize(24,24));
   this->Internals->ToggleToPartnersView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
   QObject::connect(this->Internals->ToggleToPartnersView,SIGNAL(clicked()),this,SLOT(onToggleView()));
@@ -172,7 +183,8 @@ myMainWindow::myMainWindow()
  // 
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);
-
+  //QWidget* titleWidget = new QWidget(this); /* where this a QMainWindow object */
+  //this->Internals->dockWidget->setTitleBarWidget( titleWidget );
   // Enable help for from the object inspector.
   QObject::connect(this->Internals->proxyTabWidget->getObjectInspector(),
     SIGNAL(helpRequested(QString)),
@@ -231,6 +243,7 @@ myMainWindow::myMainWindow()
   // behaviors, we use this convenience method.
 	new pqParaViewBehaviors(this, this); 
 	this->Internals->MultiViewManager->toggleFullScreen(); 
+	//this->Internals->MultiViewManager->setTitle(this->windowTitle());
 	this->Internals->proxyTabDock1->titleBarWidget();//->setWindowFlags(Qt::FramelessWindowHint);
 	pqFixPathsInStateFilesBehavior::blockDialog(true);
 	qobject_cast<QWidget*>(this->Internals->proxyTabDock1)->setWindowFlags(Qt::FramelessWindowHint); 
@@ -246,6 +259,7 @@ myMainWindow::myMainWindow()
  //this->showTurbineGeometry = true;
  //this->showTimelineSummary = false;
  //this->showPartnersView = false;
+
 }
 
 //void myMainWindow::onTriggerObjectInspectorWidgetAccept()

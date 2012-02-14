@@ -826,14 +826,13 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		//	read = true; // Only set to true after replication is successful.
 		//	readFile.getline(snippet,SNIPPET_LENGTH);  
 		
-		if (pqApplicationCore::instance()->socket1)
+		if (pqApplicationCore::instance()->socket1 && pqApplicationCore::instance()->getConnectionStatus())
 		{
 			SOCKET s1 = (SOCKET)(*(pqApplicationCore::instance()->socket1));
 			bytesRecv = ::recv( s1, snippet, SNIPPET_LENGTH, 0 );
 			err = WSAGetLastError( );// 10057 = A request to send or receive data was disallowed because the socket is not connected and (when sending on a datagram socket using a sendto call) 
 			if ( bytesRecv == 0 || bytesRecv == WSAECONNRESET ) {
-			  qWarning( "Connection Closed.\n");
-			  WSACleanup();
+				pqApplicationCore::instance()->closeConnection();
 			} 
 			if (err == 0)
 			{

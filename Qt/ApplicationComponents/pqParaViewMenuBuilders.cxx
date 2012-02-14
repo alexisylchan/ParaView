@@ -326,7 +326,7 @@ void pqParaViewMenuBuilders::buildHelpMenu(QMenu& menu)
 //-----------------------------------------------------------------------------
 void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
 {
-  QToolBar* mainToolBar = new pqMainControlsToolbar(&mainWindow)
+  /*QToolBar* mainToolBar = new pqMainControlsToolbar(&mainWindow)
     << pqSetName("MainControlsToolbar");
   mainToolBar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, mainToolBar);
@@ -344,7 +344,7 @@ void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
   QToolBar* timeToolbar = new pqAnimationTimeToolbar(&mainWindow)
     << pqSetName("currentTimeToolbar");
   timeToolbar->layout()->setSpacing(0);
-  mainWindow.addToolBar(Qt::TopToolBarArea, timeToolbar);
+  mainWindow.addToolBar(Qt::TopToolBarArea, timeToolbar);*/
 
   QToolBar* colorToolbar = new pqColorToolbar(&mainWindow)
     << pqSetName("variableToolbar");
@@ -357,15 +357,15 @@ void pqParaViewMenuBuilders::buildToolbars(QMainWindow& mainWindow)
   reprToolbar->layout()->setSpacing(0);
   mainWindow.addToolBar(Qt::TopToolBarArea, reprToolbar);
 
-  QToolBar* cameraToolbar = new pqCameraToolbar(&mainWindow)
-    << pqSetName("cameraToolbar");
-  cameraToolbar->layout()->setSpacing(0);
-  mainWindow.addToolBar(Qt::TopToolBarArea, cameraToolbar);
+  //QToolBar* cameraToolbar = new pqCameraToolbar(&mainWindow)
+  //  << pqSetName("cameraToolbar");
+  //cameraToolbar->layout()->setSpacing(0);
+  //mainWindow.addToolBar(Qt::TopToolBarArea, cameraToolbar);
 
-  QToolBar* axesToolbar = new pqAxesToolbar(&mainWindow)
-    << pqSetName("axesToolbar");
-  axesToolbar->layout()->setSpacing(0);
-  mainWindow.addToolBar(Qt::TopToolBarArea, axesToolbar);
+  //QToolBar* axesToolbar = new pqAxesToolbar(&mainWindow)
+  //  << pqSetName("axesToolbar");
+  //axesToolbar->layout()->setSpacing(0);
+  //mainWindow.addToolBar(Qt::TopToolBarArea, axesToolbar);
 
 #ifdef PARAVIEW_ENABLE_PYTHON
   // Give the macros menu to the pqPythonMacroSupervisor

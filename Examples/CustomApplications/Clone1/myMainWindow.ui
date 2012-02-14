@@ -7,13 +7,79 @@
     <x>0</x>
     <y>0</y>
     <width>684</width>
-    <height>607</height>
+    <height>592</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QFrame" name="dockWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+     <horstretch>200</horstretch>
+     <verstretch>60</verstretch>
+    </sizepolicy>
+   </property>
+   <widget class="QWidget" name="dockWidgetContents" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>321</width>
+      <height>511</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="PushToSharedState">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>480</y>
+       <width>271</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Push to Shared State</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="ToggleToPartnersView">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>440</y>
+       <width>271</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Toggle to Partner's View</string>
+     </property>
+    </widget>
+    <widget class="QDockWidget" name="proxyTabDock_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>0</y>
+       <width>281</width>
+       <height>421</height>
+      </rect>
+     </property>
+     <property name="features">
+      <set>QDockWidget::NoDockWidgetFeatures</set>
+     </property>
+     <property name="allowedAreas">
+      <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+     </property>
+     <property name="windowTitle">
+      <string>Object Inspector</string>
+     </property>
+     <widget class="pqProxyTabWidget" name="proxyTabWidget"/>
+    </widget>
+   </widget>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -80,6 +146,9 @@
   </widget>
   <widget class="pqStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="pipelineBrowserDock">
+   <property name="features">
+    <set>QDockWidget::NoDockWidgetFeatures</set>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
@@ -95,24 +164,12 @@
     </property>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="proxyTabDock">
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Object Inspector</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="pqProxyTabWidget" name="proxyTabWidget"/>
-  </widget>
   <widget class="QDockWidget" name="proxyTabDock1">
    <property name="floating">
     <bool>true</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+    <set>QDockWidget::NoDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::AllDockWidgetAreas</set>
@@ -120,198 +177,10 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="pqViewManager" name="MultiViewManager">
-    <widget class="QDockWidget" name="animationViewDock">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>-280</x>
-       <y>110</y>
-       <width>651</width>
-       <height>38</height>
-      </rect>
-     </property>
-     <property name="allowedAreas">
-      <set>Qt::NoDockWidgetArea</set>
-     </property>
-     <property name="windowTitle">
-      <string>Animation View</string>
-     </property>
-     <widget class="pqPVAnimationWidget" name="animationView"/>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="dockWidget">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-     <horstretch>200</horstretch>
-     <verstretch>60</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="features">
-    <set>QDockWidget::DockWidgetMovable</set>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents">
-     <!--widget class="QComboBox" name="VortexDataSetComboBox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>0</y>
-       <width>281</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="currentIndex">
-      <number>-1</number>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="ToggleVortexCore">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>271</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle Vortices</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="ToggleContextualFlow">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>140</y>
-       <width>271</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle Contextual Flow</string>
-     </property>
-    </widget -->
-    <widget class="QPushButton" name="PushToSharedState">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>470</y>
-       <width>261</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Push to Shared State</string>
-     </property>
-    </widget>
-     <!--widget class="QPushButton" name="ToggleVortexCoreDirection">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>271</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle Vortex Core Direction</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="ToggleTurbineGeometry">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>200</y>
-       <width>271</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle Turbine Geometry</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="ToggleTimelineSummary">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>370</y>
-       <width>271</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle Timeline Summary</string>
-     </property>
-    </widget>
-    <widget class="pqDoubleRangeWidget" name="TimeSlider" native="true">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>340</y>
-       <width>431</width>
-       <height>20</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_3">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>310</y>
-       <width>110</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Time Step</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="TimeSeriesView">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>260</y>
-       <width>261</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle Fast Time Series View</string>
-     </property>
-    </widget-->
-    <widget class="QPushButton" name="ToggleToPartnersView">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>430</y>
-       <width>271</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Toggle to Partner's View</string>
-     </property>
-    </widget>
-   </widget>
+   <widget class="pqViewManager" name="MultiViewManager"/>
   </widget>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>pqDoubleRangeWidget</class>
-   <extends>QWidget</extends>
-   <header>pqDoubleRangeWidget.h</header>
-  </customwidget>
   <customwidget>
    <class>pqPipelineBrowserWidget</class>
    <extends>QWidget</extends>
@@ -328,12 +197,6 @@
    <class>pqViewManager</class>
    <extends>QWidget</extends>
    <header>pqViewManager.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>pqPVAnimationWidget</class>
-   <extends>QWidget</extends>
-   <header>pqPVAnimationWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

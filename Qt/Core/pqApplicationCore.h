@@ -97,6 +97,10 @@ public:
   bool isRepeatingDisplay;
   int sensorIndex;
   int writeFileIndex;
+  
+  void setConnectionStatus(bool connectionStatus);
+  bool getConnectionStatus();
+  void closeConnection();
  
   SOCKET*	socket0, *socket1;
 
@@ -368,19 +372,10 @@ private:
 	int		bytesRecv;
 	int portnumber;
 	std::string hostname;
-	struct hostent* hostIP;
-
-	//client
-	//WORD		wVersionRequested;
-	//WSADATA		wsaData;
-	struct sockaddr_in* target; //Socket address information
-	//SOCKET		s;
-	//int			err;
-	int			bytesSent;
-	//char		buf[10] = "hi hello";
-	//std::string portnumber;
-	//std::string hostname;
-	//struct hostent* hostIP;
+	struct hostent* hostIP; 
+	struct sockaddr_in* target; //Socket address information 
+	int			bytesSent; 
+	bool connectionStatus;
 };
 
 #endif

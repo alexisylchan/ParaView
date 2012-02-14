@@ -46,6 +46,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pqMultiViewFrame.h"
 #include "pqXMLUtil.h"
+#include <QMainWindow>
+#include "pqCoreUtilities.h"
 
 
 /// Special QSplitterHandle which can give minimal size hint when requested.
@@ -1080,7 +1082,10 @@ void pqMultiView::toggleFullScreen()
 
 	
     //this->FullScreenParent->showFullScreen();
+	QMainWindow* mainWindow = static_cast<QMainWindow*>( pqCoreUtilities::mainWidget());
+	this->FullScreenParent->setWindowTitle(mainWindow->windowTitle());
 	this->FullScreenParent->showMaximized();
+    //this->FullScreenParent->showFullScreen();
     this->FullScreenParent->show();
     }
   else

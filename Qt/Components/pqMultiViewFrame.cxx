@@ -137,6 +137,7 @@ pqMultiViewFrame::pqMultiViewFrame(QWidget* p)
   this->CloseButton->hide();
   this->SplitVerticalButton->hide();
   this->SplitHorizontalButton->hide();
+  this->hideMenu(true);
 
 
   this->UniqueID=QUuid::createUuid();

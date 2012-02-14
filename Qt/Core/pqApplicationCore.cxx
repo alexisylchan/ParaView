@@ -338,6 +338,7 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		}
 		else {
 			//Set to non-blocking IO
+			this->connectionStatus = true;
 			u_long iMode=1;
 			ioctlsocket(*socket1,FIONBIO,&iMode);
 			printf("connection accepted");
@@ -395,6 +396,8 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		}
 		else
 		{
+			
+			this->connectionStatus = true;
 			//Set to non-blocking IO
 			u_long iMode=1;
 			ioctlsocket(*socket1,FIONBIO,&iMode);
@@ -476,19 +479,31 @@ int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensor
 	return trackedIndex;
 
 }  
-
+void pqApplicationCore::closeConnection()
+{
+	qWarning( "Connection Closed.\n");
+	if (socket0)
+	{
+		closesocket( *socket0 );
+	}
+	if (socket1)
+	{
+		closesocket( *socket1 );
+	}
+		
+	WSACleanup();
+	setConnectionStatus(false);
+}
  void pqApplicationCore::writeChangeSnippet(const char* snippet)
 {
-	if( vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	if( vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab() && pqApplicationCore::instance()->getConnectionStatus())
 	{
-	int bytesSent; 
-	bytesSent = ::send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 );  
-	if (bytesSent == 0  || bytesSent == WSAECONNRESET )
-	{
-		qWarning( "Connection Closed.\n");
-		WSACleanup();
-	}
-	//printf( "Bytes Sent: %ld \n", bytesSent ); 
+		int bytesSent; 
+		bytesSent = ::send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 );  
+		if (bytesSent == 0  || bytesSent == WSAECONNRESET )
+		{
+			pqApplicationCore::instance()->closeConnection();
+		} 
 	}
 
 }
@@ -523,6 +538,7 @@ void pqApplicationCore::constructor()
   this->ServerResources = NULL;
   this->ServerStartups = NULL;
   this->Settings = NULL;
+  this->connectionStatus = false;
 
   // initialize statics in case we're a static library
   pqCoreInit();
@@ -1167,4 +1183,13 @@ void pqApplicationCore::decreaseEyeAngle()
 			camera->SetEyeAngle(camera->GetEyeAngle()-0.5);
 			viewProxy->GetRenderWindow()->Render();
 		}
+}
+
+void pqApplicationCore::setConnectionStatus(bool connectionStatus)
+{
+	this->connectionStatus = connectionStatus;
+}
+bool pqApplicationCore::getConnectionStatus()
+{
+	return this->connectionStatus;
 }

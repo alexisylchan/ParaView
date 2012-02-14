@@ -74,7 +74,7 @@ pqParaViewBehaviors::pqParaViewBehaviors(
   // Define application behaviors.
   new pqQtMessageHandlerBehavior(this);
   new pqDataTimeStepBehavior(this);
-  new pqViewFrameActionsBehavior(this);
+ // new pqViewFrameActionsBehavior(this);
   new pqSpreadSheetVisibilityBehavior(this);
   new pqPipelineContextMenuBehavior(this);
   new pqDefaultViewBehavior(this);

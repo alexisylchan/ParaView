@@ -1,7 +1,8 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>MultiViewFrameMenu</class>
- <widget class="QWidget" name="MultiViewFrameMenu" >
-  <property name="geometry" >
+ <widget class="QWidget" name="MultiViewFrameMenu">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -9,198 +10,189 @@
     <height>18</height>
    </rect>
   </property>
-  <property name="sizePolicy" >
-   <sizepolicy>
-    <hsizetype>5</hsizetype>
-    <vsizetype>5</vsizetype>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="minimumSize" >
+  <property name="minimumSize">
    <size>
-    <width>18</width>
-    <height>18</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
-  <property name="maximumSize" >
+  <property name="maximumSize">
    <size>
     <width>16777215</width>
     <height>18</height>
    </size>
   </property>
-  <property name="baseSize" >
+  <property name="baseSize">
    <size>
     <width>22</width>
     <height>22</height>
    </size>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" >
-   <property name="margin" >
+  <layout class="QHBoxLayout">
+   <property name="spacing">
     <number>0</number>
    </property>
-   <property name="spacing" >
+   <property name="margin">
     <number>0</number>
    </property>
    <item>
-    <widget class="QLabel" name="WindowCaption" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>7</hsizetype>
-       <vsizetype>5</vsizetype>
+    <widget class="QLabel" name="WindowCaption">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="text" >
+     <property name="text">
       <string/>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="ActiveButton" >
-     <property name="minimumSize" >
+    <widget class="QToolButton" name="ActiveButton">
+     <property name="minimumSize">
       <size>
        <width>16</width>
        <height>16</height>
       </size>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>A</string>
      </property>
-     <property name="checkable" >
+     <property name="checkable">
       <bool>true</bool>
      </property>
-     <property name="autoRaise" >
+     <property name="autoRaise">
       <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="SplitHorizontalButton" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>0</hsizetype>
-       <vsizetype>0</vsizetype>
+    <widget class="QToolButton" name="SplitHorizontalButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize" >
+     <property name="minimumSize">
       <size>
        <width>16</width>
        <height>16</height>
       </size>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>Split Horizontal</string>
      </property>
-     <property name="icon" >
-      <iconset resource="../pqComponents.qrc" >:/pqWidgets/Icons/pqSplitViewH12.png</iconset>
+     <property name="icon">
+      <iconset resource="../pqComponents.qrc">
+       <normaloff>:/pqWidgets/Icons/pqSplitViewH12.png</normaloff>:/pqWidgets/Icons/pqSplitViewH12.png</iconset>
      </property>
-     <property name="autoRaise" >
+     <property name="autoRaise">
       <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="SplitVerticalButton" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>0</hsizetype>
-       <vsizetype>0</vsizetype>
+    <widget class="QToolButton" name="SplitVerticalButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize" >
+     <property name="minimumSize">
       <size>
        <width>16</width>
        <height>16</height>
       </size>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>Split Vertical</string>
      </property>
-     <property name="icon" >
-      <iconset resource="../pqComponents.qrc" >:/pqWidgets/Icons/pqSplitViewV12.png</iconset>
+     <property name="icon">
+      <iconset resource="../pqComponents.qrc">
+       <normaloff>:/pqWidgets/Icons/pqSplitViewV12.png</normaloff>:/pqWidgets/Icons/pqSplitViewV12.png</iconset>
      </property>
-     <property name="autoRaise" >
+     <property name="autoRaise">
       <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="MaximizeButton" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>0</hsizetype>
-       <vsizetype>0</vsizetype>
+    <widget class="QToolButton" name="MaximizeButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize" >
+     <property name="minimumSize">
       <size>
        <width>16</width>
        <height>16</height>
       </size>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>Maximize</string>
      </property>
-     <property name="autoRaise" >
+     <property name="autoRaise">
       <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="RestoreButton" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>0</hsizetype>
-       <vsizetype>0</vsizetype>
+    <widget class="QToolButton" name="RestoreButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize" >
+     <property name="minimumSize">
       <size>
        <width>16</width>
        <height>16</height>
       </size>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>Restore</string>
      </property>
-     <property name="autoRaise" >
+     <property name="autoRaise">
       <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="CloseButton" >
-     <property name="sizePolicy" >
-      <sizepolicy>
-       <hsizetype>0</hsizetype>
-       <vsizetype>0</vsizetype>
+    <widget class="QToolButton" name="CloseButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize" >
+     <property name="minimumSize">
       <size>
        <width>16</width>
        <height>16</height>
       </size>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>Close</string>
      </property>
-     <property name="autoRaise" >
+     <property name="autoRaise">
       <bool>false</bool>
      </property>
     </widget>
@@ -208,7 +200,8 @@
   </layout>
  </widget>
  <resources>
-  <include location="../pqComponents.qrc" />
+  <include location="../pqComponents.qrc"/>
+  <include location="../pqComponents.qrc"/>
  </resources>
  <connections/>
 </ui>
