@@ -265,6 +265,7 @@ void pqApplicationCore::printSMProperty(vtkSMProperty* smProperty)
 bool pqApplicationCore::setupCollaborationClientServer()
 {
 	b = l = on = 1;
+	socket0 = socket1 = 0;
 	hostname= "sutherland.cs.unc.edu";
 	portnumber =  12346;
 		//--- INITIALIZATION -----------------------------------
@@ -276,6 +277,9 @@ bool pqApplicationCore::setupCollaborationClientServer()
 
 	if ( err != 0 ) {
 		printf("WSAStartup error %ld", WSAGetLastError() );
+		
+			free (wVersionRequested);
+			free (wsaData);
 		WSACleanup();
 		return false;
 	}
@@ -299,6 +303,10 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		memcpy(socket0, &s0,sizeof(SOCKET));
 		if (*socket0 < 0) {
 			printf("socket error %ld",WSAGetLastError() );
+			free (wVersionRequested);
+			free (wsaData);
+			free (channel);
+			free (socket0);
 			WSACleanup();
 			return false;
 		}
@@ -310,6 +318,10 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		b = bind(*socket0, (struct sockaddr *) channel, sizeof(*channel)); 
 		if (b < 0) {
 			printf("bind error %ld", WSAGetLastError() ); 
+			free (wVersionRequested);
+			free (wsaData);
+			free (channel);
+			free (socket0);
 			WSACleanup();
 			return false;
 		}
@@ -319,6 +331,10 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		l = listen(*socket0, SNIPPET_LENGTH);                 // specify queue size 
 		if (l < 0) {
 			printf("listen error %ld",WSAGetLastError() );
+			free (wVersionRequested);
+			free (wsaData);
+			free (channel);
+			free (socket0);
 			WSACleanup();
 			return false;
 		}
@@ -333,15 +349,20 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		memcpy(socket1, &s1,sizeof(SOCKET));
 		if (*socket1 < 0) {
 			printf("accept error %ld ", WSAGetLastError() ); 
+			free (wVersionRequested);
+			free (wsaData);
+			free (channel);
+			free (socket0);
+			free (socket1);
 			WSACleanup();
 		//	return false;
 		}
 		else {
-			//Set to non-blocking IO
-			this->connectionStatus = true;
+			//Set to non-blocking IO 
 			u_long iMode=1;
 			ioctlsocket(*socket1,FIONBIO,&iMode);
-			printf("connection accepted");
+			qWarning("Connection %d accepted",this->sensorIndex);
+			this->setConnectionStatus(true);
 			return true;
 		} 
 		}
@@ -358,6 +379,7 @@ bool pqApplicationCore::setupCollaborationClientServer()
 				if (!hostIP)
 				{ 
 				printf("WSAStartup error %ld", WSAGetLastError() );
+				free (target);
 				WSACleanup();
 				return false;
 		 
@@ -378,6 +400,8 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		if ((*socket1) == INVALID_SOCKET)
 		{
 			printf("socket error %ld" , WSAGetLastError() );
+			free (target);
+			free (socket1);
 			WSACleanup();
 			return false; //Couldn't create the socket
 		}  
@@ -396,11 +420,11 @@ bool pqApplicationCore::setupCollaborationClientServer()
 		}
 		else
 		{
-			
-			this->connectionStatus = true;
 			//Set to non-blocking IO
 			u_long iMode=1;
 			ioctlsocket(*socket1,FIONBIO,&iMode);
+			qWarning("Connection %d accepted",this->sensorIndex);
+			this->setConnectionStatus(true);
 			return true;
 		}
 	}
@@ -479,30 +503,36 @@ int pqApplicationCore::incrementDirectoryFile(int trackedIndex,int currentSensor
 	return trackedIndex;
 
 }  
-void pqApplicationCore::closeConnection()
+void pqApplicationCore::closeConnection(bool suppressNotification)
 {
-	qWarning( "Connection Closed.\n");
 	if (socket0)
 	{
 		closesocket( *socket0 );
+		socket0 = 0;
 	}
 	if (socket1)
 	{
 		closesocket( *socket1 );
+		socket1 = 0;
 	}
 		
 	WSACleanup();
 	setConnectionStatus(false);
+	if (!suppressNotification)
+	{
+		qWarning( "Connection %d Closed.\n",this->sensorIndex); 
+	}
+	emit this->connectionClosed();
 }
  void pqApplicationCore::writeChangeSnippet(const char* snippet)
 {
-	if( vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab() && pqApplicationCore::instance()->getConnectionStatus())
+	if( /*vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab() &&*/ pqApplicationCore::instance()->getConnectionStatus())
 	{
 		int bytesSent; 
 		bytesSent = ::send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 );  
 		if (bytesSent == 0  || bytesSent == WSAECONNRESET )
 		{
-			pqApplicationCore::instance()->closeConnection();
+			pqApplicationCore::instance()->closeConnection(false);
 		} 
 	}
 
@@ -590,13 +620,13 @@ void pqApplicationCore::constructor()
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
   this->sensorIndex = options->GetTrackerSensor(); 
   this->writeFileIndex = 0;
-  if (options->GetSyncCollab())
-  {
-	  if (!this->setupCollaborationClientServer())
+ /* if (options->GetSyncCollab())
+  {*/
+	  /*if (!this->setupCollaborationClientServer())
 	  {
 		  qWarning("Unable to Setup Synchronous Collaboration");
-	  }
-  }
+	  }*/
+  /*}*/
 }
 
 //-----------------------------------------------------------------------------

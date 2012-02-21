@@ -100,7 +100,7 @@ public:
   
   void setConnectionStatus(bool connectionStatus);
   bool getConnectionStatus();
-  void closeConnection();
+  void closeConnection(bool suppressNotification);
  
   SOCKET*	socket0, *socket1;
 
@@ -271,6 +271,8 @@ public:
 
   /// Destructor.
   virtual ~pqApplicationCore();
+  
+  bool setupCollaborationClientServer();
 public slots:
   /// Called QCoreApplication::quit().
   /// Applications should use this method instead of directly
@@ -322,6 +324,7 @@ signals:
   /// Fired when the filter menu state needs to be manually updated
   void forceFilterMenuRefresh();
 
+  void connectionClosed();
 protected slots:
   void onStateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
   void onStateSaved(vtkPVXMLElement* root);
@@ -360,7 +363,6 @@ private:
   void createOutputWindow();
   bool FinalizeOnExit;
 
-  bool setupCollaborationClientServer();
 	
   //server
   	int		b, l, on; 

@@ -792,7 +792,7 @@ void pqPipelineRepresentation::resetLookupTableScalarRange()
       opacity->setScalarRange(range.first, range.second);
       }
     } 
-	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	if (pqApplicationCore::instance()->getConnectionStatus())
 	{
 		if (!pqApplicationCore::instance()->isRepeating)
 		{
@@ -1211,7 +1211,7 @@ QString pqPipelineRepresentation::getColorField(bool raw)
 void pqPipelineRepresentation::setRepresentation(int representation)
 {
  
-  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+  if (pqApplicationCore::instance()->getConnectionStatus())
 	{if (!pqApplicationCore::instance()->isRepeatingDisplay)
 		{
 		 vtkSMRepresentationProxy* repr = this->getRepresentationProxy();

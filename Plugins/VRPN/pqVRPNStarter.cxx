@@ -212,13 +212,14 @@ void pqVRPNStarter::onStartup()
 	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget()); 
 	
 	showPartnersView = false;
-	QObject::connect(mainWindow,SIGNAL(toggleView()),this,SLOT(onToggleView())); 	
-	if (options->GetSyncCollab())
-	{    
-		readFileIndex = 0;
-		//writeFileIndex = 0; 
-		if (!DEBUG_1_USER)
-		{
+	QObject::connect(mainWindow,SIGNAL(switchToPartnersView()),this,SLOT(onSwitchToPartnersView())); 	
+	QObject::connect(mainWindow,SIGNAL(switchToMyView()),this,SLOT(onSwitchToMyView())); 
+	//if (pqApplicationCore::instance()->getConnectionStatus())
+	//{    
+	//	readFileIndex = 0;
+	//	//writeFileIndex = 0; 
+	//	if (!DEBUG_1_USER)
+	//	{
 
 			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
 			this, SLOT(onSourceCreated(pqPipelineSource*)));
@@ -240,38 +241,38 @@ void pqVRPNStarter::onStartup()
 			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
 			mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
 
-		}
-		else
-		{
-			if ( this->sensorIndex == 0) // Only enable for User0 if Debug 1 User
-			{
+		//}
+		//else
+		//{
+		//	if ( this->sensorIndex == 0) // Only enable for User0 if Debug 1 User
+		//	{
 
-				QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-				this, SLOT(onSourceCreated(pqPipelineSource*)));
+		//		QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+		//		this, SLOT(onSourceCreated(pqPipelineSource*)));
 
-				QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
-				this, SLOT(onFilterCreated(pqPipelineSource*))); 
+		//		QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
+		//		this, SLOT(onFilterCreated(pqPipelineSource*))); 
 
-				
-				QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
-				this, SLOT(onSourceChanged(pqPipelineSource*)));
+		//		
+		//		QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
+		//		this, SLOT(onSourceChanged(pqPipelineSource*)));
 
-				 
-				QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
-				this, SLOT(onObjectInspectorWidgetAccept()));
+		//		 
+		//		QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
+		//		this, SLOT(onObjectInspectorWidgetAccept()));
 
-				QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
-								  this, SLOT(onProxyTabWidgetChanged(int )));
+		//		QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
+		//						  this, SLOT(onProxyTabWidgetChanged(int )));
 
-			 
-			}
-			else if ( this->sensorIndex == 1)
-			{
-				QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
-				mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
-			}
-		}
-	} 
+		//	 
+		//	}
+		//	else if ( this->sensorIndex == 1)
+		//	{
+		//		QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
+		//		mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
+		//	}
+		//}
+	//} 
 
 	
 }
@@ -279,14 +280,19 @@ void pqVRPNStarter::onStartup()
 
 void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
+	if(pqApplicationCore::instance()->getConnectionStatus())
+	{
 	if (!pqApplicationCore::instance()->isRepeating)
 	{  
 		pqApplicationCore::writeChangeSnippet("Apply");
+	}
 	}
 }
 
 void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 {
+	if(pqApplicationCore::instance()->getConnectionStatus())
+	{
 	if(VERBOSE)
 		qWarning ("Tab changed!");
 	if (!pqApplicationCore::instance()->isRepeating)
@@ -310,11 +316,14 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 		{
 			return;
 		} 
-	} 
+	}
+	}
 }
 // Listen to proxy creation from pqObjectBuilder 
 void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
+	if (pqApplicationCore::instance()->getConnectionStatus())
+	{
 	if(VERBOSE)
 	{
 		qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
@@ -327,12 +336,14 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 		sprintf(sourceStr,"Source,%s,%s",createdSource->getSMGroup().toAscii().data(),createdSource->getProxy()->GetXMLName());
 		pqApplicationCore::writeChangeSnippet(const_cast<const char*>(sourceStr));
 		free(sourceStr); 
-	}	
+	}}	
 }
 
 void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 {
-	if(VERBOSE)
+	if(pqApplicationCore::instance()->getConnectionStatus())
+	{
+		if(VERBOSE)
 	{
 		qWarning("onFilterCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 		qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
@@ -355,12 +366,15 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 		sprintf(filterStr,"Filter,%s,%s",groupName.toAscii().data(),createdFilter->getProxy()->GetXMLName());
 		pqApplicationCore::writeChangeSnippet(const_cast<const char*>(filterStr));
 		free(filterStr);  
-	} 
+	}
+	}
 }
 
 void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 {
-	if(VERBOSE)
+	if(pqApplicationCore::instance()->getConnectionStatus())
+	{
+		if(VERBOSE)
 	{
 		qWarning("onSourceChanged pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 		qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
@@ -383,20 +397,23 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 			}
 		}		 
 	} 
+	}
 } 
-void pqVRPNStarter::onToggleView()//bool togglePartnersView)
+void pqVRPNStarter::onSwitchToPartnersView() 
 { 
 	this->VRPNTimer->blockSignals(true);
-	if (showPartnersView)
-	{
-		showPartnersView = false;
-		this->sensorIndex = this->origSensorIndex;
-	}
-	else
-	{
-		showPartnersView = true;
-		this->sensorIndex = (this->sensorIndex +1)%2;
-	}
+	
+	showPartnersView = true;
+	this->sensorIndex = (this->sensorIndex +1)%2; 
+	this->initializeEyeAngle();
+	this->VRPNTimer->blockSignals(false);
+	
+} 
+void pqVRPNStarter::onSwitchToMyView() 
+{ 
+	this->VRPNTimer->blockSignals(true);
+	showPartnersView = false;
+	this->sensorIndex = this->origSensorIndex;
 	this->initializeEyeAngle();
 	this->VRPNTimer->blockSignals(false);
 	
@@ -611,6 +628,17 @@ void pqVRPNStarter::initializeDevices()
 		phantom1->SetDeviceName(this->phantomAddress);
 		phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
 		phantom1->SetNumberOfButtons(2);
+		if (!this->sensorIndex )
+		{
+			if (this->tngAddress)//TODO: replace this with if Phantom Desktop
+			{
+			phantom1->SetPhantomMockButtonAddress(const_cast<const char*> (this->tngAddress));
+			}
+			else
+			{
+				phantom1->SetNumberOfButtons(1);
+			}
+		}
 		phantom1->SetSensorIndex(this->sensorIndex);
 
 		phantom1->Initialize();
@@ -801,7 +829,6 @@ void pqVRPNStarter::respondToOtherAppsChange()
 	//bool read = false; 
 	//for (int i =readFileIndex; i <= targetFileIndex; i++)
 	//{
-		pqApplicationCore::instance()->isRepeating = true; 
 		/*char inputStr1[FILE_PATH_SIZE]; 
 
 	    sprintf(inputStr1,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
@@ -828,14 +855,20 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		
 		if (pqApplicationCore::instance()->socket1 && pqApplicationCore::instance()->getConnectionStatus())
 		{
+			int		err;
+			int		bytesRecv;
 			SOCKET s1 = (SOCKET)(*(pqApplicationCore::instance()->socket1));
 			bytesRecv = ::recv( s1, snippet, SNIPPET_LENGTH, 0 );
 			err = WSAGetLastError( );// 10057 = A request to send or receive data was disallowed because the socket is not connected and (when sending on a datagram socket using a sendto call) 
+			
 			if ( bytesRecv == 0 || bytesRecv == WSAECONNRESET ) {
-				pqApplicationCore::instance()->closeConnection();
+				pqApplicationCore::instance()->closeConnection(false);
+				return;
 			} 
 			if (err == 0)
 			{
+				
+				pqApplicationCore::instance()->isRepeating = true; 
 				//qWarning( " Bytes Recv: %s \n ", snippet );
 				if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
 			{
@@ -910,6 +943,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 					 
 					//newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 				} 
+				free(newLine);
 				if (!propertyStringList.empty())
 					repeatPropertiesChange(operation,propertyStringList);			 
 				/*for (int j = 0; j<propertyStringList.size(); j++)
@@ -926,119 +960,13 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			
 			 
 			}
+		else
+		{
+			qWarning("error %d",err);
+			WSASetLastError(0);
+			}
 		}
-
-
-		/***********************TEMPORARILY COMMENTED OUT**********/
-		
-		//if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
-		//	{
-		//		if (read)
-		//		{ 
-		//			if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
-		//			{		
-		//				newReadFileIndex++;
-		//			}
-		//			readFileIndex = newReadFileIndex;
-		//		} 
-		//		readFile.clear();
-		//		readFile.close();
-		//		pqApplicationCore::instance()->isRepeating = false;
-		//		VRPNTimer->blockSignals(false);
-		//		return;
-		//	}
-
-		//	char* operation = strtok(snippet,",");  
-		//	
-		//	if (!strcmp(operation,"Source"))
-		//	{ 
-		//		char* groupName = strtok(NULL,",");
-		//		char* sourceName = strtok(NULL,",");
-		//		 
-		//		repeatCreateSource(groupName,sourceName); 
-		//	}
-		//	else if (!strcmp(operation,"Filter"))
-		//	{ 
-		//		char* groupName = strtok(NULL,",");
-		//		char* sourceName = strtok(NULL,",");
-		//		 
-		//		repeatCreateFilter(groupName,sourceName); 
-		//	}
-		//	else if (!strcmp(operation,"Apply"))
-		//	{  
-		//		repeatApply(); 
-		//	}
-		//	else if (!strcmp(operation,"Tab"))
-		//	{				 
-		//		char* tabName = strtok(NULL,",");
-		//		respondToTabChange(tabName);
-		//	}
-		//	else if (!strcmp(operation,"Changed"))
-		//	{  
-		//		char* sourceName = strtok(NULL,",");
-		//		repeatSelectionChange(sourceName); 
-		//	}
-		//	else if (!strcmp(operation,"ResetLookupTableScalarRange"))
-		//	{
-		//		pqPipelineRepresentation*  repr = dynamic_cast<pqPipelineRepresentation*>(pqActiveObjects::instance().activeRepresentation());
-		//		repr->resetLookupTableScalarRange();
-		//	}
-		//	else 
-		//	{  
-		//		if(VERBOSE)
-		//			qWarning("operation %s", operation);			
-		//		QList<char*> propertyStringList = QList<char*>();  
-		//		char* newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-		//		while(true)
-		//		{
-		//			if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
-		//			{ 
-		//				break;
-		//			} 
-		//			propertyStringList.append(newLine); 	 
-		//			newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-		//		} 
-		//		if (!propertyStringList.empty())
-		//			repeatPropertiesChange(operation,propertyStringList);			 
-		//		for (int j = 0; j<propertyStringList.size(); j++)
-		//		{
-		//			free(propertyStringList.at(j));
-		//		}
-		//		
-		//		if (readFile.bad())
-		//		{ 
-		//			readFile.close();
-		//		}
-		//		readFile.clear();
-		//	}
-		//	
-			 
-	
-			
-		/***********************TEMPORARILY COMMENTED OUT**********/
-			/*if (i> readFileIndex)
-			{	newReadFileIndex = i; 
-			}*/
-	//	}  
-	//	else
-	//	{
-	//		/*if(VERBOSE)
-	//			qWarning("bad file %s",filename.str().c_str());*/
-	//	}
-	//	readFile.close();
-	//	
-	//}
-	/**
-		Only increment read file index if read was successful
-	 */
-	//if (read)
-	//{ 
-	//	if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
-	//	{		
-	//		newReadFileIndex++;
-	//	}
-	//	readFileIndex = newReadFileIndex;
-	//} 
+ 
 	
 	pqApplicationCore::instance()->isRepeating = false;
 	if (VERBOSE)
@@ -1142,7 +1070,7 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 }
 void pqVRPNStarter::timerCallback()
 {	
-	 if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab() && this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
+	 if ( this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
 	{ 
 	/*	this->uninitializeDevices();
 		pqCommandLineOptionsBehavior::resetApplication();		
@@ -1151,20 +1079,24 @@ void pqVRPNStarter::timerCallback()
 		this->initializeEyeAngle();
 		this->initializeDevices();*/
 		this->VRPNTimer->blockSignals(true);	
+		pqApplicationCore::instance()->closeConnection(true);
 		pqDeleteReaction::deleteAll(); 
 		this->loadState();  
+		if (!pqApplicationCore::instance()->setupCollaborationClientServer())
+		{
+			pqApplicationCore::instance()->closeConnection(false);
+		}
 		this->VRPNTimer->blockSignals(false);
 
 	} 
-	else if ((DEBUG_1_USER && this->origSensorIndex) || !DEBUG_1_USER)/// && this->changeSnippetModified())
+	 if (pqApplicationCore::instance()->getConnectionStatus())//vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab() )/// && this->changeSnippetModified())
 	{
-		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
-			respondToOtherAppsChange();  
+			respondToOtherAppsChange(); 
+	} 
 		if (this->useTNG)
 			this->tng1->mainloop();
 		if (this->useTracker || this->usePhantom)
 			this->inputInteractor->Update(); 
-	}
 	
 
 	///////////////////////////////////Render///////////////////////////
@@ -1272,19 +1204,40 @@ void pqVRPNStarter::loadState(char* filename)
 
 void pqVRPNStarter::changeTimeStamp()
 {
-	if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab()) //TODO: Why?
-	{
+	//if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab()) //TODO: Why?
+	//{
 		struct stat filestat;
 		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
 		this->last_write = filestat.st_mtime;
-	}
+	/*}*/
 }
 
 void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 {
-	
-	double position[3] = {-0.000033, -0.065609, -0.087861};
-	double quat[4] = { -0.205897 ,-0.050476, -0.227901 , 0.950326};
+	if (this->phantomStyleCamera1)
+	{
+	double position[3];  
+	double quat[4];  
+	if (this->phantomStyleCamera1->PhantomType == PHANTOM_TYPE_DESKTOP)
+	{
+		position[0] = 0.013141;
+		position[1] = -0.061171;
+		position[2] = -0.069131;
+		quat[0] =  0.017818;
+		quat[1] =  -0.143210;
+		quat[2] =  0.645633;
+		quat[3] =  0.749888;
+	}
+	else
+	{
+		position[0] = -0.000033;
+		position[1] = -0.065609;
+		position[2] = -0.087861;
+		quat[0] = -0.205897;
+		quat[1] = -0.050476;
+		quat[2] = -0.227901;
+		quat[3] = 0.950326;
+	}
 	    double  matrix[3][3];
 		double orientNew[3] ;
 		if (deleteOldCone)
@@ -1337,7 +1290,7 @@ void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 
 	Cone->Delete(); 
 	ConeMapper->Delete();
-
+	}
 
 }
 

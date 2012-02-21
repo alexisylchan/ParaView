@@ -73,6 +73,7 @@ public:
 
   //To handle showing timeline ribbons
   void SetShowingTimeline(int showingTimeline);
+  int PhantomType;
 
 protected:
   vtkVRPNPhantomStyleCamera();

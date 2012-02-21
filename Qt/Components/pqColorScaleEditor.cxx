@@ -444,7 +444,7 @@ void pqColorScaleEditor::setColors()
   vtkSMProxy *lookupTable = this->ColorMap->getProxy();
   pqSMAdaptor::setMultipleElementProperty(
       lookupTable->GetProperty("RGBPoints"), rgbPoints);
- if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ if (pqApplicationCore::instance()->getConnectionStatus())//vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -463,7 +463,7 @@ void pqColorScaleEditor::setColors()
     vtkSMProxy *points = this->OpacityFunction->getProxy();
     pqSMAdaptor::setMultipleElementProperty(points->GetProperty("Points"),
         opacityPoints);
-	 if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	 if (pqApplicationCore::instance()->getConnectionStatus())//vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -679,7 +679,7 @@ void pqColorScaleEditor::setColorSpace(int index)
         lookupTable->GetProperty("ColorSpace"), index);
     pqSMAdaptor::setElementProperty(
         lookupTable->GetProperty("HSVWrap"), wrap);
-	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	if (pqApplicationCore::instance()->getConnectionStatus())//vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -711,7 +711,7 @@ void pqColorScaleEditor::setNanColor(const QColor &color)
     values << color.redF() << color.greenF() << color.blueF();
     pqSMAdaptor::setMultipleElementProperty(
                                   lookupTable->GetProperty("NanColor"), values);
-		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+		if (pqApplicationCore::instance()->getConnectionStatus())//vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -851,7 +851,7 @@ void pqColorScaleEditor::loadPreset()
             lookupTable->GetProperty("ColorSpace"), colorSpace);
         pqSMAdaptor::setElementProperty(
             lookupTable->GetProperty("HSVWrap"), wrap);
-		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+		if (pqApplicationCore::instance()->getConnectionStatus())//vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -886,7 +886,7 @@ void pqColorScaleEditor::loadPreset()
         values << nanColor.redF() << nanColor.greenF() << nanColor.blueF();
         pqSMAdaptor::setMultipleElementProperty(
                                   lookupTable->GetProperty("NanColor"), values);
-		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+		if (pqApplicationCore::instance()->getConnectionStatus())//
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -921,7 +921,7 @@ void pqColorScaleEditor::setLogScale(bool on)
   vtkSMProxy *lookupTable = this->ColorMap->getProxy();
   pqSMAdaptor::setElementProperty(
       lookupTable->GetProperty("UseLogScale"), on ? 1 : 0);
-  if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+  if (pqApplicationCore::instance()->getConnectionStatus())//
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -1037,7 +1037,7 @@ void pqColorScaleEditor::setUseDiscreteColors(bool on)
     vtkSMProxy *lookupTable = this->ColorMap->getProxy();
     pqSMAdaptor::setElementProperty(
         lookupTable->GetProperty("Discretize"), (on ? 1 : 0));
- if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+ if (pqApplicationCore::instance()->getConnectionStatus())//
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 
@@ -1083,7 +1083,7 @@ void pqColorScaleEditor::setTableSize(int tableSize)
     vtkSMProxy *lookupTable = this->ColorMap->getProxy();
     pqSMAdaptor::setElementProperty(
         lookupTable->GetProperty("NumberOfTableValues"), QVariant(tableSize));
-	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	if (pqApplicationCore::instance()->getConnectionStatus())//
  {
 	if (!pqApplicationCore::instance()->isRepeatingDisplay)
 	{ 

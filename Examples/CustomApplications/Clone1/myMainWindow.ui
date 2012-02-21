@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>684</width>
-    <height>592</height>
+    <height>627</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,37 +25,37 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>321</width>
-      <height>511</height>
+      <width>391</width>
+      <height>551</height>
      </rect>
     </property>
     <widget class="QPushButton" name="PushToSharedState">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>480</y>
-       <width>271</width>
-       <height>31</height>
+       <y>460</y>
+       <width>141</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>Push to Shared State</string>
+      <string>Share your work</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="ToggleToPartnersView">
+    <widget class="QPushButton" name="SwitchToPartnersView">
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>440</y>
-       <width>271</width>
-       <height>31</height>
+       <y>410</y>
+       <width>141</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="text">
-      <string>Toggle to Partner's View</string>
+      <string>Partner's View</string>
      </property>
     </widget>
     <widget class="QDockWidget" name="proxyTabDock_2">
@@ -63,8 +63,8 @@
       <rect>
        <x>20</x>
        <y>0</y>
-       <width>281</width>
-       <height>421</height>
+       <width>361</width>
+       <height>401</height>
       </rect>
      </property>
      <property name="features">
@@ -77,6 +77,54 @@
       <string>Object Inspector</string>
      </property>
      <widget class="pqProxyTabWidget" name="proxyTabWidget"/>
+    </widget>
+    <widget class="QPushButton" name="Reconnect">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>510</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reconnect</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="SwitchToMyView">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>410</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>My View</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="Disconnect">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>510</y>
+       <width>141</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Disconnect</string>
+     </property>
     </widget>
    </widget>
   </widget>

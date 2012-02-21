@@ -110,36 +110,22 @@ myMainWindow::myMainWindow()
   // Set up the dock window corners to give the vertical docks more room.
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
-  /*this->Internals->animationViewDock->hide();
-  this->Internals->statisticsDock->hide();
-  this->Internals->selectionInspectorDock->hide();
-  this->Internals->comparativePanelDock->hide();*/
-  /*this->tabifyDockWidget(this->Internals->animationViewDock,
-    this->Internals->statisticsDock);*/
-//  this->Internals->animationViewDock->hide();
-  /*this->Internals->ToggleVortexCore->setIconSize(QSize(24,24));
-  this->Internals->ToggleVortexCore->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/vortexcore.png"));
-  QObject::connect(this->Internals->ToggleVortexCore,SIGNAL(clicked()),this,SLOT(vortexIdentification()));
-  
-  this->Internals->ToggleVortexCoreDirection->setIconSize(QSize(24,24));
-  this->Internals->ToggleVortexCoreDirection->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/arrow.png"));
-  QObject::connect(this->Internals->ToggleVortexCoreDirection,SIGNAL(clicked()),this,SLOT(vortexCoreLine()));
-
-  this->Internals->ToggleContextualFlow->setIconSize(QSize(24,24));
-  this->Internals->ToggleContextualFlow->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/contextualflow.png"));
-  QObject::connect(this->Internals->ToggleContextualFlow,SIGNAL(clicked()),this,SLOT(contextualFlow()));*/
-
-  this->Internals->PushToSharedState->setIconSize(QSize(24,24));
-  this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
+ /* this->Internals->PushToSharedState->setIconSize(QSize(24,24));
+  this->Internals->PushToSharedState->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));*/
   QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
-  if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+//  if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
 	  this->Internals->PushToSharedState->setEnabled(true);
 
-  this->Internals->ToggleToPartnersView->setIconSize(QSize(24,24));
-  this->Internals->ToggleToPartnersView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
-  QObject::connect(this->Internals->ToggleToPartnersView,SIGNAL(clicked()),this,SLOT(onToggleView()));
-
+  //this->Internals->SwitchToPartnersView->setIconSize(QSize(24,24));
+  //this->Internals->SwitchToPartnersView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));
+  QObject::connect(this->Internals->SwitchToPartnersView,SIGNAL(clicked()),this,SLOT(onSwitchToPartnersView()));
+ /* this->Internals->SwitchToPartnersView->setIconSize(QSize(24,24));
+  this->Internals->SwitchToPartnersView->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/handshake.png"));*/
+  QObject::connect(this->Internals->SwitchToMyView,SIGNAL(clicked()),this,SLOT(onSwitchToMyView()));
+  QObject::connect(this->Internals->Reconnect,SIGNAL(clicked()),this,SLOT(onReconnect()));
+  QObject::connect(this->Internals->Disconnect,SIGNAL(clicked()),this,SLOT(onDisconnect()));
+  QObject::connect(pqApplicationCore::instance(),SIGNAL(connectionClosed()),this,SLOT(onConnectionClosed()));
+ 
   //this->Internals->ToggleTurbineGeometry->setIconSize(QSize(24,24));
   //this->Internals->ToggleTurbineGeometry->setIcon(QIcon("C:/Users/alexisc/Documents/EVE/ParaView/Qt/Components/Resources/Icons/pqGroup24.png"));
   //QObject::connect(this->Internals->ToggleTurbineGeometry,SIGNAL(clicked()),this,SLOT(turbineGeometry()));
@@ -242,123 +228,15 @@ myMainWindow::myMainWindow()
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
 	new pqParaViewBehaviors(this, this); 
-	this->Internals->MultiViewManager->toggleFullScreen(); 
-	//this->Internals->MultiViewManager->setTitle(this->windowTitle());
-	this->Internals->proxyTabDock1->titleBarWidget();//->setWindowFlags(Qt::FramelessWindowHint);
+	this->Internals->MultiViewManager->toggleFullScreen();  
 	pqFixPathsInStateFilesBehavior::blockDialog(true);
 	qobject_cast<QWidget*>(this->Internals->proxyTabDock1)->setWindowFlags(Qt::FramelessWindowHint); 
 	QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
-	/*QObject::connect(this, SIGNAL(changeSceneTime(double)),
-	Scene, SLOT(setAnimationTime(double)));
-	QObject::connect(Scene, SIGNAL(timeStepsChanged()),
-	this, SLOT(onTimeStepsChanged()));*/
- //this->onTimeStepsChanged();
- //this->showContextualFlow = false;
- //this->showVortexCore = true;
- //this->showVortexCoreLine = true;
- //this->showTurbineGeometry = true;
- //this->showTimelineSummary = false;
- //this->showPartnersView = false;
+	
 
 }
 
-//void myMainWindow::onTriggerObjectInspectorWidgetAccept()
-//{ 
-//	qWarning("My Main Window triggered apply");
-//	emit this->triggerObjectInspectorAccept();
-//}
-//
-//void myMainWindow::onObjectInspectorWidgetAccept()
-//{ 
-//	emit this->objectInspectorWidgetAccept();
-//}
 
-//void myMainWindow::onChangeDataSet(int index)
-//{
-//	emit this->changeDataSet(index);
-//}
-//void myMainWindow::enableTimeSlider()
-//{
-//  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider"); 
-//  if (Slider0->isEnabled())
-//  {
-//	  Slider0->setEnabled(false);
-//  }
-//  else
-//  {
-//	  pqPipelineSource* flowSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("UserSeededStreamTracer");
-//	  if (flowSource)
-//		  HideObject(pqActiveObjects::instance().activeView(),flowSource);
-//	  pqPipelineSource* tubeSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>("Tube1");
-//	  if (tubeSource)
-//		  HideObject(pqActiveObjects::instance().activeView(),tubeSource);
-//	  Slider0->setEnabled(true);
-//  }
-//
-//}
-// 
-////-----------------------------------------------------------------------------
-//// When user edits the slider
-//void myMainWindow::sliderTimeIndexChanged(int value)
-//{
-//  if (pqPVApplicationCore::instance()->animationManager()->getActiveScene())
-//    {
-//    pqTimeKeeper* timekeeper = pqPVApplicationCore::instance()->animationManager()->getActiveScene()->getServer()->getTimeKeeper();
-//    emit this->changeSceneTime(
-//      timekeeper->getTimeStepValue(value));
-//    }
-//}
-//
-//
-////-----------------------------------------------------------------------------
-//// When user edits the line-edit.
-////void myMainWindow::currentTimeIndexChanged()
-////{
-////	 if (pqPVApplicationCore::instance()->animationManager()->getActiveScene())
-////    {
-////    pqTimeKeeper* timekeeper = pqPVApplicationCore::instance()->animationManager()->getActiveScene()->getServer()->getTimeKeeper();
-////    emit this->changeSceneTime(
-////      timekeeper->getTimeStepValue(this->Internals->TimeSpinBox->value()));
-////    }
-////}
-//
-//
-////-----------------------------------------------------------------------------
-//
-//void myMainWindow::timeSliderChanged(double val)
-//{
-//	
-//  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
-//  Slider0->setValue(val);
-//  
-//}
-
-//-----------------------------------------------------------------------------
-
-//  /// Update range for the slider
-// void myMainWindow::onTimeStepsChanged()
-//{ QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
-// 
-//  QSlider *Slider0 = this->Internals->TimeSlider->findChild<QSlider*>("Slider");
-//  //QSpinBox *SpinBox0 = this->Internals->TimeSpinBox;
-//  //bool prev = SpinBox0->blockSignals(true);
-//  bool prevSlider = Slider0->blockSignals(true);
-//  pqTimeKeeper* timekeeper = Scene->getServer()->getTimeKeeper();
-//  int time_steps = timekeeper->getNumberOfTimeStepValues();
-//  if (time_steps > 0)
-//    {
-//    //SpinBox0->setMaximum(time_steps -1);
-//	Slider0->setMaximum(time_steps -1);
-//    }
-//  else
-//    {
-//    //SpinBox0->setMaximum(0);
-//	Slider0->setMaximum(0);
-//    }
-//  //SpinBox0->blockSignals(prev);
-//  Slider0->blockSignals(prevSlider); 
-//
-//}
 //-----------------------------------------------------------------------------
 myMainWindow::~myMainWindow()
 {
@@ -568,6 +446,7 @@ void myMainWindow::showHelpForProxy(const QString& proxyname)
 ////-----------------------------------------------------------------------------
 void myMainWindow::saveState()
 { 
+  pqApplicationCore::instance()->closeConnection(true);
   QString filename  = QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm");
   pqApplicationCore::instance()->saveState(filename);
   pqServer *server = pqActiveObjects::instance().activeServer();
@@ -579,19 +458,50 @@ void myMainWindow::saveState()
   pqApplicationCore::instance()->serverResources().add(resource);
   pqApplicationCore::instance()->serverResources().save(
     *pqApplicationCore::instance()->settings());
+  if (!pqApplicationCore::instance()->setupCollaborationClientServer())
+  {
+	pqApplicationCore::instance()->closeConnection(false); 
+  }
 } 
 //-----------------------------------------------------------------------------
-void myMainWindow::onToggleView()
-{ 
-	 /*if (this->showPartnersView)
-		this->showPartnersView = false;
-	else
-		this->showPartnersView = true;*/
-
-   //switch to partner's view
-	emit this->toggleView();
+void myMainWindow::onSwitchToPartnersView()
+{  
+	this->Internals->SwitchToPartnersView->setEnabled(false);
+	this->Internals->SwitchToMyView->setEnabled(true);
+	emit this->switchToPartnersView();
 } 
+void myMainWindow::onSwitchToMyView()
+{  
+	this->Internals->SwitchToPartnersView->setEnabled(true);
+	this->Internals->SwitchToMyView->setEnabled(false);
+	emit this->switchToMyView();
+} 
+void myMainWindow::onReconnect()
+{
+		this->Internals->Reconnect->setEnabled(false);
+		this->Internals->Disconnect->setEnabled(true);
+	if (!pqApplicationCore::instance()->setupCollaborationClientServer())
+   {
+		pqApplicationCore::instance()->closeConnection(false);  
+		this->Internals->Reconnect->setEnabled(true);
+		this->Internals->Disconnect->setEnabled(false);
+	}
+}
+void myMainWindow::onDisconnect()
+{
+	pqApplicationCore::instance()->closeConnection(false);
+	
+		this->Internals->Reconnect->setEnabled(true);
+		this->Internals->Disconnect->setEnabled(false);
+}
+void myMainWindow::onConnectionClosed()
+{
+	if (!this->Internals->Reconnect->isEnabled())
+		this->Internals->Reconnect->setEnabled(true);
+	if (this->Internals->Disconnect->isEnabled())
+		this->Internals->Disconnect->setEnabled(false);
 
+}
 
 //void myMainWindow::HideObject(pqView* view,pqPipelineSource* createdSource)
 //{

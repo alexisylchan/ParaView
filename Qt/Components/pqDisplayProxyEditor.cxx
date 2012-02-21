@@ -1030,7 +1030,7 @@ void pqDisplayProxyEditor::volumeBlockSelected()
       && this->Internal->Representation)
     {
 
-		if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+		if (pqApplicationCore::instance()->getConnectionStatus())
 		{
 			if (!pqApplicationCore::instance()->isRepeatingDisplay)
 			{ 
@@ -1081,7 +1081,7 @@ void pqDisplayProxyEditor::volumeBlockSelected()
 // Called when the GUI selection for the solid color changes.
 void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 {
-	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	if (pqApplicationCore::instance()->getConnectionStatus())
 	{
 		if (!pqApplicationCore::instance()->isRepeatingDisplay)
 		{ 
@@ -1120,7 +1120,7 @@ void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 // Called when the GUI selection for the backface solid color changes.
 void pqDisplayProxyEditor::setBackfaceSolidColor(const QColor& color)
 {
-	if (vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab())
+	if (pqApplicationCore::instance()->getConnectionStatus())
 	{
 		if (!pqApplicationCore::instance()->isRepeatingDisplay)
 		{ 

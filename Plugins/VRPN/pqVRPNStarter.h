@@ -118,7 +118,8 @@ public slots:
 	// Switch between three data sets for Special Use Case: Vortex Visualization
 	/*void onChangeDataSet(int index);*/
 	// Switch between partner's (other user) view and self
-	void onToggleView();  
+	void onSwitchToPartnersView();
+	void onSwitchToMyView();  
 	
 	
 	//Listen to proxy creation from pqObjectBuilder
@@ -226,10 +227,7 @@ private:
   // changes will not be repeated infinitely.
   bool onSourceChangeAfterRepeatingCreation;
   void createConeInVTK(bool deleteOldCone);
-
-  //networking
-	int		err;
-	int		bytesRecv;
+ 
 };
 
 #endif

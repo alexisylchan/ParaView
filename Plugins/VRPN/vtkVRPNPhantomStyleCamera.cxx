@@ -114,6 +114,7 @@ vtkVRPNPhantomStyleCamera::vtkVRPNPhantomStyleCamera()
 	pickedActorPos[3] = 0.0;
 
 	button2AlreadyPressed = false;
+	PhantomType = PHANTOM_TYPE_OMNI;
 }
 
 
@@ -147,6 +148,7 @@ void vtkVRPNPhantomStyleCamera::SetPhantom(vtkVRPNPhantom* Phantom)
   if (Phantom != NULL) 
     {
     Phantom->AddObserver(vtkVRPNDevice::PhantomEvent, this->DeviceCallback);
+	this->PhantomType = Phantom->PhantomType;
     }
 } 
 //----------------------------------------------------------------------------
@@ -353,7 +355,7 @@ vtkProp3D* prop;
 		myActor->SetPosition(newScaledPosition); 
 		myActor->Modified();
 		free(newPosition);
-		delete newScaledPosition;
+		free(newScaledPosition);
 
 
 	}
@@ -857,13 +859,39 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 		renderer->ComputeVisiblePropBounds(bounds); 
 		 
 		bool boundsInitialized = false; 
-		 
-		double init1[4] = {0.152872,0.204018,0.090221,0};
-		double init2[4] = {-0.166063,-0.095060,-0.071601,0};
+		double init1[4], init2[4];
+		if (this->PhantomType == PHANTOM_TYPE_OMNI)
+		{
+			init1[0] = 0.152872;
+			init1[1] = 0.204018;
+			init1[2] = 0.090221;
+			init1[3] = 0;
+
+			
+			init2[0] = -0.166063;
+			init2[1] = -0.095060;
+			init2[2] = -0.071601;
+			init2[3] = 0; 
+		}
+		else 
+		{
+			init1[0] = 0.097483 ;
+			init1[1] = 0.144625 ;
+			init1[2] = 0.001427 ;
+			init1[3] = 0; 
+
+			init2[0] = -0.154395;
+			init2[1] = -0.064019;
+			init2[2] = -0.067548;
+			init2[3] = 0;
+		}
+		
+		//double init1[4] = {0.152872,0.204018,0.090221,0};
+		//double init2[4] = {-0.166063,-0.095060,-0.071601,0};
 		/*vtkMatrix4x4* cameralight = camera->GetCameraLightTransformMatrix();
 		cameralight->MultiplyPoint(init1,init1);
 		cameralight->MultiplyPoint(init2,init2); */
-		double* newScaledPosition =  new double[4];
+		double* newScaledPosition =  (double*) malloc(4*sizeof (double));
 		double origScale[3];
 		origScale[0] = (init1[0] - init2[0])/2.0;
 		origScale[1] = (init1[1] - init2[1])/2.0;

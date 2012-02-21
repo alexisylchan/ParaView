@@ -63,7 +63,11 @@ public slots:
   /// the state file that should be saved
    void saveState(); 
    // toggle to partner's view 
-   void onToggleView(); 
+   void onSwitchToPartnersView(); 
+   void onSwitchToMyView();
+   void onReconnect();
+   void onDisconnect();
+   void onConnectionClosed();
   //Set mode to contextual flow
   // void contextualFlow(); 
   ////Set mode to vortex identification
@@ -95,7 +99,8 @@ signals:
   //void changeSceneTime(double);
   //void changeDataSet(int index);
   //void toggleTimelineSummary(); 
-  void toggleView();
+  void switchToPartnersView();
+  void switchToMyView();
  /* void objectInspectorWidgetAccept();
   void triggerObjectInspectorAccept();*/
   //void toggleView(bool togglePartnersView);
