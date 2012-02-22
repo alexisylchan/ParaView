@@ -68,6 +68,7 @@ public:
   vtkGetMacro(UseSpaceNavigator, int);
   vtkGetStringMacro(SpaceNavigatorAddress);
   vtkGetMacro(UsePhantom, int);
+  vtkGetMacro(IsPhantomDesktop, int);
   vtkGetStringMacro(PhantomAddress);
   vtkGetMacro(UseTNG, int);
   vtkGetStringMacro(TNGAddress);
@@ -235,6 +236,7 @@ private:
   
   int UseSpaceNavigator;
   int UsePhantom;
+  int IsPhantomDesktop;
   int UseTNG;
   int SyncCollab;
   int CollabVisDemo;

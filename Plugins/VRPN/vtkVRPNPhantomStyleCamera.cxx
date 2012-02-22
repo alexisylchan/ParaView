@@ -331,24 +331,24 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		{  
 			RotateVisibleProps(newScaledPosition,orientNew); 
 		}
-		else if (Phantom->GetButton(1))
+		if (Phantom->GetButton(1))
 		{ 
 			
 			PickUpProp(newScaledPosition,orientNew);
 		} 
 		else if (!Phantom->GetButton(1))
 		{
-vtkProp3D* prop;
+			vtkProp3D* prop;
 
 			for (int j = 0; j< this->Renderer->GetViewProps()->GetNumberOfItems(); j++ )
-  {
-	  prop= vtkProp3D::SafeDownCast(this->Renderer->GetViewProps()->GetItemAsObject(j));
-		if (prop )
-		{
-	   prop->PhantomPicked = false;
-	   prop->Modified();
-		}
-  }
+			  {
+				  prop= vtkProp3D::SafeDownCast(this->Renderer->GetViewProps()->GetItemAsObject(j));
+					if (prop )
+					{
+				   prop->PhantomPicked = false;
+				   prop->Modified();
+					}
+			  }
 
 			button2AlreadyPressed = false;
 		}
@@ -580,7 +580,7 @@ vtkProp3D* prop;
 //	
 //		BEGIN_UNDO_SET(QString("Create '%1'").arg(name));
 //		vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
-//		vtkSMProxy* prototype = pxm->GetPrototypeProxy("filters",name);
+//		vtkSMProxy* prototype = pxm->GetPrototypeProxy("fiters",name);
 //		QList<pqOutputPort*> outputPorts;
 //		 
 //		//NOTE: Cannot use AutoAccept because this creates 3 streamtracers everytime a button is clicked (PhantomButton probably is called 3 times due to frequency of Phantom updates)

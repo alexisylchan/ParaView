@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // It will be replaced next time you rebuild.
 
 #include <QApplication>
+#include <QFont>
 #include "pqparaview_revisedInitializer.h"
 
 #ifdef Q_WS_X11
@@ -69,6 +70,8 @@ int main(int argc, char* argv[])
   QApplication::setApplicationName("paraview_revised");
   QApplication::setApplicationVersion("1.1.1");
   QApplication::setOrganizationName("Kitware Inc.");
+  QApplication::font().setPointSize(12);
+  QApplication::setFont(QApplication::font());
 
   QApplication qtapp(argc, argv);
   setlocale(LC_NUMERIC,"C");

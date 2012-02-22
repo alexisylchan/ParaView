@@ -618,7 +618,7 @@ void pqApplicationCore::constructor()
     this, SLOT(onStateFileClosed()));
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
-  this->sensorIndex = options->GetTrackerSensor(); 
+  this->sensorIndex = options->GetTrackerSensor() - 2; 
   this->writeFileIndex = 0;
  /* if (options->GetSyncCollab())
   {*/
@@ -641,6 +641,11 @@ pqApplicationCore::~pqApplicationCore()
 		closesocket( *socket1 );
 	}
 	WSACleanup();
+	if (wVersionRequested) free (wVersionRequested);
+	if (wsaData) free (wsaData);
+	if (channel) free (channel);
+	if (socket0) free (socket0);
+	if (socket1) free (socket1);
   // Ensure that startup plugins get a chance to cleanup before pqApplicationCore is gone.
   delete this->PluginManager;
   this->PluginManager = 0;

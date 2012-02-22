@@ -1,0 +1,2 @@
+copy Examples\CustomApplications\Clone1\pqparaview_revisedInitializer.cxx ..\CompiledParaView\Examples\All\CustomApplications\Clone1\ /Y
+copy Examples\CustomApplications\Clone1\paraview_revised_main.cxx ..\CompiledParaView\Examples\All\CustomApplications\Clone1\ /Y

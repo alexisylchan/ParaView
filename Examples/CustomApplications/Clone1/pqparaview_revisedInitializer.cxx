@@ -94,7 +94,7 @@ bool pqparaview_revisedInitializer::Initialize(int argc, char* argv[])
   this->Splash->setMask(pixmap.createMaskFromColor(QColor(Qt::transparent)));
   // splash screen slows down tests. So don't show it unless we are not running
   // tests.
-  bool show_splash = (!getenv("DASHBOARD_TEST_FROM_CTEST"));
+  bool show_splash = false; //(!getenv("DASHBOARD_TEST_FROM_CTEST"));
   if (show_splash)
     {
     this->Splash->show();
@@ -137,8 +137,9 @@ bool pqparaview_revisedInitializer::Initialize(int argc, char* argv[])
     this->PVApp->loadConfiguration(QString(":/paraview_revised/Configuration/") + file);
     }
 #endif
-  this->MainWindow->setWindowTitle("ParaView (ReVisEd)");
-  
+  //this->MainWindow->setWindowTitle("ParaView (ReVisEd)");
+  QApplication::instance()->setApplicationName(this->MainWindow->windowTitle());
+  QApplication::font().setPointSize(12);
   // give GUI components time to update before the mainwindow is shown
   QApplication::instance()->processEvents();
   this->MainWindow->show();

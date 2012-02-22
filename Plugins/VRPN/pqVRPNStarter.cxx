@@ -193,11 +193,12 @@ void pqVRPNStarter::onStartup()
 		count++;
 		coordStr = strtok(NULL,",");
 	}
-	this->sensorIndex = options->GetTrackerSensor(); 
-	this->origSensorIndex = options->GetTrackerSensor();
+	this->sensorIndex = options->GetTrackerSensor() - 2; 
+	this->origSensorIndex = options->GetTrackerSensor()- 2;
 
 	//Phantom Options
 	this->usePhantom = options->GetUsePhantom();
+	this->isPhantomDesktop = options->GetIsPhantomDesktop();
 	this->phantomAddress = options->GetPhantomAddress();
 
 	//TNG Options
@@ -628,15 +629,16 @@ void pqVRPNStarter::initializeDevices()
 		phantom1->SetDeviceName(this->phantomAddress);
 		phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
 		phantom1->SetNumberOfButtons(2);
-		if (!this->sensorIndex )
+		if (this->isPhantomDesktop )
 		{
 			if (this->tngAddress)//TODO: replace this with if Phantom Desktop
 			{
-			phantom1->SetPhantomMockButtonAddress(const_cast<const char*> (this->tngAddress));
+				phantom1->SetPhantomMockButtonAddress(this->tngAddress); 
+				phantom1->PhantomType = PHANTOM_TYPE_DESKTOP;
 			}
 			else
 			{
-				phantom1->SetNumberOfButtons(1);
+				phantom1->SetNumberOfButtons(1); 
 			}
 		}
 		phantom1->SetSensorIndex(this->sensorIndex);

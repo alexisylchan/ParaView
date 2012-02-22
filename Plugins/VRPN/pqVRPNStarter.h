@@ -182,6 +182,7 @@ private:
   int origSensorIndex;
   bool showPartnersView; 
   int usePhantom;
+  int isPhantomDesktop;
   const char* phantomAddress;
   int useTNG;
   const char* tngAddress;
