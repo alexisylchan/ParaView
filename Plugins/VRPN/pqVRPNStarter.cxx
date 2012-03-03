@@ -193,8 +193,8 @@ void pqVRPNStarter::onStartup()
 		count++;
 		coordStr = strtok(NULL,",");
 	}
-	this->sensorIndex = options->GetTrackerSensor() - 2; 
-	this->origSensorIndex = options->GetTrackerSensor()- 2;
+	this->sensorIndex = (options->GetTrackerSensor() >= 2)? options->GetTrackerSensor() - 2: options->GetTrackerSensor(); 
+	this->origSensorIndex = this->sensorIndex;
 
 	//Phantom Options
 	this->usePhantom = options->GetUsePhantom();
@@ -456,19 +456,23 @@ void pqVRPNStarter::initializeEyeAngle()
 
 		//double value = 1.0;
 		if (this->sensorIndex == 1)
-		 {  
-		
-			DisplayOrigin[0]= 7.464330 ;  
-		 	DisplayOrigin[1]=  5.435796;//5.287540 ; 
-			DisplayOrigin[2]= 0.854639 ;//-value; 
+		 {  /*
+1lowerleft 7.624803 5.752832 0.803181 0.009856 -0.029752 0.999089 -0.028959
+1lowerright 8.089953 5.779626 0.796029 -0.022951 -0.030991 0.999125 0.016160
+1upperleft 7.629872 5.733810 1.100713 0.055065 0.059823 -0.995658 0.045335
+1upperright 8.100520 5.766798 1.093276 -0.058126 -0.040813 0.997302 0.018546*/
 
-			DisplayX[0]=7.911325 ;//  8.174900;// 7.911325 ;
-			DisplayX[1]=   5.435796;// 5.370214 ;//-value; 
-			DisplayX[2]=    0.855222;//-value; 
+			DisplayOrigin[0]= 7.624803 ;  
+		 	DisplayOrigin[1]=  5.752832;//5.287540 ; 
+			DisplayOrigin[2]= 0.803181 ;//-value; 
 
-			DisplayY[0]=7.911325 ;// 8.174900;//7.911044 ;  
-			DisplayY[1]=   5.435796;// 5.322561 ;//value; 
-			DisplayY[2]=     1.091538;//-value;  
+			DisplayX[0]= 8.100520;//8.089953 ;//  8.174900;// 7.911325 ;
+			DisplayX[1]=   5.752832;//5.779626;// 5.370214 ;//-value; 
+			DisplayX[2]=    0.803181;//0.796029;//-value; 
+
+			DisplayY[0]=8.100520 ;// 8.174900;//7.911044 ;  
+			DisplayY[1]=   5.752832;//5.766798;// 5.322561 ;//value; 
+			DisplayY[2]=     1.093276;//-value;  
 		//	 
 		//DisplayOrigin[0]= -0.45;//-value;
 		//DisplayOrigin[1]= -0.3;//-value; 
@@ -482,19 +486,22 @@ void pqVRPNStarter::initializeEyeAngle()
 
 		}
 		else
-		{ 
-			
-			DisplayOrigin[0]= 8.174900;
-		 	DisplayOrigin[1]= 5.435796; 
-			DisplayOrigin[2]= 0.808637;//-value; 
+		{  /*
+0lowerleft 8.193093 5.658086 0.807336 0.027623 0.048420 0.727047 0.684321
+0lowerright 8.239871 5.184344 0.807048 0.002501 0.060751 0.700130 0.711421
+0upperleft 8.179330 5.656557 1.105073 -0.020788 -0.005304 0.794298 0.607150
+0upperright 8.225979 5.177659 1.100456 -0.042990 0.009814 0.702970 0.709851*/
+			DisplayOrigin[0]= 8.225979;//8.197703;
+		 	DisplayOrigin[1]= 5.658086; 
+			DisplayOrigin[2]=0.807048;// 0.807336;//-value; 
 
-			DisplayX[0]=   8.192622;//value; 
-			DisplayX[1]=    4.967024;//-value; 
-			DisplayX[2]=    0.803074;//-value; 
+			DisplayX[0]=   8.225979;//8.239871;//value; 
+			DisplayX[1]=    5.177659;//5.184344;//-value; 
+			DisplayX[2]=    0.807048;//-value; 
 
-			DisplayY[0]= 8.197782;//value; 
-			DisplayY[1]=    4.963459;//value; 
-			DisplayY[2]=     1.094415;//-value;     
+			DisplayY[0]= 8.225979;//value; 
+			DisplayY[1]=    5.177659;//value; 
+			DisplayY[2]=     1.100456;//-value;     
 			
  
 		}
@@ -594,7 +601,7 @@ void pqVRPNStarter::initializeDevices()
 		//Create connection to VRPN Tracker using vtkInteractionDevice.lib
 		vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
 		tracker1->SetDeviceName(this->trackerAddress); 
-		tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
+		tracker1->SetSensorIndex(this->sensorIndex + 2);//TODO: Fix error handling  
 		tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
 		double t2w1[3][3] = { 0, -1,  0,
 							  0,  0, 1, 

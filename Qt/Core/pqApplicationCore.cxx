@@ -618,7 +618,7 @@ void pqApplicationCore::constructor()
     this, SLOT(onStateFileClosed()));
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
-  this->sensorIndex = options->GetTrackerSensor() - 2; 
+  this->sensorIndex =  (options->GetTrackerSensor() >= 2)? options->GetTrackerSensor() - 2: options->GetTrackerSensor(); 
   this->writeFileIndex = 0;
  /* if (options->GetSyncCollab())
   {*/
