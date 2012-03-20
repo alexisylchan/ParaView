@@ -1,20 +1,20 @@
 /*=========================================================================
 
-   Program: ParaView
-   Module:    pqApplicationCore.h
+Program: ParaView
+Module:    pqApplicationCore.h
 
-   Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
+All rights reserved.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2.
+ParaView is a free software; you can redistribute it and/or modify it
+under the terms of the ParaView license version 1.2.
 
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
+See License_v1.2.txt for the full ParaView license.
+A copy of this license can be obtained by contacting
+Kitware Inc.
+28 Corporate Drive
+Clifton Park, NY 12065
+USA
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #ifndef __pqApplicationCore_h
 #define __pqApplicationCore_h
- 
+
 #include "pqCoreExport.h"
 #include <QObject>
 #include <QPointer>
@@ -67,13 +67,6 @@ class vtkSMProxyLocator;
 class vtkSMProxy;
 class vtkSMProperty;
 
-
-
-//class SOCKET;
-//class WORD;
-//class WSADATA;
-//class SOCKADDR_IN; 
-
 #define VERBOSE 0 
 #define PROPAGATE 0
 #define DEBUG_1_USER 0
@@ -90,283 +83,282 @@ class vtkSMProperty;
 /// pqUndoStack etc. in your application. After that point.
 class PQCORE_EXPORT pqApplicationCore : public QObject
 {
-  Q_OBJECT
+	Q_OBJECT
 public:
-  //Alexis YL Chan 08/14/11 
-  bool isRepeating;  
-  bool isRepeatingDisplay;
-  int sensorIndex;
-  int writeFileIndex;
-  
-  void setConnectionStatus(bool connectionStatus);
-  bool getConnectionStatus();
-  void closeConnection(bool suppressNotification);
- 
-  SOCKET*	socket0, *socket1;
+	//Alexis YL Chan 08/14/11 
+	bool isRepeating;  
+	bool isRepeatingDisplay;
+	int sensorIndex;
+	int writeFileIndex;
 
-  // Get the global instace for the pqApplicationCore.
-  static pqApplicationCore* instance();
+	void setConnectionStatus(bool connectionStatus);
+	bool getConnectionStatus();
+	void closeConnection(bool suppressNotification);
 
-  void printSMProperty(vtkSMProperty* smProperty);
-  static void writeChangeSnippet(const char* snippet);
-  
-  static int incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile);
+	SOCKET*	socket0, *socket1;
+
+	// Get the global instace for the pqApplicationCore.
+	static pqApplicationCore* instance();
+
+	void printSMProperty(vtkSMProperty* smProperty);
+	static void writeChangeSnippet(const char* snippet);
+
+	static int incrementDirectoryFile(int trackedIndex,int currentSensorIndex,bool findNextFile);
 
 
-  /// Preferred constructor. Initializes the server-manager engine and sets up
-  /// the core functionality. If application supports special command line
-  /// options, pass an instance of pqOptions subclass to the constructor,
-  /// otherwise a new instance of pqOptions with standard ParaView command line
-  /// options will be created.
-  pqApplicationCore(int& argc, char** argv, pqOptions* options=0, QObject* parent=0);
+	/// Preferred constructor. Initializes the server-manager engine and sets up
+	/// the core functionality. If application supports special command line
+	/// options, pass an instance of pqOptions subclass to the constructor,
+	/// otherwise a new instance of pqOptions with standard ParaView command line
+	/// options will be created.
+	pqApplicationCore(int& argc, char** argv, pqOptions* options=0, QObject* parent=0);
 
-  /// Dangerous option that disables the debug output window, intended for
-  /// demo purposes only
-  void disableOutputWindow();
+	/// Dangerous option that disables the debug output window, intended for
+	/// demo purposes only
+	void disableOutputWindow();
 
-  /// Provides access to the command line options object.
-  pqOptions* getOptions() const
-    { return this->Options; }
+	/// Provides access to the command line options object.
+	pqOptions* getOptions() const
+	{ return this->Options; }
 
-  /// Get the Object Builder. Object Buider must be used
-  /// to create complex objects such as sources, filters,
-  /// readers, views, displays etc.
-  pqObjectBuilder* getObjectBuilder() const
-    { return this->ObjectBuilder; }
+	/// Get the Object Builder. Object Buider must be used
+	/// to create complex objects such as sources, filters,
+	/// readers, views, displays etc.
+	pqObjectBuilder* getObjectBuilder() const
+	{ return this->ObjectBuilder; }
 
-  /// Set/Get the application's central undo stack. By default no undo stack is
-  /// provided. Applications must set on up as required.
-  void setUndoStack(pqUndoStack* stack);
-  pqUndoStack* getUndoStack() const
-    { return this->UndoStack; }
+	/// Set/Get the application's central undo stack. By default no undo stack is
+	/// provided. Applications must set on up as required.
+	void setUndoStack(pqUndoStack* stack);
+	pqUndoStack* getUndoStack() const
+	{ return this->UndoStack; }
 
-  /// Custom Applications may need use various "managers"
-  /// All such manager can be registered with the pqApplicationCore
-  /// so that that can be used by other components of the
-  /// application. Registering with pqApplicationCore gives easy
-  /// access to these managers from the application code. Note
-  /// that custom applications are not required to register managers.
-  /// However certain optional components of the pqCore may
-  /// expect some managers.
-  /// Only one manager can be registered for a \c function.
-  void registerManager(const QString& function, QObject* manager);
+	/// Custom Applications may need use various "managers"
+	/// All such manager can be registered with the pqApplicationCore
+	/// so that that can be used by other components of the
+	/// application. Registering with pqApplicationCore gives easy
+	/// access to these managers from the application code. Note
+	/// that custom applications are not required to register managers.
+	/// However certain optional components of the pqCore may
+	/// expect some managers.
+	/// Only one manager can be registered for a \c function.
+	void registerManager(const QString& function, QObject* manager);
 
-  /// Returns a manager for a particular function, if any.
-  //. \sa registerManager
-  QObject* manager(const QString& function);
+	/// Returns a manager for a particular function, if any.
+	//. \sa registerManager
+	QObject* manager(const QString& function);
 
-  /// Unregisters a manager for a particular function, if any.
-  void unRegisterManager(const QString& function);
+	/// Unregisters a manager for a particular function, if any.
+	void unRegisterManager(const QString& function);
 
-  /// ServerManagerObserver observer the vtkSMProxyManager
-  /// for changes to the server manager and fires signals on
-  /// certain actions such as registeration/unregistration of proxies
-  /// etc. Returns the ServerManagerObserver used by the application.
-  pqServerManagerObserver* getServerManagerObserver()
-    { return this->ServerManagerObserver; }
+	/// ServerManagerObserver observer the vtkSMProxyManager
+	/// for changes to the server manager and fires signals on
+	/// certain actions such as registeration/unregistration of proxies
+	/// etc. Returns the ServerManagerObserver used by the application.
+	pqServerManagerObserver* getServerManagerObserver()
+	{ return this->ServerManagerObserver; }
 
-  /// ServerManagerModel is the representation of the ServerManager
-  /// using pqServerManagerModelItem subclasses. It makes it possible to
-  /// explore the ServerManager with ease by separating proxies based
-  /// on their functionality/type.
-  pqServerManagerModel* getServerManagerModel() const
-    { return this->ServerManagerModel; }
+	/// ServerManagerModel is the representation of the ServerManager
+	/// using pqServerManagerModelItem subclasses. It makes it possible to
+	/// explore the ServerManager with ease by separating proxies based
+	/// on their functionality/type.
+	pqServerManagerModel* getServerManagerModel() const
+	{ return this->ServerManagerModel; }
 
-  pq3DWidgetFactory* get3DWidgetFactory() const
-    { return this->WidgetFactory; }
+	pq3DWidgetFactory* get3DWidgetFactory() const
+	{ return this->WidgetFactory; }
 
-  /// pqLinksModel is the model used to keep track of proxy/property links
-  /// maintained by vtkSMProxyManager.
-  /// TODO: It may be worthwhile to investigate if we even need a global
-  /// pqLinksModel. All the information is already available in
-  /// vtkSMProxyManager.
-  pqLinksModel* getLinksModel() const
-    { return this->LinksModel; }
+	/// pqLinksModel is the model used to keep track of proxy/property links
+	/// maintained by vtkSMProxyManager.
+	/// TODO: It may be worthwhile to investigate if we even need a global
+	/// pqLinksModel. All the information is already available in
+	/// vtkSMProxyManager.
+	pqLinksModel* getLinksModel() const
+	{ return this->LinksModel; }
 
-  /// pqPluginManager manages all functionality associated with loading plugins.
-  pqPluginManager* getPluginManager() const
-    { return this->PluginManager; }
+	/// pqPluginManager manages all functionality associated with loading plugins.
+	pqPluginManager* getPluginManager() const
+	{ return this->PluginManager; }
 
-  /// ProgressManager is the manager that streamlines progress.
-  pqProgressManager* getProgressManager() const
-    { return this->ProgressManager; }
+	/// ProgressManager is the manager that streamlines progress.
+	pqProgressManager* getProgressManager() const
+	{ return this->ProgressManager; }
 
-  //// Returns the display policy instance used by the application.
-  //// pqDisplayPolicy defines the policy for creating representations
-  //// for sources.
-  pqDisplayPolicy* getDisplayPolicy() const
-    { return this->DisplayPolicy; }
+	//// Returns the display policy instance used by the application.
+	//// pqDisplayPolicy defines the policy for creating representations
+	//// for sources.
+	pqDisplayPolicy* getDisplayPolicy() const
+	{ return this->DisplayPolicy; }
 
-  /// It is possible to change the display policy used by
-  /// the application. Used to change the active display
-  /// policy. The pqApplicationCore takes over the ownership of the display policy.
-  void setDisplayPolicy(pqDisplayPolicy* dp);
+	/// It is possible to change the display policy used by
+	/// the application. Used to change the active display
+	/// policy. The pqApplicationCore takes over the ownership of the display policy.
+	void setDisplayPolicy(pqDisplayPolicy* dp);
 
-  /// Returns the server manager selection model which keeps track of the active
-  /// sources/filters.
-  pqServerManagerSelectionModel* getSelectionModel()
-    { return this->SelectionModel; }
+	/// Returns the server manager selection model which keeps track of the active
+	/// sources/filters.
+	pqServerManagerSelectionModel* getSelectionModel()
+	{ return this->SelectionModel; }
 
-  /// Provides access to the test utility.
-  virtual pqTestUtility* testUtility();
+	/// Provides access to the test utility.
+	virtual pqTestUtility* testUtility();
 
-  /// Set/Get the lookup table manager. Lookup table manager is used to manage
-  /// lookup tables used for coloring using data arrays.
-  /// policy. The pqApplicationCore takes over the ownership of the manager.
-  void setLookupTableManager(pqLookupTableManager*);
-  pqLookupTableManager* getLookupTableManager() const
-    { return this->LookupTableManager; }
+	/// Set/Get the lookup table manager. Lookup table manager is used to manage
+	/// lookup tables used for coloring using data arrays.
+	/// policy. The pqApplicationCore takes over the ownership of the manager.
+	void setLookupTableManager(pqLookupTableManager*);
+	pqLookupTableManager* getLookupTableManager() const
+	{ return this->LookupTableManager; }
 
-  /// Returns the manager for the global properties such as ForegroundColor etc.
-  vtkSMGlobalPropertiesManager* getGlobalPropertiesManager();
+	/// Returns the manager for the global properties such as ForegroundColor etc.
+	vtkSMGlobalPropertiesManager* getGlobalPropertiesManager();
 
-  /// Returns the set of available server resources
-  pqServerResources& serverResources();
-  /// Set server resources
-  void setServerResources(pqServerResources* serverResources);
-  /// Returns an object that can start remote servers
-  pqServerStartups& serverStartups();
+	/// Returns the set of available server resources
+	pqServerResources& serverResources();
+	/// Set server resources
+	void setServerResources(pqServerResources* serverResources);
+	/// Returns an object that can start remote servers
+	pqServerStartups& serverStartups();
 
-  /// Get the application settings.
-  pqSettings* settings();
+	/// Get the application settings.
+	pqSettings* settings();
 
-  /// Save the ServerManager state.
-  vtkPVXMLElement* saveState();
-  void saveState(const QString& filename);
+	/// Save the ServerManager state.
+	vtkPVXMLElement* saveState();
+	void saveState(const QString& filename);
 
-  /// Loads the ServerManager state. Emits the signal
-  /// stateLoaded() on loading state successfully.
-  void loadState(vtkPVXMLElement* root, pqServer* server);
-  void loadState(const char* filename, pqServer* server);
+	/// Loads the ServerManager state. Emits the signal
+	/// stateLoaded() on loading state successfully.
+	void loadState(vtkPVXMLElement* root, pqServer* server);
+	void loadState(const char* filename, pqServer* server);
 
-  /// Check to see if its in the process of loading a state
-  /// Reliance on this flag is chimerical since we cannot set this ivar when
-  /// state file is  being loaded from python shell.
-  bool isLoadingState(){return this->LoadingState;};
+	/// Check to see if its in the process of loading a state
+	/// Reliance on this flag is chimerical since we cannot set this ivar when
+	/// state file is  being loaded from python shell.
+	bool isLoadingState(){return this->LoadingState;};
 
-  /// Loads global properties values from settings.
-  /// HACK: Need more graceful way of dealing with changes to settings and
-  /// updating items that depend on it.
-  void loadGlobalPropertiesFromSettings();
+	/// Loads global properties values from settings.
+	/// HACK: Need more graceful way of dealing with changes to settings and
+	/// updating items that depend on it.
+	void loadGlobalPropertiesFromSettings();
 
-  /// loads palette i.e. global property values given the name of the palette.
-  void loadPalette(const QString& name);
+	/// loads palette i.e. global property values given the name of the palette.
+	void loadPalette(const QString& name);
 
-  /// loads palette i.e. global property values given the name XML state for a
-  /// palette.
-  void loadPalette(vtkPVXMLElement* xml);
+	/// loads palette i.e. global property values given the name XML state for a
+	/// palette.
+	void loadPalette(vtkPVXMLElement* xml);
 
-  /// save the current palette as XML. A new reference is returned, so the
-  /// caller is responsible for releasing memory i.e. call Delete() on the
-  /// returned value.
-  vtkPVXMLElement* getCurrrentPalette();
+	/// save the current palette as XML. A new reference is returned, so the
+	/// caller is responsible for releasing memory i.e. call Delete() on the
+	/// returned value.
+	vtkPVXMLElement* getCurrrentPalette();
 
-  /// returns the active server is any.
-  pqServer* getActiveServer() const;
+	/// returns the active server is any.
+	pqServer* getActiveServer() const;
 
-  /// Called to load the configuration xml bundled with the application the
-  /// lists the plugins that the application is aware by default. If no filename
-  /// is specified, {executable-path}/.plugins is loaded.
-  void loadDistributedPlugins(const char* filename=0);
+	/// Called to load the configuration xml bundled with the application the
+	/// lists the plugins that the application is aware by default. If no filename
+	/// is specified, {executable-path}/.plugins is loaded.
+	void loadDistributedPlugins(const char* filename=0);
 
-  /// Destructor.
-  virtual ~pqApplicationCore();
-  
-  bool setupCollaborationClientServer();
-public slots:
-  /// Called QCoreApplication::quit().
-  /// Applications should use this method instead of directly
-  /// calling QCoreApplication::quit() since this ensures
-  /// that any cleanup is performed correctly.
-  void quit();
+	/// Destructor.
+	virtual ~pqApplicationCore();
 
-  /// Causes the output window to be shown.
-  void showOutputWindow();
+	bool setupCollaborationClientServer();
+	public slots:
+		/// Called QCoreApplication::quit().
+		/// Applications should use this method instead of directly
+		/// calling QCoreApplication::quit() since this ensures
+		/// that any cleanup is performed correctly.
+		void quit();
 
-  /// Load configuration xml. This results in firing of the loadXML() signal
-  /// which different components that support configuration catch and process to
-  /// update their behavior.
-  void loadConfiguration(const QString& filename);
+		/// Causes the output window to be shown.
+		void showOutputWindow();
 
-  /// Renders all windows
-  void render();
-  void increaseEyeAngle();
-  void decreaseEyeAngle();
+		/// Load configuration xml. This results in firing of the loadXML() signal
+		/// which different components that support configuration catch and process to
+		/// update their behavior.
+		void loadConfiguration(const QString& filename);
+
+		/// Renders all windows
+		void render();
+		void increaseEyeAngle();
+		void decreaseEyeAngle();
 
 
 signals:
-  /// Fired before a state xml is being loaded. One can add slots for this signal
-  /// and modify the fired xml-element as part of pre-processing before
-  /// attempting to load the state xml. Note that never attempt to connect to
-  /// signal in a delayed fashion i.e using Qt::QueuedConnection etc. since the
-  /// \c root will be destroyed.
-  void aboutToLoadState(vtkPVXMLElement* root);
+		/// Fired before a state xml is being loaded. One can add slots for this signal
+		/// and modify the fired xml-element as part of pre-processing before
+		/// attempting to load the state xml. Note that never attempt to connect to
+		/// signal in a delayed fashion i.e using Qt::QueuedConnection etc. since the
+		/// \c root will be destroyed.
+		void aboutToLoadState(vtkPVXMLElement* root);
 
-  /// Fired when a state file is loaded successfully.
-  /// GUI components that may have state saved in the XML state file must listen
-  /// to this signal and handle process the XML to update their state.
-  void stateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
+		/// Fired when a state file is loaded successfully.
+		/// GUI components that may have state saved in the XML state file must listen
+		/// to this signal and handle process the XML to update their state.
+		void stateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
 
-  /// Fired to save state xml. Components that need to save XML state should
-  /// listen to this signal and add their XML elements to the root. DO NOT MODIFY
-  /// THE ROOT besides adding new children.
-  void stateSaved(vtkPVXMLElement* root);
+		/// Fired to save state xml. Components that need to save XML state should
+		/// listen to this signal and add their XML elements to the root. DO NOT MODIFY
+		/// THE ROOT besides adding new children.
+		void stateSaved(vtkPVXMLElement* root);
 
-    /// Fired after state is saved and xml file is closed
-  void stateFileClosed();
+		/// Fired after state is saved and xml file is closed
+		void stateFileClosed();
 
-  /// Fired when the undo stack is set.
-  void undoStackChanged(pqUndoStack*);
+		/// Fired when the undo stack is set.
+		void undoStackChanged(pqUndoStack*);
 
-  /// Fired on loadConfiguration().
-  void loadXML(vtkPVXMLElement*);
+		/// Fired on loadConfiguration().
+		void loadXML(vtkPVXMLElement*);
 
-  /// Fired when the filter menu state needs to be manually updated
-  void forceFilterMenuRefresh();
+		/// Fired when the filter menu state needs to be manually updated
+		void forceFilterMenuRefresh();
 
-  void connectionClosed();
-protected slots:
-  void onStateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
-  void onStateSaved(vtkPVXMLElement* root);
-  void onStateFileClosed();
+		void connectionClosed();
+		protected slots:
+			void onStateLoaded(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
+			void onStateSaved(vtkPVXMLElement* root);
+			void onStateFileClosed();
 
 protected:
-  bool LoadingState;
+	bool LoadingState;
 
-  pqOutputWindow* OutputWindow;
-  pqOutputWindowAdapter* OutputWindowAdapter;
-  pqOptions* Options;
+	pqOutputWindow* OutputWindow;
+	pqOutputWindowAdapter* OutputWindowAdapter;
+	pqOptions* Options;
 
-  pq3DWidgetFactory* WidgetFactory;
-  pqDisplayPolicy* DisplayPolicy;
-  pqLinksModel* LinksModel;
-  pqLookupTableManager* LookupTableManager;
-  pqObjectBuilder* ObjectBuilder;
-  pqPluginManager* PluginManager;
-  pqProgressManager* ProgressManager;
-  pqServerManagerModel* ServerManagerModel;
-  pqServerManagerObserver* ServerManagerObserver;
-  pqServerManagerSelectionModel* SelectionModel;
-  pqUndoStack* UndoStack;
-  pqServerResources* ServerResources;
-  pqServerStartups* ServerStartups;
-  pqSettings* Settings;
-  QPointer<pqTestUtility> TestUtility;
+	pq3DWidgetFactory* WidgetFactory;
+	pqDisplayPolicy* DisplayPolicy;
+	pqLinksModel* LinksModel;
+	pqLookupTableManager* LookupTableManager;
+	pqObjectBuilder* ObjectBuilder;
+	pqPluginManager* PluginManager;
+	pqProgressManager* ProgressManager;
+	pqServerManagerModel* ServerManagerModel;
+	pqServerManagerObserver* ServerManagerObserver;
+	pqServerManagerSelectionModel* SelectionModel;
+	pqUndoStack* UndoStack;
+	pqServerResources* ServerResources;
+	pqServerStartups* ServerStartups;
+	pqSettings* Settings;
+	QPointer<pqTestUtility> TestUtility;
 
 private:
-  Q_DISABLE_COPY(pqApplicationCore)
+	Q_DISABLE_COPY(pqApplicationCore)
 
-  class pqInternals;
-  pqInternals* Internal;
-  static pqApplicationCore* Instance;
-  void constructor();
-  void createOutputWindow();
-  bool FinalizeOnExit;
+	class pqInternals;
+	pqInternals* Internal;
+	static pqApplicationCore* Instance;
+	void constructor();
+	void createOutputWindow();
+	bool FinalizeOnExit;
 
-	
-  //server
-  	int		b, l, on; 
-	/*char*	recvbuf[QUEUE_SIZE] = { }; */
+
+	//server
+	int		b, l, on;  
 	struct	sockaddr_in* channel;  // holds IP address 
 	WORD*	wVersionRequested;
 	WSADATA* wsaData;

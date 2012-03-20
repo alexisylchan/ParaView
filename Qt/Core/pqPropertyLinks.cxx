@@ -561,8 +561,8 @@ void pqPropertyLinksConnection::qtLinkedPropertyChanged()
 		{
 			if (!pqApplicationCore::instance()->isRepeating)
 			{
-			if (VERBOSE)
-				qWarning("qt link changed"); 
+				if (VERBOSE)
+					qWarning("qt link changed"); 
 				pqApplicationCore::instance()->printSMProperty(this->Internal->Property); 
 			}  
 		}

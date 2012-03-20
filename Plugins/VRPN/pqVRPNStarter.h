@@ -1,20 +1,20 @@
 /*=========================================================================
 
-   Program: ParaView
-   Module:    pqVRPNStarter.h
+Program: ParaView
+Module:    pqVRPNStarter.h
 
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
+All rights reserved.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2.
+ParaView is a free software; you can redistribute it and/or modify it
+under the terms of the ParaView license version 1.2.
 
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
+See License_v1.2.txt for the full ParaView license.
+A copy of this license can be obtained by contacting
+Kitware Inc.
+28 Corporate Drive
+Clifton Park, NY 12065
+USA
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // It is handles ParaView state-loading, device initialization, application resetting and 
 // device uninitialization for ParaView in Shared Mode and the special usecase of ParaView Vortex Visualization.
 // Refer to 4.2.2. ParaView Plugin in "Collaborative Scientific Visualization Workbench Manual".
- 
+
 #ifndef __pqVRPNStarter_h
 #define __pqVRPNStarter_h
 
@@ -67,78 +67,52 @@ class vtkConeSource;
 
 class pqVRPNStarter : public QObject
 {
-  Q_OBJECT
-  typedef QObject Superclass;
+	Q_OBJECT
+		typedef QObject Superclass;
 public:
 	vtkActor* ConeActor;
-	vtkConeSource* Cone;
-//	vtkActor* ConeActor;
+	vtkConeSource* Cone; 
 
-	//Constants used for selecting Data Set Type in the Special UseCase: Vortex Visualization
-	enum DataType
-    { 
-		SST,
-		SAS,
-		DES,
-		SSTTIMELINE,
-		SASTIMELINE,
-		DESTIMELINE
-    };
-	//Constants used to index objects in state files for the Special UseCase: Vortex Visualization
-	enum VortexFilter
-    {
-		PHANTOM_CURSOR,
-		STREAMTRACER_INPUT,
-		GEOMETRY,
-		USER_STREAMTRACER,
-		USER_TUBE,
-		BLADE_STREAMTRACER,
-		CORE_STREAMTRACER
-    };
- 
+	pqVRPNStarter(QObject* p=0);
+	~pqVRPNStarter();
 
-  pqVRPNStarter(QObject* p=0);
-  ~pqVRPNStarter();
+	// Callback for shutdown.
+	void onShutdown();
 
-  // Callback for shutdown.
-  void onShutdown();
-
-  // Callback for startup.
-  void onStartup();
+	// Callback for startup.
+	void onStartup();
 
 signals:
 	void triggerObjectInspectorWidgetAccept();
 
-public slots:
+	public slots:
 
-	// QTimer callback to update visualization with collected VRPN Devices input
-    void timerCallback();
-	// Change the stored time stamp so that the current ParaView application will not reload upon next timer callback.
-	void selfSaveEvent(); 
-	// Switch between three data sets for Special Use Case: Vortex Visualization
-	/*void onChangeDataSet(int index);*/
-	// Switch between partner's (other user) view and self
-	void onSwitchToPartnersView();
-	void onSwitchToMyView();  
-	
-	
-	//Listen to proxy creation from pqObjectBuilder
-	void onSourceCreated(pqPipelineSource* createdSource);
-	void onFilterCreated(pqPipelineSource* createdFilter);
-	void onSourceChanged(pqPipelineSource* changedSource);
+		// QTimer callback to update visualization with collected VRPN Devices input
+		void timerCallback();
+		// Change the stored time stamp so that the current ParaView application will not reload upon next timer callback.
+		void selfSaveEvent();  
+		// Switch between partner's (other user) view and self
+		void onSwitchToPartnersView();
+		void onSwitchToMyView();  
 
-	//Listen to accept from pqObjectInspectorWidget  
-	void onObjectInspectorWidgetAccept();
 
-	//Listen to Proxy Tab Widget selection change to enable propagation of Representation properties (see bug 11)
-	 void onProxyTabWidgetChanged(int tabIndex);
+		//Listen to proxy creation from pqObjectBuilder
+		void onSourceCreated(pqPipelineSource* createdSource);
+		void onFilterCreated(pqPipelineSource* createdFilter);
+		void onSourceChanged(pqPipelineSource* changedSource);
 
-	 //Reset Phantom Actor when server is changed
-	void resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
+		//Listen to accept from pqObjectInspectorWidget  
+		void onObjectInspectorWidgetAccept();
+
+		//Listen to Proxy Tab Widget selection change to enable propagation of Representation properties (see bug 11)
+		void onProxyTabWidgetChanged(int tabIndex);
+
+		//Reset Phantom Actor when server is changed
+		void resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* locator);
 
 protected:
 	//
-    QTimer *VRPNTimer;
+	QTimer *VRPNTimer;
 
 	//inputInteractor 
 	vtkDeviceInteractor* inputInteractor;
@@ -153,82 +127,67 @@ protected:
 	tng_user_callback *TNGC1;
 
 private: 
-  pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
-  void operator=(const pqVRPNStarter&); // Not implemented.
+	pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
+	void operator=(const pqVRPNStarter&); // Not implemented.
 
-  // Initialize
-  void initializeEyeAngle();
-  void listenToSelfSave();
-  void loadState();
+	// Initialize
+	void initializeEyeAngle();
+	void listenToSelfSave();
+	void loadState();
 
-  void loadState(char* filename); 
-  void initialLoadState();
-    
-  void initializeDevices();
-  void uninitializeDevices();
-  bool sharedStateModified();
-  void changeTimeStamp(); 
+	void loadState(char* filename); 
+	void initialLoadState();
 
-
-  time_t last_write; 
-
-  //Store ParaView options for device initialization. Device uninitialization
-  // and initialization happens everytime a user's modification are
-  // pushed to shared state to prevent callbacks during state reloading and application resetting.
-  int useTracker;
-  const char* trackerAddress;
-  double trackerOrigin[3];
-  int sensorIndex;
-  int origSensorIndex;
-  bool showPartnersView; 
-  int usePhantom;
-  int isPhantomDesktop;
-  const char* phantomAddress;
-  int useTNG;
-  const char* tngAddress;
+	void initializeDevices();
+	void uninitializeDevices();
+	bool sharedStateModified();
+	void changeTimeStamp(); 
 
 
+	time_t last_write; 
 
-  ////xml file
-  //ofstream xmlSnippetFile;
-  
-  int fileIndex;
-  int fileStart; 
- //void loadXMLSnippet();
-  bool xmlSnippetModified();
+	//Store ParaView options for device initialization. Device uninitialization
+	// and initialization happens everytime a user's modification are
+	// pushed to shared state to prevent callbacks during state reloading and application resetting.
+	int useTracker;
+	const char* trackerAddress;
+	double trackerOrigin[3];
+	int sensorIndex;
+	int origSensorIndex;
+	bool showPartnersView; 
+	int usePhantom;
+	int isPhantomDesktop;
+	const char* phantomAddress;
+	int useTNG;
+	const char* tngAddress; 
 
-   //Custom file writing and reading
-  int readFileIndex;
- // int writeFileIndex;
-  //ifstream readFile;
- // bool isRepeating;
+	int fileIndex;
+	int fileStart;  
+	bool xmlSnippetModified(); 
 
- 
-  void respondToOtherAppsChange();
-  void repeatCreateSource(char* groupName,char* sourceName );
-  void repeatCreateFilter(char* groupName,char* sourceName );
-  void repeatApply(); 
-  void respondToTabChange(char* tabName);
-  void repeatSelectionChange(char* sourceName);
-  // Grab properties 
-  //int incrementDirectoryFile(int trackedIndex,int currentSensorIndex, bool findNextFile);
-  void repeatPlaceHolder();
-  void repeatPropertiesChange(char* panelType,QList<char*> propertyStringList);
+	void respondToOtherAppsChange();
+	void repeatCreateSource(char* groupName,char* sourceName );
+	void repeatCreateFilter(char* groupName,char* sourceName );
+	void repeatApply(); 
+	void respondToTabChange(char* tabName);
+	void repeatSelectionChange(char* sourceName); 
+	void repeatPlaceHolder();
+	void repeatPropertiesChange(char* panelType,QList<char*> propertyStringList);
 
-  //Disable phantom when Timelines are being displayed
-  vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
-  
+	//Disable phantom when Timelines are being displayed
+	vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
 
-  bool partnersTabInDisplay; 
-  // pqActiveObjects::sourceChanged is emitted when a Source or Filter is created. 
-  // We do not need to propagate that but do need to propagate source selection in
-  // GUI 
-  bool doNotPropagateSourceSelection;
-  // on source change after creation , we need to _not_ change isRepeating so that the pqpropertylinks
-  // changes will not be repeated infinitely.
-  bool onSourceChangeAfterRepeatingCreation;
-  void createConeInVTK(bool deleteOldCone);
- 
+
+	bool partnersTabInDisplay; 
+	// pqActiveObjects::sourceChanged is emitted when a Source or Filter is created. 
+	// We do not need to propagate that but do need to propagate source selection in
+	// GUI 
+	bool doNotPropagateSourceSelection;
+	// on source change after creation , we need to _not_ change isRepeating so that the pqpropertylinks
+	// changes will not be repeated infinitely.
+	bool onSourceChangeAfterRepeatingCreation;
+	void createConeInVTK(bool deleteOldCone);
+
 };
 
 #endif

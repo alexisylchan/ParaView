@@ -33,8 +33,6 @@
 
 #define CREATE_VTK_CONE 1
 
-//
-//class vtkCollisionDetectionFilter;
 class pqView;
 class pqPipelineSource;
 class vtkActor;
@@ -60,8 +58,7 @@ public:
   bool GetCreateTube();
 
   void SetActor(vtkActor* myActor);
-  void SetConeSource(vtkConeSource* myCone);
-  /*void SetCollisionDetectionFilter(vtkCollisionDetectionFilter* CollisionFilter);*/
+  void SetConeSource(vtkConeSource* myCone); 
   vtkActor* myActor;
   vtkConeSource* myCone;
   double  button1PressedPosition[4]; 
@@ -80,8 +77,6 @@ protected:
   ~vtkVRPNPhantomStyleCamera();
 
   virtual void OnPhantom(vtkVRPNPhantom*);
-  /*
-  virtual void PrintCollision(vtkCollisionDetectionFilter* CollisionFilter);*/
 
 private: 
 
@@ -92,16 +87,8 @@ private:
   void RotateVisibleProps(double position[],double orientNew[]);
   void PickUpProp(double position[],double orientNew[]);
   double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer,int sensorIndex);
-  void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
-  //void CreateStreamTracerTube(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition);
-  //void ModifySeedPosition(pqPipelineSource* createdSource,double* newPosition);
-  //void DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource, bool setVisible);
-  ////if inputIndex is -1, that means that we do not specify custom input source
-  //int CreateParaViewObject(int sourceIndex,int inputIndex, pqView* view, vtkVRPNPhantom* Phantom,double* newPosition,const char* name);
-  int first;
-  /*bool createTube;
-  int showingTimeline;
-  ofstream* evaluationlog;*/
+  void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition); 
+  int first; 
 };
 
 #endif

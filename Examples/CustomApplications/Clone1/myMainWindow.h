@@ -1,20 +1,20 @@
 /*=========================================================================
 
-   Program: ParaView
-   Module:    myMainWindow.h
+Program: ParaView
+Module:    myMainWindow.h
 
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
+All rights reserved.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
-   
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
+ParaView is a free software; you can redistribute it and/or modify it
+under the terms of the ParaView license version 1.2. 
+
+See License_v1.2.txt for the full ParaView license.
+A copy of this license can be obtained by contacting
+Kitware Inc.
+28 Corporate Drive
+Clifton Park, NY 12065
+USA
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -39,97 +39,36 @@ class pqPipelineSource;
 /// MainWindow for the default ParaView application.
 class myMainWindow : public QMainWindow
 {
-  Q_OBJECT
-  typedef QMainWindow Superclass;
+	Q_OBJECT
+		typedef QMainWindow Superclass;
 public:
-	  enum VortexFilter
-    {
-    PHANTOM_CURSOR,
-    STREAMTRACER_INPUT,
-    GEOMETRY,
-    USER_STREAMTRACER,
-	USER_TUBE,
-	BLADE_STREAMTRACER,
-	CORE_STREAMTRACER
-    };
-  myMainWindow();
-  ~myMainWindow();
-  //static void DisplayCreatedObject(pqView* view,pqPipelineSource* createdSource);
-  //static void DisplayObject(pqView* view,pqPipelineSource* createdSource);
-  //static void HideObject(pqView* view,pqPipelineSource* createdSource);
-public slots:
+	myMainWindow();
+	~myMainWindow(); 
+	public slots:
 
-    /// Open File dialog in order to choose the location and the type of
-  /// the state file that should be saved
-   void saveState(); 
-   // toggle to partner's view 
-   void onSwitchToPartnersView(); 
-   void onSwitchToMyView();
-   void onReconnect();
-   void onDisconnect();
-   void onConnectionClosed();
-  //Set mode to contextual flow
-  // void contextualFlow(); 
-  ////Set mode to vortex identification
-  // void vortexIdentification(); 
-  // //void onCurrentTimeIndexChanged(int time); 
-  // void timeSliderChanged(double val);
-
-  // // Set mode to vortex core line
-  // void vortexCoreLine();
-  // // Turn on turbine geometry
-  // void turbineGeometry();
-  // //Toggle Enable time Slider
-  // void enableTimeSlider();
-  // ////Toggle Timeline Summary
-  // void onToggleTimelineSummary();
-
-   //Change dataset
-   /*
-   void onChangeDataSet(int index );*/
-
-   // //Slot for propagating Object Inspector Accept
-   //void onObjectInspectorWidgetAccept();
-
-   //Slot to receive ObjectInspectorAcceptTrigger
-   /*void onTriggerObjectInspectorWidgetAccept();*/
+		/// Open File dialog in order to choose the location and the type of
+		/// the state file that should be saved
+		void saveState(); 
+		// toggle to partner's view 
+		void onSwitchToPartnersView(); 
+		void onSwitchToMyView();
+		void onReconnect();
+		void onDisconnect();
+		void onConnectionClosed();
 
 signals: 
-  /// emitted to request the scene to change it's animation time.
-  //void changeSceneTime(double);
-  //void changeDataSet(int index);
-  //void toggleTimelineSummary(); 
-  void switchToPartnersView();
-  void switchToMyView();
- /* void objectInspectorWidgetAccept();
-  void triggerObjectInspectorAccept();*/
-  //void toggleView(bool togglePartnersView);
+		void switchToPartnersView();
+		void switchToMyView();
 
-protected slots:
-	 /// Called when animation scene reports that it's time has changed.
-  //void sceneTimeChanged(double);
-
-  /// When user edits the line-edit.
-  //void currentTimeIndexChanged();
-  /// When user edits the slider.
-//  void sliderTimeIndexChanged(int value);
-//  
-// 
-//void  onTimeStepsChanged() ;
-  void showHelpForProxy(const QString& proxyname);
+		protected slots: 
+			void showHelpForProxy(const QString& proxyname);
 
 private:
-  
-  myMainWindow(const myMainWindow&); // Not implemented.
-  void operator=(const myMainWindow&); // Not implemented. 
-  class pqInternals;
-  pqInternals* Internals;
-  //bool showContextualFlow;
-  //bool showVortexCore;
-  //bool showVortexCoreLine;
-  //bool showTurbineGeometry;
-  //bool showTimelineSummary;
-  //bool showPartnersView;
+
+	myMainWindow(const myMainWindow&); // Not implemented.
+	void operator=(const myMainWindow&); // Not implemented. 
+	class pqInternals;
+	pqInternals* Internals; 
 };
 
 #endif

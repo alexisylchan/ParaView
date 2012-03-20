@@ -96,9 +96,9 @@ bool pqparaview_revisedInitializer::Initialize(int argc, char* argv[])
   // tests.
   bool show_splash = false; //(!getenv("DASHBOARD_TEST_FROM_CTEST"));
   if (show_splash)
-    {
-    this->Splash->show();
-    }
+  {
+	  this->Splash->show();
+  }
 
   // Not sure why this is needed. Andy added this ages ago with comment saying
   // needed for Mac apps. Need to check that it's indeed still required.
@@ -115,10 +115,10 @@ bool pqparaview_revisedInitializer::Initialize(int argc, char* argv[])
   QStringList plugin_list = plugin_string.split(';',QString::SkipEmptyParts);
   pqBrandPluginsLoader loader;
   if (loader.loadPlugins(plugin_list) == false)
-    {
-    qCritical() << "Failed to load required plugins for this application";
-    return false;
-    }
+  {
+	  qCritical() << "Failed to load required plugins for this application";
+	  return false;
+  }
 
   // Load optional plugins.
   plugin_string = "";
@@ -133,11 +133,11 @@ bool pqparaview_revisedInitializer::Initialize(int argc, char* argv[])
   QDir dir2(":/paraview_revised/Configuration");
   QStringList files = dir2.entryList(QDir::Files);
   foreach (QString file, files)
-    {
-    this->PVApp->loadConfiguration(QString(":/paraview_revised/Configuration/") + file);
-    }
+  {
+	  this->PVApp->loadConfiguration(QString(":/paraview_revised/Configuration/") + file);
+  }
 #endif
-  //this->MainWindow->setWindowTitle("ParaView (ReVisEd)");
+
   QApplication::instance()->setApplicationName(this->MainWindow->windowTitle());
   QApplication::font().setPointSize(12);
   // give GUI components time to update before the mainwindow is shown
@@ -146,9 +146,9 @@ bool pqparaview_revisedInitializer::Initialize(int argc, char* argv[])
 
   QApplication::instance()->processEvents();
   if (show_splash)
-    {
-    this->Splash->finish(this->MainWindow);
-    }
+  {
+	  this->Splash->finish(this->MainWindow);
+  }
   return true;
 }
 // ***************** DO NOT EDIT ***********************************

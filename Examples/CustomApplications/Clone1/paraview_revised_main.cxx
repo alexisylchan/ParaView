@@ -3,21 +3,21 @@
 // It will be replaced next time you rebuild.
 /*=========================================================================
 
-   Program: ParaView
-  Module:    branded_paraview_main.cxx.in
+Program: ParaView
+Module:    branded_paraview_main.cxx.in
 
-   Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
+All rights reserved.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
+ParaView is a free software; you can redistribute it and/or modify it
+under the terms of the ParaView license version 1.2. 
 
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
+See License_v1.2.txt for the full ParaView license.
+A copy of this license can be obtained by contacting
+Kitware Inc.
+28 Corporate Drive
+Clifton Park, NY 12065
+USA
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -49,38 +49,38 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int main(int argc, char* argv[])
 {
 #ifdef Q_WS_X11
-  // Using motif style gives us test failures (and its ugly).
-  // Using cleanlooks style gives us errors when using valgrind (Trolltech's bug #179200)
-  // let's just use plastique for now
-  QApplication::setStyle(new QPlastiqueStyle);
+	// Using motif style gives us test failures (and its ugly).
+	// Using cleanlooks style gives us errors when using valgrind (Trolltech's bug #179200)
+	// let's just use plastique for now
+	QApplication::setStyle(new QPlastiqueStyle);
 #endif
 
-  // When playing tests, disable all effects.
-  if (getenv("DART_TEST_FROM_DART") ||
-    getenv("DASHBOARD_TEST_FROM_CTEST"))
-    {
-    QApplication::setDesktopSettingsAware(false);
-    QApplication::setEffectEnabled(Qt::UI_AnimateMenu, false);
-    QApplication::setEffectEnabled(Qt::UI_FadeMenu, false);
-    QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
-    QApplication::setEffectEnabled(Qt::UI_AnimateTooltip, false);
-    QApplication::setEffectEnabled(Qt::UI_FadeTooltip, false);
-    }
+	// When playing tests, disable all effects.
+	if (getenv("DART_TEST_FROM_DART") ||
+		getenv("DASHBOARD_TEST_FROM_CTEST"))
+	{
+		QApplication::setDesktopSettingsAware(false);
+		QApplication::setEffectEnabled(Qt::UI_AnimateMenu, false);
+		QApplication::setEffectEnabled(Qt::UI_FadeMenu, false);
+		QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
+		QApplication::setEffectEnabled(Qt::UI_AnimateTooltip, false);
+		QApplication::setEffectEnabled(Qt::UI_FadeTooltip, false);
+	}
 
-  QApplication::setApplicationName("paraview_revised");
-  QApplication::setApplicationVersion("1.1.1");
-  QApplication::setOrganizationName("Kitware Inc.");
-  QApplication::font().setPointSize(12);
-  QApplication::setFont(QApplication::font());
+	QApplication::setApplicationName("paraview_revised");
+	QApplication::setApplicationVersion("1.1.1");
+	QApplication::setOrganizationName("Kitware Inc.");
+	QApplication::font().setPointSize(12);
+	QApplication::setFont(QApplication::font());
 
-  QApplication qtapp(argc, argv);
-  setlocale(LC_NUMERIC,"C");
-  pqparaview_revisedInitializer pvInitializer;
-  if (!pvInitializer.Initialize(argc, argv))
-    {
-    return 1;
-    }
+	QApplication qtapp(argc, argv);
+	setlocale(LC_NUMERIC,"C");
+	pqparaview_revisedInitializer pvInitializer;
+	if (!pvInitializer.Initialize(argc, argv))
+	{
+		return 1;
+	}
 
-  return qtapp.exec();
+	return qtapp.exec();
 }
 // ***************** DO NOT EDIT ***********************************

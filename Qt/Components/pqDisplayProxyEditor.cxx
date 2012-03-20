@@ -1026,55 +1026,55 @@ void pqDisplayProxyEditor::sliceDirectionChanged()
 /// Handle user selection of block for volume rendering
 void pqDisplayProxyEditor::volumeBlockSelected()
 {
-  if (this->Internal->CompositeTreeAdaptor
-      && this->Internal->Representation)
-    {
+	if (this->Internal->CompositeTreeAdaptor
+		&& this->Internal->Representation)
+	{
 
 		if (pqApplicationCore::instance()->getConnectionStatus())
 		{
 			if (!pqApplicationCore::instance()->isRepeatingDisplay)
 			{ 
 
-					bool valid = false;
-					unsigned int selectedIndex =
-					  this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
-					if (valid && selectedIndex > 0)
-					  {
-					  vtkSMRepresentationProxy* repr =
+				bool valid = false;
+				unsigned int selectedIndex =
+					this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
+				if (valid && selectedIndex > 0)
+				{
+					vtkSMRepresentationProxy* repr =
 						this->Internal->Representation->getRepresentationProxy();
-					  pqSMAdaptor::setElementProperty(
+					pqSMAdaptor::setElementProperty(
 						repr->GetProperty("ExtractedBlockIndex"), selectedIndex);
-					  
+
 					pqApplicationCore::instance()->printSMProperty(
 						repr->GetProperty("ExtractedBlockIndex")); 
-			
-					  repr->UpdateVTKObjects();
-					  this->Internal->Representation->renderViewEventually();
-					  this->Internal->ColorBy->reloadGUI();
-					}
-		  }
+
+					repr->UpdateVTKObjects();
+					this->Internal->Representation->renderViewEventually();
+					this->Internal->ColorBy->reloadGUI();
+				}
+			}
 			else
 			{
-			pqApplicationCore::instance()->isRepeatingDisplay = false;
+				pqApplicationCore::instance()->isRepeatingDisplay = false;
 			}
-      }
+		}
 		else
 		{
 			bool valid = false;
-					unsigned int selectedIndex =
-					  this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
-					if (valid && selectedIndex > 0)
-					  {
-					  vtkSMRepresentationProxy* repr =
-						this->Internal->Representation->getRepresentationProxy();
-					  pqSMAdaptor::setElementProperty(
-						repr->GetProperty("ExtractedBlockIndex"), selectedIndex);
-					  repr->UpdateVTKObjects();
-					  this->Internal->Representation->renderViewEventually();
-					  this->Internal->ColorBy->reloadGUI();
-					}
+			unsigned int selectedIndex =
+				this->Internal->CompositeTreeAdaptor->getCurrentFlatIndex(&valid);
+			if (valid && selectedIndex > 0)
+			{
+				vtkSMRepresentationProxy* repr =
+					this->Internal->Representation->getRepresentationProxy();
+				pqSMAdaptor::setElementProperty(
+					repr->GetProperty("ExtractedBlockIndex"), selectedIndex);
+				repr->UpdateVTKObjects();
+				this->Internal->Representation->renderViewEventually();
+				this->Internal->ColorBy->reloadGUI();
+			}
 		}
-  }
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -1090,12 +1090,12 @@ void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 			val.push_back(color.green()/255.0);
 			val.push_back(color.blue()/255.0);
 			pqSMAdaptor::setMultipleElementProperty(
-			this->Internal->Representation->getProxy()->GetProperty("DiffuseColor"), val);
+				this->Internal->Representation->getProxy()->GetProperty("DiffuseColor"), val);
 
 			// If specular white is off, then we want to update the specular color as
 			// well.
 			emit this->specularColorChanged();
-			
+
 			pqApplicationCore::instance()->printSMProperty(this->Internal->Representation->getProxy()->GetProperty("DiffuseColor")); 
 		}
 		else  
@@ -1110,10 +1110,10 @@ void pqDisplayProxyEditor::setSolidColor(const QColor& color)
 		val.push_back(color.green()/255.0);
 		val.push_back(color.blue()/255.0);
 		pqSMAdaptor::setMultipleElementProperty(
-		this->Internal->Representation->getProxy()->GetProperty("DiffuseColor"), val); 
+			this->Internal->Representation->getProxy()->GetProperty("DiffuseColor"), val); 
 		emit this->specularColorChanged();
 	}
-	
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1125,18 +1125,18 @@ void pqDisplayProxyEditor::setBackfaceSolidColor(const QColor& color)
 		if (!pqApplicationCore::instance()->isRepeatingDisplay)
 		{ 
 			QList<QVariant> val;
-			  val.push_back(color.red()/255.0);
-			  val.push_back(color.green()/255.0);
-			  val.push_back(color.blue()/255.0);
+			val.push_back(color.red()/255.0);
+			val.push_back(color.green()/255.0);
+			val.push_back(color.blue()/255.0);
 
-			  pqSMAdaptor::setMultipleElementProperty(
+			pqSMAdaptor::setMultipleElementProperty(
 				this->Internal->Representation->getProxy()->GetProperty("BackfaceAmbientColor"), val);
-			  pqSMAdaptor::setMultipleElementProperty(
+			pqSMAdaptor::setMultipleElementProperty(
 				this->Internal->Representation->getProxy()->GetProperty("BackfaceDiffuseColor"), val);
 
-			  // If specular white is off, then we want to update the specular color as
-			  // well.
-			  emit this->specularColorChanged();
+			// If specular white is off, then we want to update the specular color as
+			// well.
+			emit this->specularColorChanged();
 
 			// If specular white is off, then we want to update the specular color as
 			// well.
@@ -1153,48 +1153,48 @@ void pqDisplayProxyEditor::setBackfaceSolidColor(const QColor& color)
 	else
 	{
 
-	  QList<QVariant> val;
-	  val.push_back(color.red()/255.0);
-	  val.push_back(color.green()/255.0);
-	  val.push_back(color.blue()/255.0);
+		QList<QVariant> val;
+		val.push_back(color.red()/255.0);
+		val.push_back(color.green()/255.0);
+		val.push_back(color.blue()/255.0);
 
-	  pqSMAdaptor::setMultipleElementProperty(
-		this->Internal->Representation->getProxy()->GetProperty("BackfaceAmbientColor"), val);
-	  pqSMAdaptor::setMultipleElementProperty(
-		this->Internal->Representation->getProxy()->GetProperty("BackfaceDiffuseColor"), val);
+		pqSMAdaptor::setMultipleElementProperty(
+			this->Internal->Representation->getProxy()->GetProperty("BackfaceAmbientColor"), val);
+		pqSMAdaptor::setMultipleElementProperty(
+			this->Internal->Representation->getProxy()->GetProperty("BackfaceDiffuseColor"), val);
 
-	  // If specular white is off, then we want to update the specular color as
-	  // well.
-	  emit this->specularColorChanged();
+		// If specular white is off, then we want to update the specular color as
+		// well.
+		emit this->specularColorChanged();
 	}
 }
 
 //-----------------------------------------------------------------------------
 void pqDisplayProxyEditor::setAutoAdjustSampleDistances(bool flag)
 {
-  this->Internal->SampleDistanceValue->setEnabled(!flag);
+	this->Internal->SampleDistanceValue->setEnabled(!flag);
 }
 
 //-----------------------------------------------------------------------------
 void pqDisplayProxyEditor::selectedMapperChanged()
 {
-  if(!this->Internal->SelectMapper->currentText().compare(
-      QString("Fixed Point"), Qt::CaseInsensitive))
-    {
-    // Fixed point does not uses sample distance.
-    this->Internal->SampleDistance->setEnabled(0);
-    this->Internal->SampleDistanceValue->setEnabled(0);
-    this->Internal->AutoAdjustSampleDistances->setEnabled(0);
-    }
-  else if(!this->Internal->SelectMapper->currentText().compare(
-      QString("GPU"), Qt::CaseInsensitive))
-    {
-    this->Internal->SampleDistance->setEnabled(1);
-    this->Internal->SampleDistanceValue->setEnabled(0);
-    this->Internal->AutoAdjustSampleDistances->setEnabled(1);
-    }
-  else
-    {
-      // Do nothing.
-    }
+	if(!this->Internal->SelectMapper->currentText().compare(
+		QString("Fixed Point"), Qt::CaseInsensitive))
+	{
+		// Fixed point does not uses sample distance.
+		this->Internal->SampleDistance->setEnabled(0);
+		this->Internal->SampleDistanceValue->setEnabled(0);
+		this->Internal->AutoAdjustSampleDistances->setEnabled(0);
+	}
+	else if(!this->Internal->SelectMapper->currentText().compare(
+		QString("GPU"), Qt::CaseInsensitive))
+	{
+		this->Internal->SampleDistance->setEnabled(1);
+		this->Internal->SampleDistanceValue->setEnabled(0);
+		this->Internal->AutoAdjustSampleDistances->setEnabled(1);
+	}
+	else
+	{
+		// Do nothing.
+	}
 }

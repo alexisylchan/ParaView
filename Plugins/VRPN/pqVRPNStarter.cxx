@@ -1,20 +1,20 @@
 /*=========================================================================
 
-   Program: ParaView
-   Module:    pqVRPNStarter.cxx
+Program: ParaView
+Module:    pqVRPNStarter.cxx
 
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
+All rights reserved.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2.
+ParaView is a free software; you can redistribute it and/or modify it
+under the terms of the ParaView license version 1.2.
 
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
+See License_v1.2.txt for the full ParaView license.
+A copy of this license can be obtained by contacting
+Kitware Inc.
+28 Corporate Drive
+Clifton Park, NY 12065
+USA
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -89,7 +89,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //Phantom includes
 #include "vtkVRPNPhantom.h"
 #include "vtkVRPNPhantomStyleCamera.h"
- 
+
 #include "pqPipelineSource.h"
 #include "pqDisplayPolicy.h"
 #include "pqPipelineFilter.h" 
@@ -140,26 +140,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineRepresentation.h"
 #include "pqScalarsToColors.h"
 
-//networking
-//#include "stdafx.h"
-//#include "winsock2.h"
-//#include "conio.h"
-
 
 class tng_user_callback
 {
 public:
-  char tng_name[vrpn_MAX_TEXT_LEN];
-  vtkstd::vector<unsigned> tng_counts;
-  int channelIndex;
-  double initialValue;
+	char tng_name[vrpn_MAX_TEXT_LEN];
+	vtkstd::vector<unsigned> tng_counts;
+	int channelIndex;
+	double initialValue;
 };
 
 //Forward declaration 
 void VRPN_CALLBACK handleTNG(void *userdata,const vrpn_ANALOGCB t);
 //-----------------------------------------------------------------------------
 pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
-  : QObject(p)
+: QObject(p)
 { 
 }
 
@@ -176,9 +171,9 @@ void pqVRPNStarter::onStartup()
 	partnersTabInDisplay = false;
 	doNotPropagateSourceSelection = false;
 	onSourceChangeAfterRepeatingCreation = false; 
-   
+
 	vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
-    vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
+	vtkPVOptions *options = (vtkPVOptions*)pm->GetOptions();
 
 	//Tracker Options
 	this->useTracker = options->GetUseTracker();
@@ -205,78 +200,39 @@ void pqVRPNStarter::onStartup()
 	//TNG Options
 	this->useTNG = options->GetUseTNG();
 	this->tngAddress = options->GetTNGAddress();
- 
+
 	this->listenToSelfSave();
 	this->initialLoadState();
 	this->initializeEyeAngle();
 	this->initializeDevices();
- 
+
 	QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget()); 
-	
+
 	showPartnersView = false;
 	QObject::connect(mainWindow,SIGNAL(switchToPartnersView()),this,SLOT(onSwitchToPartnersView())); 	
 	QObject::connect(mainWindow,SIGNAL(switchToMyView()),this,SLOT(onSwitchToMyView())); 
-	//if (pqApplicationCore::instance()->getConnectionStatus())
-	//{    
-	//	readFileIndex = 0;
-	//	//writeFileIndex = 0; 
-	//	if (!DEBUG_1_USER)
-	//	{
 
-			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-			this, SLOT(onSourceCreated(pqPipelineSource*)));
+	QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
+		this, SLOT(onSourceCreated(pqPipelineSource*)));
 
-			QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
-			this, SLOT(onFilterCreated(pqPipelineSource*))); 
+	QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
+		this, SLOT(onFilterCreated(pqPipelineSource*))); 
 
-			
-			QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
-			this, SLOT(onSourceChanged(pqPipelineSource*)));
 
-			 
-			QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
-			this, SLOT(onObjectInspectorWidgetAccept()));
+	QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
+		this, SLOT(onSourceChanged(pqPipelineSource*)));
 
-			QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
-							  this, SLOT(onProxyTabWidgetChanged(int )));
-			
-			QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
-			mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
 
-		//}
-		//else
-		//{
-		//	if ( this->sensorIndex == 0) // Only enable for User0 if Debug 1 User
-		//	{
+	QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
+		this, SLOT(onObjectInspectorWidgetAccept()));
 
-		//		QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(sourceCreated(pqPipelineSource*)),
-		//		this, SLOT(onSourceCreated(pqPipelineSource*)));
+	QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
+		this, SLOT(onProxyTabWidgetChanged(int )));
 
-		//		QObject::connect(pqApplicationCore::instance()->getObjectBuilder(), SIGNAL(filterCreated(pqPipelineSource*)),
-		//		this, SLOT(onFilterCreated(pqPipelineSource*))); 
+	QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
+		mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
 
-		//		
-		//		QObject::connect(&(pqActiveObjects::instance()), SIGNAL(sourceChanged(pqPipelineSource*)),
-		//		this, SLOT(onSourceChanged(pqPipelineSource*)));
 
-		//		 
-		//		QObject::connect(mainWindow->findChild<QObject*>("objectInspector"), SIGNAL(postaccept()),
-		//		this, SLOT(onObjectInspectorWidgetAccept()));
-
-		//		QObject::connect( mainWindow->findChild<QObject*>("proxyTabWidget"),SIGNAL(currentChanged(int )),
-		//						  this, SLOT(onProxyTabWidgetChanged(int )));
-
-		//	 
-		//	}
-		//	else if ( this->sensorIndex == 1)
-		//	{
-		//		QObject::connect(this, SIGNAL(triggerObjectInspectorWidgetAccept()),
-		//		mainWindow->findChild<QObject*>("objectInspector"), SLOT(accept()));
-		//	}
-		//}
-	//} 
-
-	
 }
 
 
@@ -284,10 +240,10 @@ void pqVRPNStarter::onObjectInspectorWidgetAccept()
 {
 	if(pqApplicationCore::instance()->getConnectionStatus())
 	{
-	if (!pqApplicationCore::instance()->isRepeating)
-	{  
-		pqApplicationCore::writeChangeSnippet("Apply");
-	}
+		if (!pqApplicationCore::instance()->isRepeating)
+		{  
+			pqApplicationCore::writeChangeSnippet("Apply");
+		}
 	}
 }
 
@@ -295,30 +251,30 @@ void pqVRPNStarter::onProxyTabWidgetChanged(int tabIndex)
 {
 	if(pqApplicationCore::instance()->getConnectionStatus())
 	{
-	if(VERBOSE)
-		qWarning ("Tab changed!");
-	if (!pqApplicationCore::instance()->isRepeating)
-	{ 
-		QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
-		pqProxyTabWidget* proxyTabWidget = qobject_cast<pqProxyTabWidget*>(mainWindow->findChild<QObject*>("proxyTabWidget"));	
-		 
-		if (proxyTabWidget->currentIndex() == pqProxyTabWidget::DISPLAY) // If current tab is display
-		{
-			pqApplicationCore::writeChangeSnippet("Tab,Display");
+		if(VERBOSE)
+			qWarning ("Tab changed!");
+		if (!pqApplicationCore::instance()->isRepeating)
+		{ 
+			QObject* mainWindow = static_cast<QObject*>( pqCoreUtilities::mainWidget());
+			pqProxyTabWidget* proxyTabWidget = qobject_cast<pqProxyTabWidget*>(mainWindow->findChild<QObject*>("proxyTabWidget"));	
+
+			if (proxyTabWidget->currentIndex() == pqProxyTabWidget::DISPLAY) // If current tab is display
+			{
+				pqApplicationCore::writeChangeSnippet("Tab,Display");
+			}
+			else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::PROPERTIES)  // If current tab is display
+			{		
+				pqApplicationCore::writeChangeSnippet("Tab,Properties");
+			}
+			else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::INFORMATION)  // If current tab is display
+			{		
+				pqApplicationCore::writeChangeSnippet("Tab,Information");
+			}
+			else
+			{
+				return;
+			} 
 		}
-		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::PROPERTIES)  // If current tab is display
-		{		
-			pqApplicationCore::writeChangeSnippet("Tab,Properties");
-		}
-		else if(proxyTabWidget->currentIndex() == pqProxyTabWidget::INFORMATION)  // If current tab is display
-		{		
-			pqApplicationCore::writeChangeSnippet("Tab,Information");
-		}
-		else
-		{
-			return;
-		} 
-	}
 	}
 }
 // Listen to proxy creation from pqObjectBuilder 
@@ -326,19 +282,19 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
 	if (pqApplicationCore::instance()->getConnectionStatus())
 	{
-	if(VERBOSE)
-	{
-		qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
-		qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-	}
-	if (!pqApplicationCore::instance()->isRepeating && (createdSource != NULL))
-	{ 
-		doNotPropagateSourceSelection = true;
-		char* sourceStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-		sprintf(sourceStr,"Source,%s,%s",createdSource->getSMGroup().toAscii().data(),createdSource->getProxy()->GetXMLName());
-		pqApplicationCore::writeChangeSnippet(const_cast<const char*>(sourceStr));
-		free(sourceStr); 
-	}}	
+		if(VERBOSE)
+		{
+			qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
+			qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+		}
+		if (!pqApplicationCore::instance()->isRepeating && (createdSource != NULL))
+		{ 
+			doNotPropagateSourceSelection = true;
+			char* sourceStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(sourceStr,"Source,%s,%s",createdSource->getSMGroup().toAscii().data(),createdSource->getProxy()->GetXMLName());
+			pqApplicationCore::writeChangeSnippet(const_cast<const char*>(sourceStr));
+			free(sourceStr); 
+		}}	
 }
 
 void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
@@ -346,29 +302,29 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 	if(pqApplicationCore::instance()->getConnectionStatus())
 	{
 		if(VERBOSE)
-	{
-		qWarning("onFilterCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
-		qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-	}
-	if (!pqApplicationCore::instance()->isRepeating && (createdFilter != NULL))
-	{ 
-		doNotPropagateSourceSelection = true;
- 
-		QString groupName;
-		
-		pqPipelineFilter* actualCreatedFilter = qobject_cast<pqPipelineFilter*> (createdFilter);
-		if (actualCreatedFilter)
-			groupName = actualCreatedFilter->getSMGroup().toAscii().data();
-		else
-			groupName = createdFilter->getSMGroup().toAscii().data();
-		if (!strcmp(groupName.toAscii().data(),"sources"))
-			groupName = QString("filters"); 
-		
-		char* filterStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-		sprintf(filterStr,"Filter,%s,%s",groupName.toAscii().data(),createdFilter->getProxy()->GetXMLName());
-		pqApplicationCore::writeChangeSnippet(const_cast<const char*>(filterStr));
-		free(filterStr);  
-	}
+		{
+			qWarning("onFilterCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
+			qWarning("onFilterCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
+		}
+		if (!pqApplicationCore::instance()->isRepeating && (createdFilter != NULL))
+		{ 
+			doNotPropagateSourceSelection = true;
+
+			QString groupName;
+
+			pqPipelineFilter* actualCreatedFilter = qobject_cast<pqPipelineFilter*> (createdFilter);
+			if (actualCreatedFilter)
+				groupName = actualCreatedFilter->getSMGroup().toAscii().data();
+			else
+				groupName = createdFilter->getSMGroup().toAscii().data();
+			if (!strcmp(groupName.toAscii().data(),"sources"))
+				groupName = QString("filters"); 
+
+			char* filterStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+			sprintf(filterStr,"Filter,%s,%s",groupName.toAscii().data(),createdFilter->getProxy()->GetXMLName());
+			pqApplicationCore::writeChangeSnippet(const_cast<const char*>(filterStr));
+			free(filterStr);  
+		}
 	}
 }
 
@@ -377,39 +333,39 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 	if(pqApplicationCore::instance()->getConnectionStatus())
 	{
 		if(VERBOSE)
-	{
-		qWarning("onSourceChanged pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
-		qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-	}
-	if (!pqApplicationCore::instance()->isRepeating)
-	{
-		if (doNotPropagateSourceSelection)
-		{ 
-			doNotPropagateSourceSelection = false;
-			return;
+		{
+			qWarning("onSourceChanged pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
+			qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
 		}
-		else
-		{	
-			if (createdSource != NULL)
-			{
-				char* changedStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
-				sprintf(changedStr,"Changed,%s",createdSource->getSMName().toAscii().data());
-				pqApplicationCore::writeChangeSnippet(const_cast<const char*>(changedStr));
-				free(changedStr); 
+		if (!pqApplicationCore::instance()->isRepeating)
+		{
+			if (doNotPropagateSourceSelection)
+			{ 
+				doNotPropagateSourceSelection = false;
+				return;
 			}
-		}		 
-	} 
+			else
+			{	
+				if (createdSource != NULL)
+				{
+					char* changedStr = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+					sprintf(changedStr,"Changed,%s",createdSource->getSMName().toAscii().data());
+					pqApplicationCore::writeChangeSnippet(const_cast<const char*>(changedStr));
+					free(changedStr); 
+				}
+			}		 
+		} 
 	}
 } 
 void pqVRPNStarter::onSwitchToPartnersView() 
 { 
 	this->VRPNTimer->blockSignals(true);
-	
+
 	showPartnersView = true;
 	this->sensorIndex = (this->sensorIndex +1)%2; 
 	this->initializeEyeAngle();
 	this->VRPNTimer->blockSignals(false);
-	
+
 } 
 void pqVRPNStarter::onSwitchToMyView() 
 { 
@@ -418,7 +374,7 @@ void pqVRPNStarter::onSwitchToMyView()
 	this->sensorIndex = this->origSensorIndex;
 	this->initializeEyeAngle();
 	this->VRPNTimer->blockSignals(false);
-	
+
 } 
 void pqVRPNStarter::initializeEyeAngle()
 {
@@ -431,7 +387,7 @@ void pqVRPNStarter::initializeEyeAngle()
 
 		//Code from vtkCaveSynchronizedRenderers::SetDisplayConfig
 		double DisplayX[4], DisplayY[4],DisplayOrigin[4];
-		
+
 		//Transform monitor position to ceiling tracker space
 		vtkMatrix4x4* trackerTransformM = vtkMatrix4x4::New();
 		trackerTransformM->SetElement(0,0,0);
@@ -454,70 +410,46 @@ void pqVRPNStarter::initializeEyeAngle()
 		DisplayX[3] = 1;
 		DisplayY[3] = 1;
 
-
-		//double value = 1.0;
 		if (this->sensorIndex == 1)
-		 {  /*
-1lowerleft 7.624803 5.752832 0.803181 0.009856 -0.029752 0.999089 -0.028959
-1lowerright 8.089953 5.779626 0.796029 -0.022951 -0.030991 0.999125 0.016160
-1upperleft 7.629872 5.733810 1.100713 0.055065 0.059823 -0.995658 0.045335
-1upperright 8.100520 5.766798 1.093276 -0.058126 -0.040813 0.997302 0.018546*/
-
+		{ 
 			DisplayOrigin[0]= 7.624803 ;  
-		 	DisplayOrigin[1]=  5.752832;//5.287540 ; 
-			DisplayOrigin[2]= 0.803181 ;//-value; 
+			DisplayOrigin[1]= 5.752832; 
+			DisplayOrigin[2]= 0.803181 ; 
 
-			DisplayX[0]= 8.100520;//8.089953 ;//  8.174900;// 7.911325 ;
-			DisplayX[1]=   5.752832;//5.779626;// 5.370214 ;//-value; 
-			DisplayX[2]=    0.803181;//0.796029;//-value; 
+			DisplayX[0]= 8.100520; 
+			DisplayX[1]= 5.752832;
+			DisplayX[2]= 0.803181;
 
-			DisplayY[0]=8.100520 ;// 8.174900;//7.911044 ;  
-			DisplayY[1]=   5.752832;//5.766798;// 5.322561 ;//value; 
-			DisplayY[2]=     1.093276;//-value;  
-		//	 
-		//DisplayOrigin[0]= -0.45;//-value;
-		//DisplayOrigin[1]= -0.3;//-value; 
-		//DisplayOrigin[2]= 0.9;//value; 
-		//DisplayX[0]= -0.45;//-value; 
-		//DisplayX[1]= -0.3;//-value; 
-		//DisplayX[2]= -0.9;//-value; 
-		//DisplayY[0]= -0.45;//-value;
-		//DisplayY[1]= 0.3;//value; 
-		//DisplayY[2]= -0.9;//-value;  
-
+			DisplayY[0]= 8.100520; 
+			DisplayY[1]= 5.752832;
+			DisplayY[2]= 1.093276;
 		}
 		else
-		{  /*
-0lowerleft 8.193093 5.658086 0.807336 0.027623 0.048420 0.727047 0.684321
-0lowerright 8.239871 5.184344 0.807048 0.002501 0.060751 0.700130 0.711421
-0upperleft 8.179330 5.656557 1.105073 -0.020788 -0.005304 0.794298 0.607150
-0upperright 8.225979 5.177659 1.100456 -0.042990 0.009814 0.702970 0.709851*/
-			DisplayOrigin[0]= 8.225979;//8.197703;
-		 	DisplayOrigin[1]= 5.658086; 
-			DisplayOrigin[2]=0.807048;// 0.807336;//-value; 
+		{ 
+			DisplayOrigin[0]= 8.225979;
+			DisplayOrigin[1]= 5.658086; 
+			DisplayOrigin[2]= 0.807048; 
 
-			DisplayX[0]=   8.225979;//8.239871;//value; 
-			DisplayX[1]=    5.177659;//5.184344;//-value; 
-			DisplayX[2]=    0.807048;//-value; 
+			DisplayX[0]= 8.225979; 
+			DisplayX[1]= 5.177659;
+			DisplayX[2]= 0.807048;
 
-			DisplayY[0]= 8.225979;//value; 
-			DisplayY[1]=    5.177659;//value; 
-			DisplayY[2]=     1.100456;//-value;     
-			
- 
+			DisplayY[0]= 8.225979;
+			DisplayY[1]= 5.177659;
+			DisplayY[2]= 1.100456;   
 		}
 
-			
-			trackerTransformM->MultiplyPoint(DisplayOrigin,DisplayOrigin);
-			trackerTransformM->MultiplyPoint(DisplayX,DisplayX);
-			trackerTransformM->MultiplyPoint(DisplayY,DisplayY); 
+
+		trackerTransformM->MultiplyPoint(DisplayOrigin,DisplayOrigin);
+		trackerTransformM->MultiplyPoint(DisplayX,DisplayX);
+		trackerTransformM->MultiplyPoint(DisplayY,DisplayY); 
 
 		double xBase[3],yBase[3],zBase[3];
 		//Get Vectors of screen
 		for (int i =0; i < 3; ++i)
 		{
-		xBase[i] = DisplayX[i]-DisplayOrigin[i];
-		yBase[i] = DisplayY[i]-DisplayX[i];
+			xBase[i] = DisplayX[i]-DisplayOrigin[i];
+			yBase[i] = DisplayY[i]-DisplayX[i];
 		}
 		vtkMath::Cross(xBase,yBase,zBase);
 		//Code from vtkCaveSynchronizedRenderers::SetSurfaceRotation
@@ -540,6 +472,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		SurfaceRot->MultiplyPoint( DisplayOrigin, DisplayOrigin );
 		SurfaceRot->MultiplyPoint( DisplayX, DisplayX );
 		SurfaceRot->MultiplyPoint( DisplayY, DisplayY );  
+
 		// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top (exactly the same as vtkCaveSynchronizedRenderers)
 		double O2Screen = - DisplayOrigin[2];
 		double O2Right  =   DisplayX[0];
@@ -570,11 +503,11 @@ void pqVRPNStarter::initializeDevices()
 {
 	pqApplicationCore* core = pqApplicationCore::instance();
 
-    
+
 	// VRPN input events.
 	this->VRPNTimer=new QTimer(this);
 	this->VRPNTimer->setInterval(1); // in ms
-   
+
 	/////////////////////////GET VIEW////////////////////////////
 
 	// Get the Server Manager Model so that we can get each view
@@ -585,17 +518,17 @@ void pqVRPNStarter::initializeDevices()
 	//Get View Proxy
 	vtkSMRenderViewProxy *proxy1 = 0;
 	proxy1 = vtkSMRenderViewProxy::SafeDownCast( view1->getViewProxy() ); 
-  
+
 	//Get Renderer and Render Window
 	vtkRenderer* renderer1 = proxy1->GetRenderer();
 	vtkRenderWindow* window1 = proxy1->GetRenderWindow();
 
 	/////////////////////////INTERACTOR////////////////////////////
 	// Initialize Device Interactor to manage all trackers
-    inputInteractor = vtkDeviceInteractor::New();
+	inputInteractor = vtkDeviceInteractor::New();
 
 	if(this->useTracker)
-    {
+	{
 
 		/////////////////////////CREATE  TRACKER////////////////////////////
 
@@ -605,12 +538,12 @@ void pqVRPNStarter::initializeDevices()
 		tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
 		tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
 		double t2w1[3][3] = { 0, -1,  0,
-							  0,  0, 1, 
-							 -1, 0,  0 }; 
+			0,  0, 1, 
+			-1, 0,  0 }; 
 		double t2wQuat1[4];
 		vtkMath::Matrix3x3ToQuaternion(t2w1, t2wQuat1);
 		tracker1->SetTracker2WorldRotation(t2wQuat1);
-		
+
 
 		tracker1->Initialize();
 
@@ -620,19 +553,19 @@ void pqVRPNStarter::initializeDevices()
 		trackerStyleCamera1 = vtkVRPNTrackerCustomSensorStyleCamera::New();
 		trackerStyleCamera1->SetTracker(tracker1);
 		trackerStyleCamera1->SetRenderer(renderer1);
-	
+
 		/////////////////////////INTERACTOR////////////////////////////
 		//Register Tracker to Device Interactor
 		inputInteractor->AddInteractionDevice(tracker1);
 		inputInteractor->AddDeviceInteractorStyle(trackerStyleCamera1);
 		//tracker1->Delete();
 		//trackerStyleCamera1->Delete();
-   }  
+	}  
 	if (this->usePhantom)
 	{
 
 		/////////////////////////CREATE  PHANTOM////////////////////////////
-		
+
 		vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
 		phantom1->SetDeviceName(this->phantomAddress);
 		phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
@@ -652,11 +585,11 @@ void pqVRPNStarter::initializeDevices()
 		phantom1->SetSensorIndex(this->sensorIndex);
 
 		phantom1->Initialize();
-  
+
 		/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
 		phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New(); 
 		/////////////////////////CONNECT TO SERVER CHANGE////////////////////////////
- 
+
 		if (CREATE_VTK_CONE)
 		{ 
 			this->createConeInVTK(false);
@@ -664,14 +597,14 @@ void pqVRPNStarter::initializeDevices()
 			phantomStyleCamera1->SetActor(ConeActor); 
 			phantomStyleCamera1->SetConeSource(this->Cone);
 
-		QObject::connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement* , vtkSMProxyLocator* )),
-		this, SLOT(resetPhantomActor(vtkPVXMLElement* , vtkSMProxyLocator* )));
+			QObject::connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement* , vtkSMProxyLocator* )),
+				this, SLOT(resetPhantomActor(vtkPVXMLElement* , vtkSMProxyLocator* )));
 		}
 		phantomStyleCamera1->SetPhantom(phantom1);
 		phantomStyleCamera1->SetRenderer(renderer1); 
 
-		
-	    /////////////////////////INTERACTOR////////////////////////////
+
+		/////////////////////////INTERACTOR////////////////////////////
 		//Register Phantom to Device Interactor 
 		inputInteractor->AddInteractionDevice(phantom1);
 		inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera1);
@@ -689,12 +622,12 @@ void pqVRPNStarter::initializeDevices()
 		strncpy(TNGC1->tng_name,this->tngAddress,sizeof(TNGC1->tng_name));
 		tng1->register_change_handler(TNGC1,handleTNG);
 	} 
-	
-    connect(this->VRPNTimer,SIGNAL(timeout()),
-		 this,SLOT(timerCallback()));
-    this->VRPNTimer->start();
-	
-    
+
+	connect(this->VRPNTimer,SIGNAL(timeout()),
+		this,SLOT(timerCallback()));
+	this->VRPNTimer->start();
+
+
 }
 //-----------------------------------------------------------------------------
 
@@ -714,7 +647,7 @@ void pqVRPNStarter::uninitializeDevices()
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::onShutdown()
 {
-   // fclose(vrpnpluginlog);
+	// fclose(vrpnpluginlog);
 	uninitializeDevices();
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
@@ -726,9 +659,7 @@ void pqVRPNStarter::onShutdown()
 
 //-----------------------------------------------------------------------------
 void pqVRPNStarter::repeatCreateSource(char* groupName,char* sourceName )
-{
-
-	//pqApplicationCore::instance()->isRepeating = true; 
+{ 
 	pqApplicationCore::instance()->getObjectBuilder()->createSource(QString(groupName),QString(sourceName),pqActiveObjects::instance().activeServer());
 }
 //-----------------------------------------------------------------------------
@@ -739,24 +670,24 @@ void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
 	// Todo: combine with  vtkVRPNPhantomStyleCamera::CreateParaViewObject(i
 	vtkSMProxy* prototype = vtkSMProxyManager::GetProxyManager()->GetPrototypeProxy("filters",sourceName);
 	QList<pqOutputPort*> outputPorts;
-	
+
 	//Get Current Active Source - this depends on synchronization of selection between users. 
 	//Tracked as bug 10: Repeat source selections for filters with multiple inputs
-    //See ParaView/bugs.txt
-	
+	//See ParaView/bugs.txt
+
 	pqPipelineSource* item = pqActiveObjects::instance().activeSource();
 
 	pqOutputPort* opPort = qobject_cast<pqOutputPort*>(item);
 	pqPipelineSource* source = qobject_cast<pqPipelineSource*>(item);
 
 	if (source)
-	  {
-	  outputPorts.push_back(source->getOutputPort(0)); 
-	  }
+	{
+		outputPorts.push_back(source->getOutputPort(0)); 
+	}
 	else if (opPort)
-	  {
+	{
 		outputPorts.push_back(opPort); 
-	  } 
+	} 
 
 	QMap<QString, QList<pqOutputPort*> > namedInputs;
 	QList<const char*> inputPortNames = pqPipelineFilter::getInputPorts(prototype);
@@ -770,7 +701,6 @@ void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
 
 void pqVRPNStarter::respondToTabChange(char* tabName)
 {
-	//pqApplicationCore::instance()->isRepeating = true; 
 	if (!strcmp(tabName,"Display"))
 		partnersTabInDisplay = true;
 	else
@@ -815,83 +745,28 @@ void pqVRPNStarter::repeatPlaceHolder()
 void pqVRPNStarter::respondToOtherAppsChange()
 {
 	VRPNTimer->blockSignals(true); 
-	//ifstream readFile;
-	//int targetFileIndex = pqApplicationCore::incrementDirectoryFile(readFileIndex,(pqApplicationCore::instance()->sensorIndex+1)%2,false);
-	////Check if target file exists.
-	//::HANDLE hFileT;         
-	//::WIN32_FIND_DATA FileInformationT; 
-	//char inputStr[FILE_PATH_SIZE]; 
 
-	//sprintf(inputStr,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
-	//				((pqApplicationCore::instance()->sensorIndex+1)%2),targetFileIndex); 
-	//hFileT = ::FindFirstFile(inputStr, &FileInformationT);
-	//if(hFileT == INVALID_HANDLE_VALUE)
-	//{ 
-	//	::FindClose(hFileT); 
-	//	pqApplicationCore::instance()->isRepeating = false;
-	//	VRPNTimer->blockSignals(false);
-	//	return;
-	//}
-	//::FindClose(hFileT);	
+	char snippet[SNIPPET_LENGTH];
 
+	if (pqApplicationCore::instance()->socket1 && pqApplicationCore::instance()->getConnectionStatus())
+	{
+		int		err;
+		int		bytesRecv;
+		SOCKET s1 = (SOCKET)(*(pqApplicationCore::instance()->socket1));
+		bytesRecv = ::recv( s1, snippet, SNIPPET_LENGTH, 0 );
+		err = WSAGetLastError( );// 10057 = A request to send or receive data was disallowed because the socket is not connected and (when sending on a datagram socket using a sendto call) 
 
-	//int newReadFileIndex = readFileIndex;
-	//bool read = false; 
-	//for (int i =readFileIndex; i <= targetFileIndex; i++)
-	//{
-		/*char inputStr1[FILE_PATH_SIZE]; 
-
-	    sprintf(inputStr1,"C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/Change/snippet%d_%d.xml",
-					((pqApplicationCore::instance()->sensorIndex+1)%2),i);
-		::HANDLE hFile;         
-		::WIN32_FIND_DATA FileInformation;  
-		hFile = ::FindFirstFile(inputStr1, &FileInformation);
-		if(hFile == INVALID_HANDLE_VALUE)
-		{ 
-			::FindClose(hFile);  
-			break;
-		}	
-		::FindClose(hFile);	
-		
-		readFile.clear(); 
-		readFile.open(inputStr1);*/  
-
-		char snippet[SNIPPET_LENGTH]; //TODO: need to modify length
-		//if (readFile.good())
-		//{
-		//	
-		//	read = true; // Only set to true after replication is successful.
-		//	readFile.getline(snippet,SNIPPET_LENGTH);  
-		
-		if (pqApplicationCore::instance()->socket1 && pqApplicationCore::instance()->getConnectionStatus())
+		if ( bytesRecv == 0 || bytesRecv == WSAECONNRESET ) {
+			pqApplicationCore::instance()->closeConnection(false);
+			return;
+		} 
+		if (err == 0)
 		{
-			int		err;
-			int		bytesRecv;
-			SOCKET s1 = (SOCKET)(*(pqApplicationCore::instance()->socket1));
-			bytesRecv = ::recv( s1, snippet, SNIPPET_LENGTH, 0 );
-			err = WSAGetLastError( );// 10057 = A request to send or receive data was disallowed because the socket is not connected and (when sending on a datagram socket using a sendto call) 
-			
-			if ( bytesRecv == 0 || bytesRecv == WSAECONNRESET ) {
-				pqApplicationCore::instance()->closeConnection(false);
-				return;
-			} 
-			if (err == 0)
+
+			pqApplicationCore::instance()->isRepeating = true; 
+			//qWarning( " Bytes Recv: %s \n ", snippet );
+			if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
 			{
-				
-				pqApplicationCore::instance()->isRepeating = true; 
-				//qWarning( " Bytes Recv: %s \n ", snippet );
-				if (!strcmp(snippet,"")) //Graceful exit if race conditions happen for getline
-			{
-				//if (read)
-				//{ 
-				//	if ((newReadFileIndex >= readFileIndex) && (newReadFileIndex <= targetFileIndex)) // file reading has happened
-				//	{		
-				//		newReadFileIndex++;
-				//	}
-				//	readFileIndex = newReadFileIndex;
-				//} 
-				//readFile.clear();
-				//readFile.close();
 				WSACleanup();
 				pqApplicationCore::instance()->isRepeating = false;
 				VRPNTimer->blockSignals(false);
@@ -899,19 +774,19 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			}
 
 			char* operation = strtok(snippet,",");  
-			
+
 			if (!strcmp(operation,"Source"))
 			{ 
 				char* groupName = strtok(NULL,",");
 				char* sourceName = strtok(NULL,",");
-				 
+
 				repeatCreateSource(groupName,sourceName); 
 			}
 			else if (!strcmp(operation,"Filter"))
 			{ 
 				char* groupName = strtok(NULL,",");
 				char* sourceName = strtok(NULL,",");
-				 
+
 				repeatCreateFilter(groupName,sourceName); 
 			}
 			else if (!strcmp(operation,"Apply"))
@@ -942,42 +817,24 @@ void pqVRPNStarter::respondToOtherAppsChange()
 				char* newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
 				//char* newLine;
 				while((newLine = strtok(NULL,",")))
-				{
-					/*if (readFile.getline(newLine,SNIPPET_LENGTH).eof())
-					{ 
-						break;
-					} */
-					/*char newLine2[SNIPPET_LENGTH];
-					strcpy(newLine2,newLine);*/	
-					propertyStringList.append(newLine);  
-					 
-					//newLine = (char*)malloc(sizeof(char)*SNIPPET_LENGTH);
+				{ 
+					propertyStringList.append(newLine);   
 				} 
 				free(newLine);
 				if (!propertyStringList.empty())
-					repeatPropertiesChange(operation,propertyStringList);			 
-				/*for (int j = 0; j<propertyStringList.size(); j++)
-				{
-					free(propertyStringList.at(j));
-				}*/
-				
-				/*if (readFile.bad())
-				{ 
-					readFile.close();
-				}
-				readFile.clear();*/
+					repeatPropertiesChange(operation,propertyStringList);
 			}
-			
-			 
-			}
+
+
+		}
 		else
 		{
 			//qWarning("error %d",err);
 			WSASetLastError(0);
-			}
 		}
- 
-	
+	}
+
+
 	pqApplicationCore::instance()->isRepeating = false;
 	if (VERBOSE)
 		qWarning("Exiting isRepeating");
@@ -989,25 +846,14 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 	if(VERBOSE)
 		qWarning("Repeating properties change!!!");  
 
-	/*char*  propertyName = propertyStringList.at(0).at(0);
-	char* propertyType = propertyStringList.at(0).at(1);*/
 	QList<QVariant> valueList = QList<QVariant>(); 
- 
-	char* propertyName = propertyStringList.at(0);
-	/*char*  propertyName = strtok(propertyStringList.at(0),",");
-	char* propertyType = strtok(NULL,",");
-	char* propertyValue = strtok(NULL,",");*/
+
+	char* propertyName = propertyStringList.at(0); 
 
 	for (int i =1; i < propertyStringList.size(); )
-	{
-		/*if (i != 0)
-		{*//*
-			free(propertyName);
-			free(propertyType);
-			free(propertyValue);*/ 
-			char* propertyType = propertyStringList.at(i++);
-		    char* propertyValue = propertyStringList.at(i++);
-		/*}*/
+	{ 
+		char* propertyType = propertyStringList.at(i++);
+		char* propertyValue = propertyStringList.at(i++); 
 		if (!strcmp(propertyType,"dvp"))
 		{
 			double value = atof(propertyValue);
@@ -1032,76 +878,63 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 		else if (!strcmp(propertyType,"svp"))
 		{ 
 			valueList.append(QVariant(propertyValue)); 
-			
+
 			if (VERBOSE)
 				qWarning("propertyname %s propertyvalue %s",propertyName,propertyValue);
 		}
 		else
 		{
-			//qWarning("property Type unhandled! %s",propertyType);
+			qWarning("property Type unhandled! %s",propertyType);
 		}
- 
+
 	}
- 
+
 	if (partnersTabInDisplay)
 	{
-			pqApplicationCore::instance()->isRepeatingDisplay = true;
-			pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
-			pqPipelineSource* source = pqActiveObjects::instance().activeSource();
-			for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
+		pqApplicationCore::instance()->isRepeatingDisplay = true;
+		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
+		pqPipelineSource* source = pqActiveObjects::instance().activeSource();
+		for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
+		{
+			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
+				source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
+			if (!repr || !repr->getView()) 
+				continue; 
+			pqView* cur_view = repr->getView(); 
+			pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
+
+			vtkSMProxy* smProxy = 0; 
+			vtkSMProperty* smProperty = 0;
+			smProxy = displayRepresentation->getProxy();
+			smProperty = smProxy->GetProperty(propertyName);
+
+			if (!smProperty)
 			{
-				pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-					source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
-				if (!repr || !repr->getView()) 
-					continue; 
-				pqView* cur_view = repr->getView(); 
-				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
-				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true); 
-
-				vtkSMProxy* smProxy = 0; 
-				vtkSMProperty* smProperty = 0;
-				smProxy = displayRepresentation->getProxy();
+				smProxy = repr->getLookupTable()->getProxy();
 				smProperty = smProxy->GetProperty(propertyName);
-
-				if (!smProperty)
-				{
-					smProxy = repr->getLookupTable()->getProxy();
-					smProperty = smProxy->GetProperty(propertyName);
-				}
-				if (smProperty)
-				{
+			}
+			if (smProperty)
+			{
 				pqSMAdaptor::setMultipleElementProperty(smProperty,valueList);
-				
+
 				if (VERBOSE)
 					qWarning("Proxy Property Name %s",smProperty->GetXMLName());
-					//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
-					smProxy->UpdateVTKObjects();
-				}
+				smProxy->UpdateVTKObjects();
 			}
+		}
 	}
 	else
 	{
-		//pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true);
 		pqSMAdaptor::setMultipleElementProperty(pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName),valueList);
 		if (VERBOSE)
 			qWarning("Proxy Property Name %s",pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->GetXMLName());
-		//pqActiveObjects::instance().activeSource()->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
 		pqActiveObjects::instance().activeSource()->getProxy()->UpdateVTKObjects();
-	}
-	//free(propertyName);
-	//free(propertyType);
-	//free(propertyValue);
+	} 
 }
 void pqVRPNStarter::timerCallback()
 {	
-	 if ( this->sharedStateModified()) // TODO: Implement Save Button. When "self" is saving do not reload.
+	if ( this->sharedStateModified()) 
 	{ 
-	/*	this->uninitializeDevices();
-		pqCommandLineOptionsBehavior::resetApplication();		
-		pqDeleteReaction::deleteAll(); 
-		this->loadState(); 
-		this->initializeEyeAngle();
-		this->initializeDevices();*/
 		this->VRPNTimer->blockSignals(true);	
 		pqApplicationCore::instance()->closeConnection(true);
 		pqDeleteReaction::deleteAll(); 
@@ -1113,20 +946,20 @@ void pqVRPNStarter::timerCallback()
 		this->VRPNTimer->blockSignals(false);
 
 	} 
-	 if (pqApplicationCore::instance()->getConnectionStatus())//vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab() )/// && this->changeSnippetModified())
+	if (pqApplicationCore::instance()->getConnectionStatus())
 	{
-			respondToOtherAppsChange(); 
+		respondToOtherAppsChange(); 
 	} 
-		if (this->useTNG)
-			this->tng1->mainloop();
-		if (this->useTracker || this->usePhantom)
-			this->inputInteractor->Update(); 
-	
+	if (this->useTNG)
+		this->tng1->mainloop();
+	if (this->useTracker || this->usePhantom)
+		this->inputInteractor->Update(); 
+
 
 	///////////////////////////////////Render///////////////////////////
 	//Get the Server Manager Model so that we can get each view
 	pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel();
-	 
+
 	for (int i = 0; i < serverManager->getNumberOfItems<pqView*> (); i++) 
 	{
 		pqView* view = serverManager->getItemAtIndex<pqView*>(i);
@@ -1138,46 +971,46 @@ void pqVRPNStarter::timerCallback()
 // Analog Code adapted from ParaView 3.11.2 https://github.com/Kitware/ParaView/blob/master/Plugins/VRPN/ParaViewVRPN.cxx
 vrpn_ANALOGCB SNAugmentChannelsToRetainLargestMagnitude(const vrpn_ANALOGCB t)
 {
-  vrpn_ANALOGCB at;
-  // Make a list of the magnitudes into at
-  for(int i=0;i<6;++i)
-    {
-      if(t.channel[i] < 0.0)
-        at.channel[i] = t.channel[i]*-1;
-      else
-        at.channel[i]= t.channel[i];
-    }
+	vrpn_ANALOGCB at;
+	// Make a list of the magnitudes into at
+	for(int i=0;i<6;++i)
+	{
+		if(t.channel[i] < 0.0)
+			at.channel[i] = t.channel[i]*-1;
+		else
+			at.channel[i]= t.channel[i];
+	}
 
-  // Get the max value;
-  int max =0;
-  for(int i=1;i<6;++i)
-    {
-      if(at.channel[i] > at.channel[max])
-          max = i;
-    }
+	// Get the max value;
+	int max =0;
+	for(int i=1;i<6;++i)
+	{
+		if(at.channel[i] > at.channel[max])
+			max = i;
+	}
 
-  // copy the max value of t into at (rest are 0)
-  for (int i = 0; i < 6; ++i)
-    {
-      (i==max)?at.channel[i]=t.channel[i]:at.channel[i]=0.0;
-    }
-  return at;
+	// copy the max value of t into at (rest are 0)
+	for (int i = 0; i < 6; ++i)
+	{
+		(i==max)?at.channel[i]=t.channel[i]:at.channel[i]=0.0;
+	}
+	return at;
 }
- 
-void VRPN_CALLBACK handleTNG(void *userdata,
-const vrpn_ANALOGCB t)
-{
-  tng_user_callback *tData=static_cast<tng_user_callback *>(userdata); 
 
-  // TNG 3B values go from 0 to 252. To get an eye separation of 0.0065 to be in the middle (126), we use delta  == 0.0065/126 ==
+void VRPN_CALLBACK handleTNG(void *userdata,
+							 const vrpn_ANALOGCB t)
+{
+	tng_user_callback *tData=static_cast<tng_user_callback *>(userdata); 
+
+	// TNG 3B values go from 0 to 252. To get an eye separation of 0.0065 to be in the middle (126), we use delta  == 0.0065/126 ==
 	double value = t.channel[tData->channelIndex];  
 	double delta = value; /* - tData->initialValue; */
 	for (int i = 0; i < pqApplicationCore::instance()->getServerManagerModel()->getNumberOfItems<pqView*>(); i++)
 	{
-			pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
-			vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
-			 camera->SetEyeOffset( (((camera->GetDistance()/camera->O2Screen)*0.065/2.0)/126.0)*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
-			
+		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
+		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
+		camera->SetEyeOffset( (((camera->GetDistance()/camera->O2Screen)*0.065/2.0)/126.0)*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
+
 
 	} 
 }
@@ -1187,12 +1020,12 @@ bool pqVRPNStarter::sharedStateModified()
 	struct stat filestat;  
 	if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat) != -1) )//if ((stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/xmlsnippets.xml",&filestat) != -1) )
 	{   if (last_write)
+	{
+		if (filestat.st_mtime != this->last_write)
 		{
-			if (filestat.st_mtime != this->last_write)
-			{
-				return true;
-			}
+			return true;
 		}
+	}
 	}
 	return false;
 
@@ -1201,22 +1034,22 @@ bool pqVRPNStarter::sharedStateModified()
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::loadState()
 {  
-        pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
-		this->initializeEyeAngle();
-		this->changeTimeStamp();
+	pqLoadStateReaction::loadState(QString("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm"));
+	this->initializeEyeAngle();
+	this->changeTimeStamp();
 } 
 
 //Code is taken in its entirety from pqLoadStateReaction.cxx, except for the filename
 void  pqVRPNStarter::initialLoadState()
 {
-		this->changeTimeStamp();
+	this->changeTimeStamp();
 }
 
 void pqVRPNStarter::loadState(char* filename)
 {
 	this->VRPNTimer->blockSignals(true); 
 	pqDeleteReaction::deleteAll();
-    pqLoadStateReaction::loadState(QString(filename));
+	pqLoadStateReaction::loadState(QString(filename));
 	this->changeTimeStamp(); 
 	this->initializeEyeAngle(); 
 
@@ -1230,9 +1063,9 @@ void pqVRPNStarter::changeTimeStamp()
 {
 	//if (!vtkProcessModule::GetProcessModule()->GetOptions()->GetSyncCollab()) //TODO: Why?
 	//{
-		struct stat filestat;
-		stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
-		this->last_write = filestat.st_mtime;
+	struct stat filestat;
+	stat("C:/Users/alexisc/Documents/EVE/CompiledParaView/bin/Release/StateFiles/1.pvsm",&filestat);
+	this->last_write = filestat.st_mtime;
 	/*}*/
 }
 
@@ -1240,36 +1073,36 @@ void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 {
 	if (this->phantomStyleCamera1)
 	{
-	double position[3];  
-	double quat[4];  
-	if (this->phantomStyleCamera1->PhantomType == PHANTOM_TYPE_DESKTOP)
-	{
-		position[0] = 0.013141;
-		position[1] = -0.061171;
-		position[2] = -0.069131;
-		quat[0] =  0.017818;
-		quat[1] =  -0.143210;
-		quat[2] =  0.645633;
-		quat[3] =  0.749888;
-	}
-	else
-	{
-		position[0] = -0.000033;
-		position[1] = -0.065609;
-		position[2] = -0.087861;
-		quat[0] = -0.205897;
-		quat[1] = -0.050476;
-		quat[2] = -0.227901;
-		quat[3] = 0.950326;
-	}
-	    double  matrix[3][3];
+		double position[3];  
+		double quat[4];  
+		if (this->phantomStyleCamera1->PhantomType == PHANTOM_TYPE_DESKTOP)
+		{
+			position[0] = 0.013141;
+			position[1] = -0.061171;
+			position[2] = -0.069131;
+			quat[0] =  0.017818;
+			quat[1] =  -0.143210;
+			quat[2] =  0.645633;
+			quat[3] =  0.749888;
+		}
+		else
+		{
+			position[0] = -0.000033;
+			position[1] = -0.065609;
+			position[2] = -0.087861;
+			quat[0] = -0.205897;
+			quat[1] = -0.050476;
+			quat[2] = -0.227901;
+			quat[3] = 0.950326;
+		}
+		double  matrix[3][3];
 		double orientNew[3] ;
 		if (deleteOldCone)
 		{
 			this->ConeActor->Delete(); 
 		}
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() );  
-		 
+
 		vtkMatrix4x4* cameraLightTransformMatrix = proxy->GetActiveCamera()->GetCameraLightTransformMatrix(); 
 		cameraLightTransformMatrix->MultiplyPoint(position,position); 
 		// Update Object Orientation
@@ -1281,12 +1114,12 @@ void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 		RotationMatrix->SetElement(0,1, matrix[0][1]);
 		RotationMatrix->SetElement(0,2, matrix[0][2]); 
 		RotationMatrix->SetElement(0,3, 0.0); 
-		
+
 		RotationMatrix->SetElement(1,0, matrix[1][0]);
 		RotationMatrix->SetElement(1,1, matrix[1][1]);
 		RotationMatrix->SetElement(1,2, matrix[1][2]); 
 		RotationMatrix->SetElement(1,3, 0.0); 
-		
+
 		RotationMatrix->SetElement(2,0, matrix[2][0]);
 		RotationMatrix->SetElement(2,1, matrix[2][1]);
 		RotationMatrix->SetElement(2,2, matrix[2][2]); 
@@ -1294,26 +1127,26 @@ void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 
 		//cameraLightTransformMatrix->Multiply4x4(cameraLightTransformMatrix,RotationMatrix,RotationMatrix); 
 		vtkTransform::GetOrientation(orientNew,RotationMatrix); 
- 
-	// ConeSource
-    Cone = vtkConeSource::New(); 
-	Cone->SetRadius(0.05);
-	Cone->SetHeight(0.1);  
-	Cone->SetDirection(orientNew); 
 
-	//Cone Mapper
-    vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
-	ConeMapper->SetInput(Cone->GetOutput());
-    
-	ConeActor = vtkActor::New();
-    ConeActor->SetMapper(ConeMapper); 
-	ConeActor->SetPosition(position); 
-	ConeActor->UseBoundsOff();
- 	vtkRenderer* renderer1 = proxy->GetRenderer();
-	renderer1->AddActor(ConeActor);
+		// ConeSource
+		Cone = vtkConeSource::New(); 
+		Cone->SetRadius(0.05);
+		Cone->SetHeight(0.1);  
+		Cone->SetDirection(orientNew); 
 
-	Cone->Delete(); 
-	ConeMapper->Delete();
+		//Cone Mapper
+		vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
+		ConeMapper->SetInput(Cone->GetOutput());
+
+		ConeActor = vtkActor::New();
+		ConeActor->SetMapper(ConeMapper); 
+		ConeActor->SetPosition(position); 
+		ConeActor->UseBoundsOff();
+		vtkRenderer* renderer1 = proxy->GetRenderer();
+		renderer1->AddActor(ConeActor);
+
+		Cone->Delete(); 
+		ConeMapper->Delete();
 	}
 
 }
@@ -1323,17 +1156,16 @@ void pqVRPNStarter::resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* 
 {
 	if (this->useTracker)
 	{ 
-		
+
 		trackerStyleCamera1->SetRenderer(vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() )->GetRenderer());
 	}
 	if (this->usePhantom)
 	{
 
-	this->VRPNTimer->blockSignals(true);
-	createConeInVTK(true);
-	phantomStyleCamera1->SetActor(this->ConeActor);
-	phantomStyleCamera1->SetConeSource(this->Cone);
-	this->VRPNTimer->blockSignals(false);
+		this->VRPNTimer->blockSignals(true);
+		createConeInVTK(true);
+		phantomStyleCamera1->SetActor(this->ConeActor);
+		phantomStyleCamera1->SetConeSource(this->Cone);
+		this->VRPNTimer->blockSignals(false);
 	}
 }
- 
