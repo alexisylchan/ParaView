@@ -138,6 +138,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //Propagation
 #include "pqPipelineRepresentation.h"
+#include "pqScalarsToColors.h"
 
 //networking
 //#include "stdafx.h"
@@ -539,7 +540,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		SurfaceRot->MultiplyPoint( DisplayOrigin, DisplayOrigin );
 		SurfaceRot->MultiplyPoint( DisplayX, DisplayX );
 		SurfaceRot->MultiplyPoint( DisplayY, DisplayY );  
-		// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top
+		// Set O2Screen, O2Right, O2Left, O2Bottom, O2Top (exactly the same as vtkCaveSynchronizedRenderers)
 		double O2Screen = - DisplayOrigin[2];
 		double O2Right  =   DisplayX[0];
 		double O2Left   = - DisplayOrigin[0];
@@ -601,7 +602,7 @@ void pqVRPNStarter::initializeDevices()
 		//Create connection to VRPN Tracker using vtkInteractionDevice.lib
 		vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
 		tracker1->SetDeviceName(this->trackerAddress); 
-		tracker1->SetSensorIndex(this->sensorIndex + 2);//TODO: Fix error handling  
+		tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
 		tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
 		double t2w1[3][3] = { 0, -1,  0,
 							  0,  0, 1, 
@@ -971,7 +972,7 @@ void pqVRPNStarter::respondToOtherAppsChange()
 			}
 		else
 		{
-			qWarning("error %d",err);
+			//qWarning("error %d",err);
 			WSASetLastError(0);
 			}
 		}
@@ -1056,12 +1057,26 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 				pqView* cur_view = repr->getView(); 
 				pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
 				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(true); 
-				pqSMAdaptor::setMultipleElementProperty(displayRepresentation->getProxy()->GetProperty(propertyName),valueList);
+
+				vtkSMProxy* smProxy = 0; 
+				vtkSMProperty* smProperty = 0;
+				smProxy = displayRepresentation->getProxy();
+				smProperty = smProxy->GetProperty(propertyName);
+
+				if (!smProperty)
+				{
+					smProxy = repr->getLookupTable()->getProxy();
+					smProperty = smProxy->GetProperty(propertyName);
+				}
+				if (smProperty)
+				{
+				pqSMAdaptor::setMultipleElementProperty(smProperty,valueList);
 				
 				if (VERBOSE)
-					qWarning("Proxy Property Name %s",displayRepresentation->getProxy()->GetProperty(propertyName)->GetXMLName());
-				//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
-				displayRepresentation->getProxy()->UpdateVTKObjects();
+					qWarning("Proxy Property Name %s",smProperty->GetXMLName());
+					//displayRepresentation->getProxy()->GetProperty(propertyName)->VRPNSetBlockModifiedEvents(false);
+					smProxy->UpdateVTKObjects();
+				}
 			}
 	}
 	else

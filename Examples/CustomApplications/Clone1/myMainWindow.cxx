@@ -96,7 +96,7 @@ myMainWindow::myMainWindow()
 
   this->Internals->setupUi(this);
 
-	if (!(vtkProcessModule::GetProcessModule()->GetOptions()->GetTrackerSensor() - 2))
+	if (!pqApplicationCore::instance()->sensorIndex)//(vtkProcessModule::GetProcessModule()->GetOptions()->GetTrackerSensor()))
 	{
 		this->setWindowTitle("CSVW: User 0"); 
 	}
