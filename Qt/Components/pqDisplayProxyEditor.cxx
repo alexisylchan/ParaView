@@ -421,6 +421,7 @@ void pqDisplayProxyEditor::setRepresentation(pqPipelineRepresentation* repr)
     SIGNAL(modified()),
     this, SLOT(updateEnableState()), Qt::QueuedConnection);
 
+  //Alexis YL Chan: This is the link between the Representation dropdown menu's and the Color panel
   this->Internal->StyleRepresentation->setRepresentation(repr);
   QObject::connect(this->Internal->StyleRepresentation,
     SIGNAL(currentTextChanged(const QString&)),

@@ -324,60 +324,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 
 		}
 	}
-	else
-	{
-		double* position = Phantom->GetPosition(); 
 
-
-		pqServerManagerModel* serverManager = pqApplicationCore::instance()->getServerManagerModel(); 
-
-		for (int i = 0; i<serverManager->getNumberOfItems<pqView*>(); i++)
-		{
-			/*qWarning("Orig %f %f %f",position[0],position[1],position[2]);*/
-			pqView* view = serverManager->getItemAtIndex<pqView*>(i);
-			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() );  
-			vtkCamera* camera = proxy->GetActiveCamera();  
-
-			double* newPosition;
-			newPosition = this->ScaleByCameraFrustumPlanes(position,proxy->GetRenderer(),Phantom->GetSensorIndex());
-			//newPosition= this->ScalePosition(position,proxy->GetRenderer());
-
-			//Set position to view position
-			pqDataRepresentation *cursorData = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqDataRepresentation*>(pqVRPNStarter::PHANTOM_CURSOR); 
-			if (cursorData)
-			{
-				vtkSMPVRepresentationProxy *repProxy = 0;
-				repProxy = vtkSMPVRepresentationProxy::SafeDownCast(cursorData->getProxy());
-				vtkSMPropertyHelper(repProxy,"Position").Set(newPosition,3); 
-
-				double  matrix[3][3];
-				double orientNew[3] ;
-				//Change transform quaternion to matrix
-				vtkMath::QuaternionToMatrix3x3(Phantom->GetRotation(), matrix);
-				vtkMatrix4x4* vtkMatrixToOrient = vtkMatrix4x4::New();
-				for (int i =0; i<4;i++)
-				{
-					for (int j = 0; j<4; j++)
-					{
-						if ((i == 3) || (j==3))
-						{
-							vtkMatrixToOrient->SetElement(i,j, 0);
-						}
-						else
-							vtkMatrixToOrient->SetElement(i,j, matrix[i][j]);
-					}
-				}
-				vtkTransform::GetOrientation(orientNew,vtkMatrixToOrient); 
-
-				vtkSMPropertyHelper(repProxy,"Orientation").Set(orientNew,3); 
-
-
-
-				delete newPosition;
-				repProxy->UpdateVTKObjects();
-			}
-		}
-	}
 
 } 
 void vtkVRPNPhantomStyleCamera::CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom, double* newPosition)

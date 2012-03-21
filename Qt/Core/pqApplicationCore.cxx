@@ -530,7 +530,11 @@ void pqApplicationCore::writeChangeSnippet(const char* snippet)
 	{
 		int bytesSent; 
 		bytesSent = ::send( *(pqApplicationCore::instance()->socket1), snippet, SNIPPET_LENGTH, 0 );  
-		if (bytesSent == 0  || bytesSent == WSAECONNRESET )
+		if (bytesSent == 0 )
+		{
+			return;
+		}
+		if (bytesSent == WSAECONNRESET )
 		{
 			pqApplicationCore::instance()->closeConnection(false);
 		} 

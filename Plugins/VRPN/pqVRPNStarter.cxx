@@ -282,11 +282,11 @@ void pqVRPNStarter::onSourceCreated(pqPipelineSource* createdSource)
 {
 	if (pqApplicationCore::instance()->getConnectionStatus())
 	{
-		if(VERBOSE)
-		{
+	/*	if(VERBOSE)
+		{*/
 			qWarning("onSourceCreated pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 			qWarning("onSourceCreated doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-		}
+		/*}*/
 		if (!pqApplicationCore::instance()->isRepeating && (createdSource != NULL))
 		{ 
 			doNotPropagateSourceSelection = true;
@@ -312,7 +312,7 @@ void pqVRPNStarter::onFilterCreated(pqPipelineSource* createdFilter)
 
 			QString groupName;
 
-			pqPipelineFilter* actualCreatedFilter = qobject_cast<pqPipelineFilter*> (createdFilter);
+			pqPipelineFilter* actualCreatedFilter = dynamic_cast<pqPipelineFilter*> (createdFilter);
 			if (actualCreatedFilter)
 				groupName = actualCreatedFilter->getSMGroup().toAscii().data();
 			else
@@ -332,11 +332,11 @@ void pqVRPNStarter::onSourceChanged(pqPipelineSource* createdSource)
 {
 	if(pqApplicationCore::instance()->getConnectionStatus())
 	{
-		if(VERBOSE)
-		{
+		/*if(VERBOSE)
+		{*/
 			qWarning("onSourceChanged pqApplicationCore::instance()->isRepeating %d",(pqApplicationCore::instance()->isRepeating? 1:0));
 			qWarning("onSourceChanged doNotPropagateSourceSelection %d",(doNotPropagateSourceSelection? 1:0));
-		}
+	/*	}*/
 		if (!pqApplicationCore::instance()->isRepeating)
 		{
 			if (doNotPropagateSourceSelection)
@@ -678,7 +678,7 @@ void pqVRPNStarter::repeatCreateFilter(char* groupName,char* sourceName )
 	pqPipelineSource* item = pqActiveObjects::instance().activeSource();
 
 	pqOutputPort* opPort = qobject_cast<pqOutputPort*>(item);
-	pqPipelineSource* source = qobject_cast<pqPipelineSource*>(item);
+	pqPipelineSource* source = dynamic_cast<pqPipelineSource*>(item);
 
 	if (source)
 	{
@@ -711,22 +711,22 @@ void pqVRPNStarter::repeatSelectionChange(char* sourceName)
 	pqPipelineSource* selectedSource = pqApplicationCore::instance()->getServerManagerModel()->findItem<pqPipelineSource*>(sourceName);
 	if (selectedSource)
 	{
-		if(VERBOSE)
-		{
+		//if(VERBOSE)
+		//{
 			qWarning("Found source! %s %s ",selectedSource->getSMName().toAscii().data(),sourceName);
-		}
+		/*}*/
 		pqActiveObjects::instance().setActiveSource(selectedSource);
 	}
 	else
 	{
-		//qWarning("Cannot find source! %s ",sourceName);
+		qWarning("Cannot find source! %s ",sourceName);
 		QList<pqPipelineSource*> sources = pqApplicationCore::instance()->getServerManagerModel()->findItems<pqPipelineSource*>();
 		for (int i =0; i < sources.size();i++)
 		{
-			if(VERBOSE)
-			{
+			/*if(VERBOSE)
+			{*/
 				qWarning("Source at %d is %s", i, sources.at(i)->getSMName().toAscii().data());
-			}
+			/*}*/
 		}
 
 	} 
@@ -756,7 +756,11 @@ void pqVRPNStarter::respondToOtherAppsChange()
 		bytesRecv = ::recv( s1, snippet, SNIPPET_LENGTH, 0 );
 		err = WSAGetLastError( );// 10057 = A request to send or receive data was disallowed because the socket is not connected and (when sending on a datagram socket using a sendto call) 
 
-		if ( bytesRecv == 0 || bytesRecv == WSAECONNRESET ) {
+		if ( bytesRecv == 0)
+		{
+			return;
+		}
+		if ( bytesRecv == WSAECONNRESET ) {
 			pqApplicationCore::instance()->closeConnection(false);
 			return;
 		} 
@@ -894,32 +898,35 @@ void pqVRPNStarter::repeatPropertiesChange(char* panelType,QList<char*> property
 		pqApplicationCore::instance()->isRepeatingDisplay = true;
 		pqDisplayPolicy* displayPolicy = pqApplicationCore::instance()->getDisplayPolicy();
 		pqPipelineSource* source = pqActiveObjects::instance().activeSource();
-		for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
+		if (source)
 		{
-			pqDataRepresentation* repr = displayPolicy->createPreferredRepresentation(
-				source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);
-			if (!repr || !repr->getView()) 
-				continue; 
-			pqView* cur_view = repr->getView(); 
-			pqRepresentation* displayRepresentation =qobject_cast<pqRepresentation*>(repr);
-
-			vtkSMProxy* smProxy = 0; 
-			vtkSMProperty* smProperty = 0;
-			smProxy = displayRepresentation->getProxy();
-			smProperty = smProxy->GetProperty(propertyName);
-
-			if (!smProperty)
+			for (int cc=0; cc < source->getNumberOfOutputPorts(); cc++)
 			{
-				smProxy = repr->getLookupTable()->getProxy();
+				pqDataRepresentation* repr = source->getRepresentation(pqActiveObjects::instance().activeView());/*displayPolicy->createPreferredRepresentation(
+					source->getOutputPort(cc), pqActiveObjects::instance().activeView(), false);*/
+				if (!repr || !repr->getView()) 
+					continue; 
+				pqView* cur_view = repr->getView(); 
+				pqRepresentation* displayRepresentation =dynamic_cast<pqRepresentation*>(repr);
+
+				vtkSMProxy* smProxy; 
+				vtkSMProperty* smProperty;
+				smProxy = displayRepresentation->getProxy();
 				smProperty = smProxy->GetProperty(propertyName);
-			}
-			if (smProperty)
-			{
-				pqSMAdaptor::setMultipleElementProperty(smProperty,valueList);
 
-				if (VERBOSE)
-					qWarning("Proxy Property Name %s",smProperty->GetXMLName());
-				smProxy->UpdateVTKObjects();
+				if (!smProperty)
+				{
+					smProxy = repr->getLookupTableProxy();
+					smProperty = smProxy->GetProperty(propertyName);
+				}
+				if (smProperty)
+				{
+					pqSMAdaptor::setMultipleElementProperty(smProperty,valueList);
+
+					if (VERBOSE)
+						qWarning("Proxy Property Name %s",smProperty->GetXMLName());
+					smProxy->UpdateVTKObjects();
+				}
 			}
 		}
 	}
