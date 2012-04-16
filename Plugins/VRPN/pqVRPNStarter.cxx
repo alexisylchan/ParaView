@@ -81,7 +81,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 #include "pqDataRepresentation.h"
 #include "vtkTransform.h"
-
+#include "vtkHomogeneousTransform.h"
+#include "vtkMatrixToHomogeneousTransform.h"
 //Off-axis projection includes
 #include "vtkMatrix4x4.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
@@ -160,7 +161,7 @@ pqVRPNStarter::pqVRPNStarter(QObject* p/*=0*/)
 
 //-----------------------------------------------------------------------------
 pqVRPNStarter::~pqVRPNStarter()
-{
+{ 
 }
 
 
@@ -361,9 +362,21 @@ void pqVRPNStarter::onSwitchToPartnersView()
 { 
 	this->VRPNTimer->blockSignals(true);
 
-	showPartnersView = true;
-	this->sensorIndex = (this->sensorIndex +1)%2; 
-	this->initializeEyeAngle();
+	showPartnersView = true; 
+	vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast(pqActiveObjects::instance().activeView()->getViewProxy())->GetActiveCamera();
+	if (this->sensorIndex == 1)
+	{
+		camera->SetUserViewTransform(this->user0Transform);
+	}
+	else
+	{
+		camera->SetUserViewTransform(this->user1Transform); 
+	}
+
+	//user1Transform = camera->GetUserTransform();
+	
+	//this->sensorIndex = (this->sensorIndex +1)%2; 
+	//this->initializeEyeAngle();
 	this->VRPNTimer->blockSignals(false);
 
 } 
@@ -371,8 +384,17 @@ void pqVRPNStarter::onSwitchToMyView()
 { 
 	this->VRPNTimer->blockSignals(true);
 	showPartnersView = false;
-	this->sensorIndex = this->origSensorIndex;
-	this->initializeEyeAngle();
+	vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast(pqActiveObjects::instance().activeView()->getViewProxy())->GetActiveCamera();
+	if (this->sensorIndex == 1)
+	{
+		camera->SetUserViewTransform(this->user1Transform); 
+	}
+	else
+	{
+		camera->SetUserViewTransform(this->user0Transform);
+	}
+	/*this->sensorIndex = this->origSensorIndex;
+	this->initializeEyeAngle();*/
 	this->VRPNTimer->blockSignals(false);
 
 } 
@@ -389,23 +411,41 @@ void pqVRPNStarter::initializeEyeAngle()
 		double DisplayX[4], DisplayY[4],DisplayOrigin[4];
 
 		//Transform monitor position to ceiling tracker space
-		vtkMatrix4x4* trackerTransformM = vtkMatrix4x4::New();
-		trackerTransformM->SetElement(0,0,0);
-		trackerTransformM->SetElement(0,1,-1);
-		trackerTransformM->SetElement(0,2,0);
-		trackerTransformM->SetElement(0,3,-1*trackerOrigin[1]);
-		trackerTransformM->SetElement(1,0,0);
-		trackerTransformM->SetElement(1,1,0);
-		trackerTransformM->SetElement(1,2,1);
-		trackerTransformM->SetElement(1,3, 1*trackerOrigin[2]);
-		trackerTransformM->SetElement(2,0,-1);
-		trackerTransformM->SetElement(2,1,0);
-		trackerTransformM->SetElement(2,2,0); 
-		trackerTransformM->SetElement(2,3,-1*trackerOrigin[0]);
-		trackerTransformM->SetElement(3,0, 0);
-		trackerTransformM->SetElement(3,1, 0 );
-		trackerTransformM->SetElement(3,2,0); 
-		trackerTransformM->SetElement(3,3,1);
+		trackerToVTKTransform = vtkMatrix4x4::New();
+		if (this->sensorIndex == 1)
+		{
+	    	trackerToVTKTransform->SetElement(0,0,1);
+			trackerToVTKTransform->SetElement(0,1,0);
+			trackerToVTKTransform->SetElement(0,2,0); 
+			trackerToVTKTransform->SetElement(0,3, 1*trackerOrigin[0]); 
+			trackerToVTKTransform->SetElement(1,0,0);
+			trackerToVTKTransform->SetElement(1,1,0);
+			trackerToVTKTransform->SetElement(1,2,1); 
+			trackerToVTKTransform->SetElement(1,3, 1*trackerOrigin[2]); 
+			trackerToVTKTransform->SetElement(2,0,0);
+			trackerToVTKTransform->SetElement(2,1,-1);
+			trackerToVTKTransform->SetElement(2,2,0); 
+			trackerToVTKTransform->SetElement(2,3,-1*trackerOrigin[1]);  
+		}
+		else
+		{			
+			trackerToVTKTransform->SetElement(0,0,0);
+			trackerToVTKTransform->SetElement(0,1,-1);
+			trackerToVTKTransform->SetElement(0,2,0);
+			trackerToVTKTransform->SetElement(0,3,-1*trackerOrigin[1]);
+			trackerToVTKTransform->SetElement(1,0,0);
+			trackerToVTKTransform->SetElement(1,1,0);
+			trackerToVTKTransform->SetElement(1,2,1);
+			trackerToVTKTransform->SetElement(1,3, 1*trackerOrigin[2]);
+			trackerToVTKTransform->SetElement(2,0,-1);
+			trackerToVTKTransform->SetElement(2,1,0);
+			trackerToVTKTransform->SetElement(2,2,0); 
+			trackerToVTKTransform->SetElement(2,3,-1*trackerOrigin[0]);
+			trackerToVTKTransform->SetElement(3,0, 0);
+			trackerToVTKTransform->SetElement(3,1, 0 );
+			trackerToVTKTransform->SetElement(3,2,0); 
+			trackerToVTKTransform->SetElement(3,3,1);
+		}
 		DisplayOrigin[3] = 1;
 		DisplayX[3] = 1;
 		DisplayY[3] = 1;
@@ -422,10 +462,10 @@ void pqVRPNStarter::initializeEyeAngle()
 
 			DisplayY[0]= 8.100520; 
 			DisplayY[1]= 5.752832;
-			DisplayY[2]= 1.093276;
+			DisplayY[2]= 1.093276;  	 			 
 		}
 		else
-		{ 
+		{   
 			DisplayOrigin[0]= 8.225979;
 			DisplayOrigin[1]= 5.658086; 
 			DisplayOrigin[2]= 0.807048; 
@@ -436,13 +476,12 @@ void pqVRPNStarter::initializeEyeAngle()
 
 			DisplayY[0]= 8.225979;
 			DisplayY[1]= 5.177659;
-			DisplayY[2]= 1.100456;   
+			DisplayY[2]= 1.100456; 
 		}
 
-
-		trackerTransformM->MultiplyPoint(DisplayOrigin,DisplayOrigin);
-		trackerTransformM->MultiplyPoint(DisplayX,DisplayX);
-		trackerTransformM->MultiplyPoint(DisplayY,DisplayY); 
+		trackerToVTKTransform->MultiplyPoint(DisplayOrigin,DisplayOrigin);
+		trackerToVTKTransform->MultiplyPoint(DisplayX,DisplayX);
+		trackerToVTKTransform->MultiplyPoint(DisplayY,DisplayY);
 
 		double xBase[3],yBase[3],zBase[3];
 		//Get Vectors of screen
@@ -456,7 +495,7 @@ void pqVRPNStarter::initializeEyeAngle()
 		vtkMatrix4x4* SurfaceRot = vtkMatrix4x4::New();
 		vtkMath::Normalize( xBase );
 		vtkMath::Normalize( yBase );
-		vtkMath::Normalize( zBase );
+		vtkMath::Normalize( zBase ); 
 
 		SurfaceRot->SetElement( 0, 0, xBase[0] );
 		SurfaceRot->SetElement( 0, 1, xBase[1] );
@@ -479,8 +518,36 @@ void pqVRPNStarter::initializeEyeAngle()
 		double O2Left   = - DisplayOrigin[0];
 		double O2Top    =   DisplayY[1];
 		double O2Bottom = - DisplayX[1]; 
-		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom, 0.065  ,/*6.69*/(camera->GetDistance()/(2*O2Screen)),SurfaceRot);
-		camera->Modified(); 
+		camera->SetConfigParams(O2Screen,O2Right,O2Left,O2Top,O2Bottom, 0.065 /2.0 ,/*6.69*/(/*camera->GetDistance()*/1/(O2Screen)),SurfaceRot);
+
+		user0Transform = vtkTransform::New(); 
+
+	   vtkMatrixToHomogeneousTransform* matrixToHomogeneous = vtkMatrixToHomogeneousTransform::New();
+	   vtkMatrix4x4* user1Matrix   = vtkMatrix4x4::New();
+		user1Matrix->SetElement(0,0,0);
+		user1Matrix->SetElement(0,1,0);
+		user1Matrix->SetElement(0,2,-1);
+		user1Matrix->SetElement(0,3,0);
+		user1Matrix->SetElement(1,0,0);
+		user1Matrix->SetElement(1,1,1);
+		user1Matrix->SetElement(1,2,0);
+		user1Matrix->SetElement(1,3,0);
+		user1Matrix->SetElement(2,0,1);
+		user1Matrix->SetElement(2,1,0);
+		user1Matrix->SetElement(2,2,0); 
+		user1Matrix->SetElement(2,3,0);
+		user1Matrix->SetElement(3,0, 0);
+		user1Matrix->SetElement(3,1, 0 );
+		user1Matrix->SetElement(3,2,0); 
+		user1Matrix->SetElement(3,3,1);  
+		matrixToHomogeneous->SetInput(user1Matrix);
+		matrixToHomogeneous->Update();  
+		user1Transform = static_cast<vtkHomogeneousTransform*>(matrixToHomogeneous);
+		if (this->sensorIndex == 1)
+		{		
+			camera->SetUserViewTransform(user1Transform);
+		}
+		camera->Modified();  
 		SurfaceRot->Delete();
 	}
 }
@@ -535,14 +602,16 @@ void pqVRPNStarter::initializeDevices()
 		//Create connection to VRPN Tracker using vtkInteractionDevice.lib
 		vtkVRPNTrackerCustomSensor* tracker1 = vtkVRPNTrackerCustomSensor::New();
 		tracker1->SetDeviceName(this->trackerAddress); 
-		tracker1->SetSensorIndex(this->sensorIndex);//TODO: Fix error handling  
-		tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
-		double t2w1[3][3] = { 0, -1,  0,
+		//vtkVRPNTrackerCustomSensor actually has to get the actual sensor index
+		tracker1->SetSensorIndex(vtkProcessModule::GetProcessModule()->GetOptions()->GetTrackerSensor());  
+		tracker1->SetTrackerToVTKTransform(trackerToVTKTransform);
+		//tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
+		/*double t2w1[3][3] = { 0, -1,  0,
 			0,  0, 1, 
 			-1, 0,  0 }; 
 		double t2wQuat1[4];
 		vtkMath::Matrix3x3ToQuaternion(t2w1, t2wQuat1);
-		tracker1->SetTracker2WorldRotation(t2wQuat1);
+		tracker1->SetTracker2WorldRotation(t2wQuat1);*/
 
 
 		tracker1->Initialize();
@@ -654,6 +723,10 @@ void pqVRPNStarter::onShutdown()
 		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
 		camera->SetHeadTracked(false);
+	}
+	if (user1Transform)
+	{
+		user1Transform->Delete();
 	}
 }
 
@@ -1016,7 +1089,7 @@ void VRPN_CALLBACK handleTNG(void *userdata,
 	{
 		pqView* view = pqApplicationCore::instance()->getServerManagerModel()->getItemAtIndex<pqView*>(i);
 		vtkCamera* camera = vtkSMRenderViewProxy::SafeDownCast( view->getViewProxy() )->GetActiveCamera(); 
-		camera->SetEyeOffset( (((camera->GetDistance()/camera->O2Screen)*0.065/2.0)/126.0)*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
+		camera->SetEyeOffset( ((/*(camera->GetDistance()/camera->O2Screen)**/0.065)/126.0)*delta);//Initial Camera Offset is 0, so no need to add to the initial camera offset
 
 
 	} 

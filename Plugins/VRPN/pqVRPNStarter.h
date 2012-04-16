@@ -56,6 +56,7 @@ class pqPipelineSource;
 class vtkSMProxy;
 class pqPipelineFilter;
 class vtkVRPNTrackerCustomSensorStyleCamera;
+class vtkHomogeneousTransform;
 
 #define IGNORE_FILE_ACC 1 
 
@@ -126,6 +127,8 @@ protected:
 	//VRPN Device callbacks 
 	tng_user_callback *TNGC1;
 
+	vtkMatrix4x4* trackerToVTKTransform;
+
 private: 
 	pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
 	void operator=(const pqVRPNStarter&); // Not implemented.
@@ -154,6 +157,8 @@ private:
 	double trackerOrigin[3];
 	int sensorIndex;
 	int origSensorIndex;
+	vtkHomogeneousTransform* user1Transform;
+	vtkHomogeneousTransform* user0Transform;
 	bool showPartnersView; 
 	int usePhantom;
 	int isPhantomDesktop;
