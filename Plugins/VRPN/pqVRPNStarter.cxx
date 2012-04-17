@@ -605,15 +605,22 @@ void pqVRPNStarter::initializeDevices()
 		//vtkVRPNTrackerCustomSensor actually has to get the actual sensor index
 		tracker1->SetSensorIndex(vtkProcessModule::GetProcessModule()->GetOptions()->GetTrackerSensor());  
 		tracker1->SetTrackerToVTKTransform(trackerToVTKTransform);
-		//tracker1->SetTracker2WorldTranslation(this->trackerOrigin[0],this->trackerOrigin[1],this->trackerOrigin[2]);
-		/*double t2w1[3][3] = { 0, -1,  0,
-			0,  0, 1, 
-			-1, 0,  0 }; 
-		double t2wQuat1[4];
-		vtkMath::Matrix3x3ToQuaternion(t2w1, t2wQuat1);
-		tracker1->SetTracker2WorldRotation(t2wQuat1);*/
 
-
+		eyeToTrackerTransform = vtkMatrix4x4::New();
+		if (this->sensorIndex == 1)
+		{    
+			// From C:\Users\alexisc\Documents\Visual Studio 2008\Projects\HibalToCyclopeanEye\HibalToCyclopeanEye\041612\cyclopeanTransform.txt
+			eyeToTrackerTransform->SetElement(0,3,0.000200); 
+			eyeToTrackerTransform->SetElement(1,3,0.142004); 
+			eyeToTrackerTransform->SetElement(2,3,0.171424);  
+		}
+		else
+		{   // From C:\Users\alexisc\Documents\Visual Studio 2008\Projects\HibalToCyclopeanEye\HibalToCyclopeanEye\041612\cyclopeanTransform.txt
+			eyeToTrackerTransform->SetElement(0,3,0.000707); 
+			eyeToTrackerTransform->SetElement(1,3,0.049336); 
+			eyeToTrackerTransform->SetElement(2,3,0.164706);  
+		}
+		tracker1->SetEyeToTrackerTransform(eyeToTrackerTransform);
 		tracker1->Initialize();
 
 		/////////////////////////CREATE  TRACKER STYLE////////////////////////////

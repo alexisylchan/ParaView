@@ -128,6 +128,7 @@ protected:
 	tng_user_callback *TNGC1;
 
 	vtkMatrix4x4* trackerToVTKTransform;
+	vtkMatrix4x4* eyeToTrackerTransform;
 
 private: 
 	pqVRPNStarter(const pqVRPNStarter&); // Not implemented.
