@@ -67,9 +67,12 @@ public:
   vtkGetMacro(TrackerSensor, int);
   vtkGetMacro(UseSpaceNavigator, int);
   vtkGetStringMacro(SpaceNavigatorAddress);
-  vtkGetMacro(UsePhantom, int);
-  vtkGetMacro(IsPhantomDesktop, int);
-  vtkGetStringMacro(PhantomAddress);
+  vtkGetMacro(UsePhantom0, int);
+  vtkGetMacro(IsPhantom0Desktop, int);
+  vtkGetStringMacro(Phantom0Address);
+  vtkGetMacro(UsePhantom1, int);
+  vtkGetMacro(IsPhantom1Desktop, int);
+  vtkGetStringMacro(Phantom1Address);
   vtkGetMacro(UseTNG, int);
   vtkGetStringMacro(TNGAddress);
   vtkGetMacro(SyncCollab, int);
@@ -235,8 +238,10 @@ private:
   int TrackerSensor;
   
   int UseSpaceNavigator;
-  int UsePhantom;
-  int IsPhantomDesktop;
+  int UsePhantom0;
+  int IsPhantom0Desktop;
+  int UsePhantom1;
+  int IsPhantom1Desktop;
   int UseTNG;
   int SyncCollab;
   int CollabVisDemo;
@@ -279,8 +284,10 @@ private:
   char* TrackerOrigin;    
   vtkSetStringMacro(SpaceNavigatorAddress);
   char* SpaceNavigatorAddress;   
-  vtkSetStringMacro(PhantomAddress);
-  char* PhantomAddress;        
+  vtkSetStringMacro(Phantom0Address);
+  char* Phantom0Address;        
+  vtkSetStringMacro(Phantom1Address);
+  char* Phantom1Address;        
   vtkSetStringMacro(TNGAddress);
   char* TNGAddress;       
 

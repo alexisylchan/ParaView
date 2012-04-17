@@ -93,10 +93,14 @@ vtkPVOptions::vtkPVOptions()
   this->UseSpaceNavigator = 0;
   this->SpaceNavigatorAddress = 0;
   this->SetSpaceNavigatorAddress("device0@localhost");
-  this->UsePhantom = 0;
-  this->IsPhantomDesktop = 0;
-  this->PhantomAddress = 0;
-  this->SetPhantomAddress("Phantom0@localhost");
+  this->UsePhantom0 = 0;
+  this->IsPhantom0Desktop = 0;
+  this->Phantom0Address = 0;
+  this->SetPhantom0Address("Phantom0@localhost");
+  this->UsePhantom1 = 0;
+  this->IsPhantom1Desktop = 0;
+  this->Phantom1Address = 0;
+  this->SetPhantom1Address("Phantom0@localhost");
   this->UseTNG = 0; 
   this->TNGAddress = 0;
   this->SetTNGAddress("tng3name@localhost");
@@ -140,7 +144,8 @@ vtkPVOptions::~vtkPVOptions()
   this->SetTrackerAddress(0); 
   this->SetTrackerOrigin(0); 
   this->SetSpaceNavigatorAddress(0); 
-  this->SetPhantomAddress(0); 
+  this->SetPhantom0Address(0); 
+  this->SetPhantom1Address(0); 
   this->SetTNGAddress(0);  
 }
 
@@ -235,15 +240,26 @@ void vtkPVOptions::Initialize()
                     "--spacenavigator is specified. Examples: "
                     "\"device0@localhost\"",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
-  this->AddBooleanArgument("--phantom", 0, &this->UsePhantom,
-                           "Tell the Collaborative Scientific Visualization Workbench to use the Phantom Device. Default is Phantom Omni. To select Phantom Desktop, use the --phantom-desktop option",
+  this->AddBooleanArgument("--phantom0", 0, &this->UsePhantom0,
+                           "Tell the Collaborative Scientific Visualization Workbench to connect to User 0's Phantom Device. Default is Phantom Omni. To select Phantom Desktop, use the --phantom0-desktop option",
                            vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
-  this->AddBooleanArgument("--phantom-desktop", 0, &this->IsPhantomDesktop,
-                           "Tell the Collaborative Scientific Visualization Workbench to use the Phantom Desktop Device.",
+  this->AddBooleanArgument("--phantom-desktop", 0, &this->IsPhantom0Desktop,
+                           "Tell the Collaborative Scientific Visualization Workbench that the Phantom Type for User 0 is Phantom Desktop.",
                            vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
-  this->AddArgument("--phantom-address", 0, &this->PhantomAddress,
-                    "Specify the Phantom Omni Device name. This valid only when "
-                    "--phantom is specified. Examples: "
+  this->AddArgument("--phantom0-address", 0, &this->Phantom0Address,
+                    "Specify the Phantom Device name. This valid only when "
+                    "--phantom0 is specified. Examples: "
+                    "\"Phantom0@localhost\"",
+                    vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+   this->AddBooleanArgument("--phantom1", 0, &this->UsePhantom1,
+                           "Tell the Collaborative Scientific Visualization Workbench to connect to User 1's Phantom Device. Default is Phantom Omni. To select Phantom Desktop, use the --phantom1-desktop option",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddBooleanArgument("--phantom1-desktop", 0, &this->IsPhantom1Desktop,
+                           "Tell the Collaborative Scientific Visualization Workbench that the Phantom Type for User 1 is Phantom Desktop.",
+                           vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
+  this->AddArgument("--phantom1-address", 0, &this->Phantom1Address,
+                    "Specify the Phantom Device name. This valid only when "
+                    "--phantom1 is specified. Examples: "
                     "\"Phantom0@localhost\"",
                     vtkPVOptions::PVCLIENT | vtkPVOptions::PARAVIEW);
   this->AddBooleanArgument("--tng", 0, &this->UseTNG,

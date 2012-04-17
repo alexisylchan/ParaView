@@ -194,9 +194,12 @@ void pqVRPNStarter::onStartup()
 	this->origSensorIndex = this->sensorIndex;
 
 	//Phantom Options
-	this->usePhantom = options->GetUsePhantom();
-	this->isPhantomDesktop = options->GetIsPhantomDesktop();
-	this->phantomAddress = options->GetPhantomAddress();
+	this->usePhantom0 = options->GetUsePhantom0();
+	this->isPhantom0Desktop = options->GetIsPhantom0Desktop();
+	this->phantom0Address = options->GetPhantom0Address();
+	this->usePhantom1 = options->GetUsePhantom1();
+	this->isPhantom1Desktop = options->GetIsPhantom1Desktop();
+	this->phantom1Address = options->GetPhantom1Address();
 
 	//TNG Options
 	this->useTNG = options->GetUseTNG();
@@ -637,16 +640,67 @@ void pqVRPNStarter::initializeDevices()
 		//tracker1->Delete();
 		//trackerStyleCamera1->Delete();
 	}  
-	if (this->usePhantom)
+	if (this->usePhantom0)
 	{
 
-		/////////////////////////CREATE  PHANTOM////////////////////////////
+		/////////////////////////CREATE  PHANTOM 1////////////////////////////
+
+		vtkVRPNPhantom* phantom0 = vtkVRPNPhantom::New();
+		phantom0->SetDeviceName(this->phantom0Address);
+		phantom0->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
+		phantom0->SetNumberOfButtons(2);
+		if (this->isPhantom0Desktop )
+		{
+			if (this->tngAddress)//TODO: replace this with if Phantom Desktop
+			{
+				phantom0->SetPhantomMockButtonAddress(this->tngAddress); 
+				phantom0->PhantomType = PHANTOM_TYPE_DESKTOP;
+			}
+			else
+			{
+				phantom0->SetNumberOfButtons(1); 
+			}
+		}
+		phantom0->SetSensorIndex(this->sensorIndex);
+
+		phantom0->Initialize();
+
+		/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
+		phantomStyleCamera0 = vtkVRPNPhantomStyleCamera::New(); 
+		/////////////////////////CONNECT TO SERVER CHANGE////////////////////////////
+
+		if (CREATE_VTK_CONE)
+		{ 
+			this->createConeInVTK(phantomStyleCamera0,this->Cone0Actor,this->Cone0,false);
+
+			phantomStyleCamera0->SetActor(Cone0Actor); 
+			phantomStyleCamera0->SetConeSource(this->Cone0);
+
+			QObject::connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement* , vtkSMProxyLocator* )),
+				this, SLOT(resetPhantomActor(vtkPVXMLElement* , vtkSMProxyLocator* )));
+		}
+		phantomStyleCamera0->SetPhantom(phantom0);
+		phantomStyleCamera0->SetRenderer(renderer1); 
+
+
+		/////////////////////////INTERACTOR////////////////////////////
+		//Register Phantom to Device Interactor 
+		inputInteractor->AddInteractionDevice(phantom0);
+		inputInteractor->AddDeviceInteractorStyle(phantomStyleCamera0);
+
+		//phantom0->Delete();
+		//phantomStyleCamera0->Delete();
+	} 
+	if (this->usePhantom1)
+	{
+
+		/////////////////////////CREATE  PHANTOM 1////////////////////////////
 
 		vtkVRPNPhantom* phantom1 = vtkVRPNPhantom::New();
-		phantom1->SetDeviceName(this->phantomAddress);
+		phantom1->SetDeviceName(this->phantom1Address);
 		phantom1->SetPhantom2WorldTranslation(0.000264,0.065412,0.0);//TODO: FIX
 		phantom1->SetNumberOfButtons(2);
-		if (this->isPhantomDesktop )
+		if (this->isPhantom1Desktop )
 		{
 			if (this->tngAddress)//TODO: replace this with if Phantom Desktop
 			{
@@ -667,11 +721,11 @@ void pqVRPNStarter::initializeDevices()
 		/////////////////////////CONNECT TO SERVER CHANGE////////////////////////////
 
 		if (CREATE_VTK_CONE)
-		{ 
-			this->createConeInVTK(false);
+		{  
+			this->createConeInVTK(phantomStyleCamera1,this->Cone1Actor,this->Cone1,false);
 
-			phantomStyleCamera1->SetActor(ConeActor); 
-			phantomStyleCamera1->SetConeSource(this->Cone);
+			phantomStyleCamera1->SetActor(Cone1Actor); 
+			phantomStyleCamera1->SetConeSource(this->Cone1);
 
 			QObject::connect(pqApplicationCore::instance(), SIGNAL(stateLoaded(vtkPVXMLElement* , vtkSMProxyLocator* )),
 				this, SLOT(resetPhantomActor(vtkPVXMLElement* , vtkSMProxyLocator* )));
@@ -712,7 +766,7 @@ void pqVRPNStarter::uninitializeDevices()
 	this->VRPNTimer->stop(); 
 	delete this->VRPNTimer;
 
-	if (this->useTracker || this->usePhantom)
+	if (this->useTracker || this->usePhantom0 || this->usePhantom1)
 		this->inputInteractor->Delete();
 	if (this->useTNG)
 	{
@@ -1039,7 +1093,7 @@ void pqVRPNStarter::timerCallback()
 	} 
 	if (this->useTNG)
 		this->tng1->mainloop();
-	if (this->useTracker || this->usePhantom)
+	if (this->useTracker || this->usePhantom0|| this->usePhantom1)
 		this->inputInteractor->Update(); 
 
 
@@ -1156,13 +1210,14 @@ void pqVRPNStarter::changeTimeStamp()
 	/*}*/
 }
 
-void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
+void pqVRPNStarter::createConeInVTK(vtkVRPNPhantomStyleCamera*& phantomStyle, vtkActor*& coneActor, 
+									vtkConeSource*& coneSource, bool deleteOldCone)
 {
-	if (this->phantomStyleCamera1)
+	if (phantomStyle)
 	{
 		double position[3];  
 		double quat[4];  
-		if (this->phantomStyleCamera1->PhantomType == PHANTOM_TYPE_DESKTOP)
+		if (phantomStyle->PhantomType == PHANTOM_TYPE_DESKTOP)
 		{
 			position[0] = 0.013141;
 			position[1] = -0.061171;
@@ -1186,7 +1241,7 @@ void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 		double orientNew[3] ;
 		if (deleteOldCone)
 		{
-			this->ConeActor->Delete(); 
+			coneActor->Delete(); 
 		}
 		vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() );  
 
@@ -1216,23 +1271,23 @@ void pqVRPNStarter::createConeInVTK(bool deleteOldCone)
 		vtkTransform::GetOrientation(orientNew,RotationMatrix); 
 
 		// ConeSource
-		Cone = vtkConeSource::New(); 
-		Cone->SetRadius(0.05);
-		Cone->SetHeight(0.1);  
-		Cone->SetDirection(orientNew); 
+		coneSource = vtkConeSource::New(); 
+		coneSource->SetRadius(0.05);
+		coneSource->SetHeight(0.1);  
+		coneSource->SetDirection(orientNew); 
 
 		//Cone Mapper
 		vtkPolyDataMapper* ConeMapper = vtkPolyDataMapper::New();
-		ConeMapper->SetInput(Cone->GetOutput());
+		ConeMapper->SetInput(coneSource->GetOutput());
 
-		ConeActor = vtkActor::New();
-		ConeActor->SetMapper(ConeMapper); 
-		ConeActor->SetPosition(position); 
-		ConeActor->UseBoundsOff();
+		coneActor = vtkActor::New();
+		coneActor->SetMapper(ConeMapper); 
+		coneActor->SetPosition(position); 
+		coneActor->UseBoundsOff();
 		vtkRenderer* renderer1 = proxy->GetRenderer();
-		renderer1->AddActor(ConeActor);
+		renderer1->AddActor(coneActor);
 
-		Cone->Delete(); 
+		coneSource->Delete(); 
 		ConeMapper->Delete();
 	}
 
@@ -1246,13 +1301,22 @@ void pqVRPNStarter::resetPhantomActor(vtkPVXMLElement* root, vtkSMProxyLocator* 
 
 		trackerStyleCamera1->SetRenderer(vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() )->GetRenderer());
 	}
-	if (this->usePhantom)
+	if (this->usePhantom0)
 	{
 
 		this->VRPNTimer->blockSignals(true);
-		createConeInVTK(true);
-		phantomStyleCamera1->SetActor(this->ConeActor);
-		phantomStyleCamera1->SetConeSource(this->Cone);
+		createConeInVTK(phantomStyleCamera0,this->Cone0Actor,this->Cone0,true);
+		phantomStyleCamera0->SetActor(this->Cone0Actor);
+		phantomStyleCamera0->SetConeSource(this->Cone0);
+		this->VRPNTimer->blockSignals(false);
+	}
+	if (this->usePhantom1)
+	{
+
+		this->VRPNTimer->blockSignals(true);
+		createConeInVTK(phantomStyleCamera1,this->Cone1Actor,this->Cone1,true);
+		phantomStyleCamera1->SetActor(this->Cone1Actor);
+		phantomStyleCamera1->SetConeSource(this->Cone1);
 		this->VRPNTimer->blockSignals(false);
 	}
 }

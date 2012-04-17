@@ -71,8 +71,11 @@ class pqVRPNStarter : public QObject
 	Q_OBJECT
 		typedef QObject Superclass;
 public:
-	vtkActor* ConeActor;
-	vtkConeSource* Cone; 
+	vtkActor* Cone0Actor;
+	vtkConeSource* Cone0; 
+
+	vtkActor* Cone1Actor;
+	vtkConeSource* Cone1; 
 
 	pqVRPNStarter(QObject* p=0);
 	~pqVRPNStarter();
@@ -161,9 +164,12 @@ private:
 	vtkHomogeneousTransform* user1Transform;
 	vtkHomogeneousTransform* user0Transform;
 	bool showPartnersView; 
-	int usePhantom;
-	int isPhantomDesktop;
-	const char* phantomAddress;
+	int usePhantom0;
+	int isPhantom0Desktop;
+	const char* phantom0Address;
+	int usePhantom1;
+	int isPhantom1Desktop;
+	const char* phantom1Address;
 	int useTNG;
 	const char* tngAddress; 
 
@@ -181,6 +187,7 @@ private:
 	void repeatPropertiesChange(char* panelType,QList<char*> propertyStringList);
 
 	//Disable phantom when Timelines are being displayed
+	vtkVRPNPhantomStyleCamera* phantomStyleCamera0;
 	vtkVRPNPhantomStyleCamera* phantomStyleCamera1;
 
 
@@ -192,7 +199,8 @@ private:
 	// on source change after creation , we need to _not_ change isRepeating so that the pqpropertylinks
 	// changes will not be repeated infinitely.
 	bool onSourceChangeAfterRepeatingCreation;
-	void createConeInVTK(bool deleteOldCone);
+	void createConeInVTK(vtkVRPNPhantomStyleCamera*& phantomStyle, vtkActor*& coneActor, 
+									vtkConeSource*& coneSource, bool deleteOldCone);
 
 };
 
