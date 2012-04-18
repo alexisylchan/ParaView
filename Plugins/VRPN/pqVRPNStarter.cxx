@@ -614,14 +614,14 @@ void pqVRPNStarter::initializeDevices()
 		{    
 			// From C:\Users\alexisc\Documents\Visual Studio 2008\Projects\HibalToCyclopeanEye\HibalToCyclopeanEye\041612\cyclopeanTransform.txt
 			eyeToTrackerTransform->SetElement(0,3,0.000200); 
-			eyeToTrackerTransform->SetElement(1,3,0.142004); 
-			eyeToTrackerTransform->SetElement(2,3,0.171424);  
+			eyeToTrackerTransform->SetElement(1,3,-0.142004); 
+			eyeToTrackerTransform->SetElement(2,3,-0.171424);  
 		}
 		else
 		{   // From C:\Users\alexisc\Documents\Visual Studio 2008\Projects\HibalToCyclopeanEye\HibalToCyclopeanEye\041612\cyclopeanTransform.txt
 			eyeToTrackerTransform->SetElement(0,3,0.000707); 
-			eyeToTrackerTransform->SetElement(1,3,0.049336); 
-			eyeToTrackerTransform->SetElement(2,3,0.164706);  
+			eyeToTrackerTransform->SetElement(1,3,-0.049336); 
+			eyeToTrackerTransform->SetElement(2,3,-0.164706 );  
 		}
 		tracker1->SetEyeToTrackerTransform(eyeToTrackerTransform);
 		tracker1->Initialize();
