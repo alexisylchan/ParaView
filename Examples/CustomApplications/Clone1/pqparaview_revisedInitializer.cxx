@@ -139,7 +139,7 @@ bool pqparaview_revisedInitializer::Initialize(int argc, char* argv[])
 #endif
 
   QApplication::instance()->setApplicationName(this->MainWindow->windowTitle());
-  QApplication::font().setPointSize(12);
+  QApplication::font().setPointSize(24);
   // give GUI components time to update before the mainwindow is shown
   QApplication::instance()->processEvents();
   this->MainWindow->show();

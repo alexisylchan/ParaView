@@ -106,10 +106,12 @@ myMainWindow::myMainWindow()
 	}
 
 	// Setup default GUI layout.
-
+	
 	// Set up the dock window corners to give the vertical docks more room.
 	this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
 	this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+	this->menuBar()->setFixedSize(684,50);
+
 	QObject::connect(this->Internals->PushToSharedState,SIGNAL(clicked()),this,SLOT(saveState()));
 	this->Internals->PushToSharedState->setEnabled(true);
 
@@ -140,11 +142,12 @@ myMainWindow::myMainWindow()
 	// Populate Tools menu.
 	pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
 
+	
 	// setup the context menu for the pipeline browser.
 	pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(
 		*this->Internals->pipelineBrowser);
 
-	pqParaViewMenuBuilders::buildToolbars(*this);
+	//pqParaViewMenuBuilders::buildToolbars(*this);
 
 	// Setup the View menu. This must be setup after all toolbars and dockwidgets
 	// have been created.
@@ -161,7 +164,9 @@ myMainWindow::myMainWindow()
 	new pqParaViewBehaviors(this, this); 
 	this->Internals->MultiViewManager->toggleFullScreen();  
 	pqFixPathsInStateFilesBehavior::blockDialog(true);
-	qobject_cast<QWidget*>(this->Internals->proxyTabDock1)->setWindowFlags(Qt::FramelessWindowHint); 
+	qobject_cast<QWidget*>(this->Internals->proxyTabDock1)->setWindowFlags(Qt::FramelessWindowHint);
+	QWidget* titleWidget = new QWidget(this);  
+	this->Internals->proxyTabDock1->setTitleBarWidget( titleWidget );
 	QPointer<pqAnimationScene> Scene =  pqPVApplicationCore::instance()->animationManager()->getActiveScene();
 
 
