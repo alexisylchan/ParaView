@@ -667,6 +667,7 @@ void pqVRPNStarter::initializeDevices()
 
 		/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
 		phantomStyleCamera0 = vtkVRPNPhantomStyleCamera::New(); 
+		phantomStyleCamera0->SetCursorIndex(0);
 		/////////////////////////CONNECT TO SERVER CHANGE////////////////////////////
 
 		if (CREATE_VTK_CONE)
@@ -718,6 +719,7 @@ void pqVRPNStarter::initializeDevices()
 
 		/////////////////////////CREATE  PHANTOM STYLE////////////////////////////
 		phantomStyleCamera1 = vtkVRPNPhantomStyleCamera::New(); 
+		phantomStyleCamera1->SetCursorIndex(1);
 		/////////////////////////CONNECT TO SERVER CHANGE////////////////////////////
 
 		if (CREATE_VTK_CONE)

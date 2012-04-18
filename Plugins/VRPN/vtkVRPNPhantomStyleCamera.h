@@ -56,6 +56,7 @@ public:
   // Set and Get Create Tube
   void SetCreateTube(bool createTube);
   bool GetCreateTube();
+  void SetCursorIndex(int index); 
 
   void SetActor(vtkActor* myActor);
   void SetConeSource(vtkConeSource* myCone); 
@@ -75,6 +76,7 @@ public:
 protected:
   vtkVRPNPhantomStyleCamera();
   ~vtkVRPNPhantomStyleCamera();
+  vtkMatrix4x4* user1ViewMatrix;
 
   virtual void OnPhantom(vtkVRPNPhantom*);
 
@@ -89,6 +91,8 @@ private:
   double* ScaleByCameraFrustumPlanes(double* position,vtkRenderer* renderer,int sensorIndex);
   void CheckWithinPipelineBounds(pqView* view, vtkVRPNPhantom* Phantom,double* newPosition); 
   int first; 
+  double cursorColor[3];
+  int cursorIndex;
 };
 
 #endif

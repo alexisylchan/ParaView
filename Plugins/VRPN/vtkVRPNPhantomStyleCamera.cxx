@@ -115,12 +115,35 @@ vtkVRPNPhantomStyleCamera::vtkVRPNPhantomStyleCamera()
 
 	button2AlreadyPressed = false;
 	PhantomType = PHANTOM_TYPE_OMNI;
+	cursorColor[0]=cursorColor[1]=cursorColor[2] = 1.0;
+	cursorIndex = 0;
+	user1ViewMatrix = vtkMatrix4x4::New();
+	user1ViewMatrix->SetElement(0,0,0);
+	user1ViewMatrix->SetElement(0,1,0);
+	user1ViewMatrix->SetElement(0,2,1);
+	user1ViewMatrix->SetElement(0,3,0);
+	user1ViewMatrix->SetElement(1,0,0);
+	user1ViewMatrix->SetElement(1,1,1);
+	user1ViewMatrix->SetElement(1,2,0);
+	user1ViewMatrix->SetElement(1,3,0);
+	user1ViewMatrix->SetElement(2,0,-1);
+	user1ViewMatrix->SetElement(2,1,0);
+	user1ViewMatrix->SetElement(2,2,0); 
+	user1ViewMatrix->SetElement(2,3,0);
+	user1ViewMatrix->SetElement(3,0, 0);
+	user1ViewMatrix->SetElement(3,1, 0 );
+	user1ViewMatrix->SetElement(3,2,0); 
+	user1ViewMatrix->SetElement(3,3,1); 
 }
 
 
 //----------------------------------------------------------------------------
 vtkVRPNPhantomStyleCamera::~vtkVRPNPhantomStyleCamera() 
 {
+	if (this->user1ViewMatrix)
+	{
+		this->user1ViewMatrix->Delete();
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -151,6 +174,24 @@ void vtkVRPNPhantomStyleCamera::SetPhantom(vtkVRPNPhantom* Phantom)
 void vtkVRPNPhantomStyleCamera::SetActor(vtkActor* myActor) 
 { 
 	this->myActor = myActor;
+}
+ 
+//----------------------------------------------------------------------------
+void vtkVRPNPhantomStyleCamera::SetCursorIndex(int index) 
+{		
+		this->cursorIndex = index;
+		if (index) //User 1
+		{
+			cursorColor[0] = 1.0;
+			cursorColor[1] = 0.0;
+			cursorColor[2] = 0.0;
+		}
+		else // User 0
+		{
+			cursorColor[0] = 0.0;
+			cursorColor[1] = 0.0;
+			cursorColor[2] = 1.0;
+		}
 }
 void vtkVRPNPhantomStyleCamera::SetConeSource(vtkConeSource* myCone) 
 { 
@@ -246,14 +287,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 		{ 
 
 			double* position = Phantom->GetPosition();
-			double* newPosition = (double*)malloc(sizeof(double)*4);
-			//Scale up position. TODO: Determine how much to scale between phantom position and world position
-			for (int s = 0; s<3;s++)
-			{
-				newPosition[s]=position[s];
-			} 
-			//
-			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() );   
+			double* newPosition = (double*)malloc(sizeof(double)*4);			 
 			// Update Object Orientation
 			double  matrix[3][3];
 			double orientNew[4] ;
@@ -273,7 +307,21 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			RotationMatrix->SetElement(2,0, matrix[2][0]);
 			RotationMatrix->SetElement(2,1, matrix[2][1]);
 			RotationMatrix->SetElement(2,2, matrix[2][2]); 
-			RotationMatrix->SetElement(2,3, 1.0);  
+			RotationMatrix->SetElement(2,3, 1.0);   
+
+			vtkSMRenderViewProxy *proxy = vtkSMRenderViewProxy::SafeDownCast( pqActiveObjects::instance().activeView()->getViewProxy() );
+			if(this->cursorIndex && this->user1ViewMatrix)
+			{
+				vtkMatrix4x4::Multiply4x4(this->user1ViewMatrix,RotationMatrix,RotationMatrix);
+				this->user1ViewMatrix->MultiplyPoint(position,newPosition);
+			}
+			else
+			{
+				for (int s = 0; s<3;s++)
+				{
+					newPosition[s]=position[s];
+				} 
+			}
 			vtkTransform::GetOrientation(orientNew,RotationMatrix); 
 			myActor->SetOrientation(orientNew);  
 			double* newScaledPosition= this->ScaleByCameraFrustumPlanes(newPosition,proxy->GetRenderer(),Phantom->GetSensorIndex());
@@ -283,11 +331,11 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			double delta[3] = {0.0,0.0,0.0};
 			if (vtkMath::AreBoundsInitialized(bounds) && vtkMath::PointIsWithinBounds( newScaledPosition,bounds,delta))
 			{
-				this->myActor->GetProperty()->SetColor(1,0,0); 
+				this->myActor->GetProperty()->SetColor(0,1,0); // Set to green when in object
 			} 
 			else
 			{
-				this->myActor->GetProperty()->SetColor(1,1,1);
+				this->myActor->GetProperty()->SetColor(cursorColor);
 			} 
 
 
@@ -319,9 +367,7 @@ void vtkVRPNPhantomStyleCamera::OnPhantom(vtkVRPNPhantom* Phantom)
 			myActor->SetPosition(newScaledPosition); 
 			myActor->Modified();
 			free(newPosition);
-			free(newScaledPosition);
-
-
+			free(newScaledPosition); 
 		}
 	}
 
@@ -479,7 +525,7 @@ double* vtkVRPNPhantomStyleCamera::ScaleByCameraFrustumPlanes(double* position,v
 
 		init2[0] = -0.154395;
 		init2[1] = -0.064019;
-		init2[2] = -0.067548;
+		init2[2] = -0.067548; 
 		init2[3] = 0;
 	}
 
