@@ -1,0 +1,15 @@
+Code for MS Comprehensive project 
+- high level overview: http://alexisylchan.wordpress.com/2012/06/18/projects/ 
+- Project report: http://cs.unc.edu/~alexisc/Comp991/AlexisChanComprehensivePaper2012-Final.pdf
+
+Apology: This code was written before I started reading parashift C++ FAQ
+
+The last active branch is : networking
+View code diffs since branching from Kitware: 
+https://github.com/alexisylchan/ParaView/compare/master...networking
+
+This project will be ported to the new ParaView architecture. 
+Exploration code here: https://github.com/alexisylchan/Collab
+
+Most of the hack done to support multi-user modification of scientific data is no longer needed due to the multi-client, multi-server support in ParaView: 
+http://paraview.org/Wiki/ParaView/Collaboration
